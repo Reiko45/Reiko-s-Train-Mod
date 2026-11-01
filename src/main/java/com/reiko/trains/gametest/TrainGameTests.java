@@ -14,6 +14,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
@@ -195,6 +196,56 @@ public final class TrainGameTests {
         });
     }
 
+    /** Round and round a square loop: the train goes round the corners and stays on the rails and together. */
+    @GameTest(template = "loop", timeoutTicks = 400)
+    public static void trainTakesCorners(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        TestTracks.loop(level, helper.absolutePos(new BlockPos(2, 1, 2)), helper.absolutePos(new BlockPos(23, 1, 23)));
+        BlockPos locoPos = helper.absolutePos(new BlockPos(2, 1, 12));
+        BlockPos coachPos = helper.absolutePos(new BlockPos(2, 1, 15));
+        BlockPos wagonPos = helper.absolutePos(new BlockPos(2, 1, 18));
+        Vec3 north = new Vec3(0, 0, -1);
+        SteamLocomotive locomotive = TrainCarItem.place(level, ModEntities.STEAM_LOCOMOTIVE.get(), locoPos, RailShape.NORTH_SOUTH, north, ItemStack.EMPTY, null);
+        PassengerCoach coach = TrainCarItem.place(level, ModEntities.PASSENGER_COACH.get(), coachPos, RailShape.NORTH_SOUTH, north, ItemStack.EMPTY, null);
+        FreightWagon wagon = TrainCarItem.place(level, ModEntities.FREIGHT_WAGON.get(), wagonPos, RailShape.NORTH_SOUTH, north, ItemStack.EMPTY, null);
+        Trains.couple(locomotive, coach);
+        Trains.couple(coach, wagon);
+        Player driver = board(helper, locomotive);
+        locomotive.setFuel(16000);
+        fullAhead(locomotive);
+        double railY = locoPos.getY() + 0.0625;
+        double[] travelled = {0.0};
+        double[] extremes = {0.0, 0.0};
+        Vec3[] last = {locomotive.position()};
+        for (int t = 20; t <= 320; t += 10) {
+            helper.runAfterDelay(t, () -> {
+                travelled[0] += locomotive.position().distanceTo(last[0]);
+                last[0] = locomotive.position();
+                for (AbstractMinecart car : List.<AbstractMinecart>of(locomotive, coach, wagon)) {
+                    helper.assertTrue(Math.abs(car.getY() - railY) < 0.2, car.getName().getString() + " came off the rails at " + car.position());
+                }
+                double off1 = locomotive.distanceTo(coach) - Trains.spacing(locomotive, coach);
+                double off2 = coach.distanceTo(wagon) - Trains.spacing(coach, wagon);
+                extremes[0] = Math.max(extremes[0], Math.max(off1, off2));
+                extremes[1] = Math.min(extremes[1], Math.min(off1, off2));
+                // On a corner the cars are closer in a straight line than along the track.
+                helper.assertTrue(locomotive.distanceTo(coach) < Trains.spacing(locomotive, coach) + 0.4,
+                        String.format("the coach fell behind: %.2f apart, loco at %s, coach at %s", locomotive.distanceTo(coach), locomotive.position(), coach.position()));
+                helper.assertTrue(locomotive.distanceTo(coach) > Trains.spacing(locomotive, coach) - 0.9, "the coach ran into the locomotive");
+                helper.assertTrue(coach.distanceTo(wagon) < Trains.spacing(coach, wagon) + 0.4, "the wagon fell behind");
+                helper.assertTrue(coach.distanceTo(wagon) > Trains.spacing(coach, wagon) - 0.9, "the wagon ran into the coach");
+            });
+        }
+        helper.runAfterDelay(330, () -> {
+            ReikoTrains.LOGGER.info("Corner test: went {} blocks; couplings stretched up to {} and squeezed up to {} blocks",
+                    String.format("%.1f", travelled[0]), String.format("%.2f", extremes[0]), String.format("%.2f", -extremes[1]));
+            helper.assertTrue(travelled[0] > 40.0, "the train should have gone round at least two corners, went " + travelled[0]);
+            helper.assertTrue(Trains.train(wagon).size() == 3, "the train should still be coupled");
+            driver.stopRiding();
+            helper.succeed();
+        });
+    }
+
     @GameTest(template = TRACK)
     public static void couplingRules(GameTestHelper helper) {
         layTrack(helper);
@@ -254,6 +305,17 @@ public final class TrainGameTests {
             helper.assertTrue(wagon.getLoad() == 2, "12 of 27 slots used should show two crates, shows " + wagon.getLoad());
             helper.succeed();
         });
+    }
+
+    @GameTest(template = TRACK)
+    public static void recipesAndFuelLoad(GameTestHelper helper) {
+        for (String name : List.of("steam_locomotive", "passenger_coach", "freight_wagon", "coupler")) {
+            helper.assertTrue(helper.getLevel().getRecipeManager().byKey(ReikoTrains.id(name)).isPresent(), "no recipe for " + name);
+        }
+        helper.assertTrue(new ItemStack(Items.COAL).is(SteamLocomotive.FUEL), "coal should be locomotive fuel");
+        helper.assertTrue(new ItemStack(Items.CHARCOAL).is(SteamLocomotive.FUEL), "charcoal should be locomotive fuel");
+        helper.assertTrue(!new ItemStack(Items.OAK_PLANKS).is(SteamLocomotive.FUEL), "planks shouldn't be (too easy to burn by accident)");
+        helper.succeed();
     }
 
     @GameTest(template = TRACK)

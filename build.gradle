@@ -29,6 +29,14 @@ neoForge {
         client {
             client()
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            // ./gradlew runClient -Pshowcase builds a test scene, drives a train and saves screenshots (see DevShowcase).
+            systemProperty 'reikotrains.showcase', project.hasProperty('showcase') ? 'true' : 'false'
+            // -PwindowSize=1280x720: a bigger window, for bigger screenshots.
+            def windowSize = project.findProperty('windowSize')
+            if (windowSize) {
+                def (w, h) = windowSize.toString().tokenize('x')
+                programArguments.addAll('--width', w, '--height', h)
+            }
         }
 
         server {
@@ -79,6 +87,11 @@ neoForge.ideSyncTask generateModMetadata
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+}
+
+// The screenshot showcase is for development only.
+tasks.named('jar', Jar) {
+    exclude 'com/reiko/trains/dev/**'
 }
 
 idea {

@@ -39,16 +39,16 @@ public final class SteamLocomotiveGeometry {
                 .texOffs(192, 0).addBox(-11.5F, -15.0F, -4.0F, 16.0F, 10.0F, 8.0F)
                 .texOffs(26, 0).addBox(-15.0F, -15.0F, -5.0F, 3.0F, 10.0F, 10.0F)
                 .texOffs(180, 52).addBox(-16.0F, -14.0F, -1.0F, 1.0F, 2.0F, 2.0F)
-                .texOffs(104, 39).addBox(-14.0F, -21.0F, -1.5F, 3.0F, 6.0F, 3.0F)
+                .texOffs(88, 39).addBox(-14.0F, -21.0F, -1.5F, 3.0F, 6.0F, 3.0F)
                 .texOffs(132, 52).addBox(-14.5F, -22.0F, -2.0F, 4.0F, 1.0F, 4.0F)
                 .texOffs(80, 52).addBox(-4.0F, -18.0F, -2.0F, 4.0F, 3.0F, 4.0F)
                 .texOffs(186, 52).addBox(2.0F, -17.0F, -0.5F, 1.0F, 2.0F, 1.0F)
-                .texOffs(224, 39).addBox(-9.0F, -11.0F, 5.0F, 14.0F, 6.0F, 2.0F)
+                .texOffs(220, 39).addBox(-9.0F, -11.0F, 5.0F, 14.0F, 6.0F, 2.0F)
                 .texOffs(0, 52).addBox(-9.0F, -11.0F, -7.0F, 14.0F, 6.0F, 2.0F)
                 .texOffs(0, 0).addBox(5.0F, -15.0F, -6.0F, 1.0F, 10.0F, 12.0F)
                 .texOffs(150, 22).addBox(5.0F, -24.0F, -6.0F, 1.0F, 2.0F, 12.0F)
-                .texOffs(88, 39).addBox(5.0F, -22.0F, 3.0F, 1.0F, 7.0F, 3.0F)
-                .texOffs(96, 39).addBox(5.0F, -22.0F, -6.0F, 1.0F, 7.0F, 3.0F)
+                .texOffs(100, 39).addBox(5.0F, -22.0F, 4.0F, 1.0F, 7.0F, 2.0F)
+                .texOffs(106, 39).addBox(5.0F, -22.0F, -6.0F, 1.0F, 7.0F, 2.0F)
                 .texOffs(32, 52).addBox(5.0F, -12.0F, 6.0F, 11.0F, 7.0F, 1.0F)
                 .texOffs(56, 52).addBox(5.0F, -12.0F, -7.0F, 11.0F, 7.0F, 1.0F)
                 .texOffs(0, 39).addBox(5.0F, -24.0F, 6.0F, 2.0F, 12.0F, 1.0F)
@@ -68,22 +68,22 @@ public final class SteamLocomotiveGeometry {
                 .texOffs(120, 52).addBox(-2.5F, -2.5F, -0.5F, 5.0F, 5.0F, 1.0F),
                 PartPose.offset(-13.0F, 2.5F, 5.5F));
         root.addOrReplaceChild("driver_l0", CubeListBuilder.create()
-                .texOffs(116, 39).addBox(-4.0F, -4.0F, -0.5F, 8.0F, 8.0F, 1.0F),
+                .texOffs(112, 39).addBox(-4.0F, -4.0F, -0.5F, 8.0F, 8.0F, 1.0F),
                 PartPose.offset(-6.0F, 1.0F, -5.5F));
         root.addOrReplaceChild("driver_r0", CubeListBuilder.create()
-                .texOffs(134, 39).addBox(-4.0F, -4.0F, -0.5F, 8.0F, 8.0F, 1.0F),
+                .texOffs(130, 39).addBox(-4.0F, -4.0F, -0.5F, 8.0F, 8.0F, 1.0F),
                 PartPose.offset(-6.0F, 1.0F, 5.5F));
         root.addOrReplaceChild("driver_l1", CubeListBuilder.create()
-                .texOffs(152, 39).addBox(-4.0F, -4.0F, -0.5F, 8.0F, 8.0F, 1.0F),
+                .texOffs(148, 39).addBox(-4.0F, -4.0F, -0.5F, 8.0F, 8.0F, 1.0F),
                 PartPose.offset(3.0F, 1.0F, -5.5F));
         root.addOrReplaceChild("driver_r1", CubeListBuilder.create()
-                .texOffs(170, 39).addBox(-4.0F, -4.0F, -0.5F, 8.0F, 8.0F, 1.0F),
+                .texOffs(166, 39).addBox(-4.0F, -4.0F, -0.5F, 8.0F, 8.0F, 1.0F),
                 PartPose.offset(3.0F, 1.0F, 5.5F));
         root.addOrReplaceChild("driver_l2", CubeListBuilder.create()
-                .texOffs(188, 39).addBox(-4.0F, -4.0F, -0.5F, 8.0F, 8.0F, 1.0F),
+                .texOffs(184, 39).addBox(-4.0F, -4.0F, -0.5F, 8.0F, 8.0F, 1.0F),
                 PartPose.offset(12.0F, 1.0F, -5.5F));
         root.addOrReplaceChild("driver_r2", CubeListBuilder.create()
-                .texOffs(206, 39).addBox(-4.0F, -4.0F, -0.5F, 8.0F, 8.0F, 1.0F),
+                .texOffs(202, 39).addBox(-4.0F, -4.0F, -0.5F, 8.0F, 8.0F, 1.0F),
                 PartPose.offset(12.0F, 1.0F, 5.5F));
         root.addOrReplaceChild("rod_l", CubeListBuilder.create()
                 .texOffs(190, 52).addBox(-9.5F, -0.5F, -0.5F, 19.0F, 1.0F, 1.0F),

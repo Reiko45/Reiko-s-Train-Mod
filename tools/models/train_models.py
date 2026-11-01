@@ -102,7 +102,7 @@ def steam_locomotive():
     # Cab: front wall with a big window over the boiler, sides with posts, a low back wall, and a roof
     b.append(box(5, -15, -6, 6, -5, 6, "cab"))
     b.append(box(5, -24, -6, 6, -22, 6, "cab"))
-    b += mirrored(5, -22, 3, 6, -15, 6, "cab")
+    b += mirrored(5, -22, 4, 6, -15, 6, "cab")
     b += mirrored(5, -12, 6, 16, -5, 7, "cab")
     b += mirrored(5, -24, 6, 7, -12, 7, "cab")
     b += mirrored(14, -24, 6, 16, -12, 7, "cab")

@@ -43,7 +43,8 @@ public class SteamLocomotive extends AbstractMinecart implements TrainCar {
     public static final int MAX_THROTTLE = 4;
     /** The firebox holds 32 coal's worth. */
     public static final double FUEL_CAPACITY = 32 * 1600;
-    private static final Seat[] SEATS = {new Seat(-0.62, 0.2, 0.54), new Seat(-0.62, -0.22, 0.54)};
+    /** The driver sits in the middle of the cab, looking out of the front window; the fireman beside the bunker. */
+    private static final Seat[] SEATS = {new Seat(-0.62, 0.0, 0.54), new Seat(-0.75, -0.24, 0.54)};
     /** Where the smoke comes out, from the middle of the locomotive: forward and up. */
     private static final double CHIMNEY_FORWARD = 0.78;
     private static final double CHIMNEY_UP = 1.72;

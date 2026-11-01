@@ -35,6 +35,8 @@ public final class Trains {
     /** How hard a coupling pulls a car back to the right distance: blocks per tick, per block out. */
     private static final double STIFFNESS = 0.35;
     private static final double MAX_CORRECTION = 0.3;
+    /** How much faster than the rails allow a coupled car may go, to catch up. Kept low: fast carts leave bends. */
+    private static final double FOLLOWER_HEADROOM = 1.2;
 
     private Trains() {
     }
@@ -282,11 +284,24 @@ public final class Trains {
         }
         double dx = offset.x / flat;
         double dz = offset.z / flat;
+        // Both cars are on rails, so this one should go as fast as the one in front, whichever way the track bends
+        // between them: towards it if it's pulling away, back if it's backing up. (Going by only the part of its
+        // speed that points this way would slow this car down on every bend.)
         Vec3 leaderMotion = front.getDeltaMovement();
+        double leaderSpeed = leaderMotion.horizontalDistance();
         double along = leaderMotion.x * dx + leaderMotion.z * dz;
+        double matched = leaderSpeed < 1.0E-4 ? 0.0 : along >= -0.3 * leaderSpeed ? leaderSpeed : -leaderSpeed;
         double correction = Mth.clamp((distance - spacing) * STIFFNESS, -MAX_CORRECTION, MAX_CORRECTION);
-        double speed = Mth.clamp(along + correction, -1.0, 1.0);
+        double speed = Mth.clamp(matched + correction, -1.0, 1.0);
         self.setDeltaMovement(dx * speed, self.getDeltaMovement().y, dz * speed);
+    }
+
+    /**
+     * The fastest a car can go on the rails it's on. A coupled car gets a little more than its locomotive can
+     * manage, so after a bend (or a stop) it can always catch back up to its place in the train.
+     */
+    public static double maxSpeed(TrainCar car, double railMax) {
+        return car.trainState().leader != null ? railMax * FOLLOWER_HEADROOM : railMax;
     }
 
     /**
@@ -294,7 +309,7 @@ public final class Trains {
      * full coach keeps up with the empty wagon behind it.
      */
     public static void moveOnRail(AbstractMinecart cart) {
-        double max = cart.getMaxSpeedWithRail();
+        double max = cart instanceof TrainCar car ? maxSpeed(car, cart.getMaxSpeedWithRail()) : cart.getMaxSpeedWithRail();
         Vec3 motion = cart.getDeltaMovement();
         cart.move(MoverType.SELF, new Vec3(Mth.clamp(motion.x, -max, max), 0.0, Mth.clamp(motion.z, -max, max)));
     }
