@@ -1,0 +1,31 @@
+# Mod metadata. The placeholder values are filled in from gradle.properties at build time.
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
+issueTrackerURL="https://github.com/Reiko45/Reiko-s-Train-Mod/issues"
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+authors="${mod_authors}"
+displayURL="https://github.com/Reiko45/Reiko-s-Train-Mod"
+logoFile="logo.png"
+logoBlur=false
+description='''
+Steam trains that run on ordinary Minecraft rails. Fire up a steam locomotive with coal, couple passenger coaches and freight wagons behind it, and drive it with a throttle, a brake and a whistle.
+'''
+
+[[dependencies.${mod_id}]]
+    modId="neoforge"
+    type="required"
+    versionRange="${neo_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="minecraft"
+    type="required"
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"

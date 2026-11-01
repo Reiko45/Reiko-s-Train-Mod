@@ -1,0 +1,25 @@
+{
+  "steam_whistle": {
+    "sounds": [
+      {
+        "name": "reikotrains:steam_whistle",
+        "attenuation_distance": 64
+      }
+    ],
+    "subtitle": "subtitles.reikotrains.steam_whistle"
+  },
+  "steam_chuff": {
+    "sounds": [
+      "reikotrains:chuff1",
+      "reikotrains:chuff2",
+      "reikotrains:chuff3"
+    ],
+    "subtitle": "subtitles.reikotrains.steam_chuff"
+  },
+  "couple": {
+    "sounds": [
+      "reikotrains:couple"
+    ],
+    "subtitle": "subtitles.reikotrains.couple"
+  }
+}

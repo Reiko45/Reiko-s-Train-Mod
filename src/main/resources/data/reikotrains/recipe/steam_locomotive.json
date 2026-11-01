@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "F": {
+      "item": "minecraft:furnace_minecart"
+    }
+  },
+  "pattern": [
+    "I  ",
+    "CFC",
+    "III"
+  ],
+  "result": {
+    "count": 1,
+    "id": "reikotrains:steam_locomotive"
+  }
+}

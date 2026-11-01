@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": {
+      "tag": "minecraft:planks"
+    },
+    "C": {
+      "item": "minecraft:chest"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "M": {
+      "item": "minecraft:minecart"
+    }
+  },
+  "pattern": [
+    "P P",
+    "PCP",
+    "IMI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "reikotrains:freight_wagon"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "itemGroup.reikotrains": "Reiko's Trains",
+
+  "item.reikotrains.steam_locomotive": "Steam Locomotive",
+  "item.reikotrains.passenger_coach": "Passenger Coach",
+  "item.reikotrains.freight_wagon": "Freight Wagon",
+  "item.reikotrains.coupler": "Coupler",
+  "item.reikotrains.coupler.tooltip": "Click a train car, then the car to couple it to",
+  "item.reikotrains.coupler.tooltip2": "Sneak-click a car to uncouple it",
+
+  "entity.reikotrains.steam_locomotive": "Steam Locomotive",
+  "entity.reikotrains.passenger_coach": "Passenger Coach",
+  "entity.reikotrains.freight_wagon": "Freight Wagon",
+
+  "key.categories.reikotrains": "Reiko's Trains",
+  "key.reikotrains.whistle": "Locomotive Whistle",
+
+  "hud.reikotrains.brake": "BRAKE",
+  "hud.reikotrains.fuel": "Fuel",
+  "hud.reikotrains.no_fire": "NO FIRE",
+
+  "message.reikotrains.controls": "%s / %s: throttle   %s: brake   %s: whistle",
+  "message.reikotrains.no_fuel": "The fire's out: put coal in the locomotive",
+  "message.reikotrains.fuel": "Firebox %s%% full",
+  "message.reikotrains.firebox_full": "The firebox is full",
+  "message.reikotrains.uncoupled": "%s uncoupled",
+  "message.reikotrains.not_coupled": "%s isn't coupled to anything",
+  "message.reikotrains.couple.picked": "%s picked: now click the car to couple it to",
+  "message.reikotrains.couple.cancelled": "Coupler cleared",
+  "message.reikotrains.couple.gone": "The first car isn't there any more",
+  "message.reikotrains.couple.coupled": "Coupled %s to %s (%s cars)",
+  "message.reikotrains.couple.same_car": "That's the same car",
+  "message.reikotrains.couple.same_train": "Those cars are already in the same train",
+  "message.reikotrains.couple.too_far": "Those cars are too far apart: bring them closer",
+  "message.reikotrains.couple.not_an_end": "Couple cars at the ends of their trains",
+  "message.reikotrains.couple.two_locomotives": "A train can only have one locomotive",
+  "message.reikotrains.couple.locomotive_front": "Couple to the back of the train: the locomotive leads",
+  "message.reikotrains.couple.too_long": "That would make the train too long",
+
+  "subtitles.reikotrains.steam_whistle": "Locomotive whistles",
+  "subtitles.reikotrains.steam_chuff": "Locomotive chuffs",
+  "subtitles.reikotrains.couple": "Coupling clanks"
+}

@@ -1,0 +1,27 @@
+package com.reiko.trains.registry;
+
+import com.reiko.trains.ReikoTrains;
+import java.util.function.Supplier;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.registries.DeferredRegister;
+
+public final class ModCreativeTabs {
+    public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, ReikoTrains.MODID);
+
+    public static final Supplier<CreativeModeTab> TRAINS = TABS.register("trains", () -> CreativeModeTab.builder()
+            .title(Component.translatable("itemGroup.reikotrains"))
+            .icon(() -> new ItemStack(ModItems.STEAM_LOCOMOTIVE.get()))
+            .displayItems((parameters, output) -> {
+                output.accept(ModItems.STEAM_LOCOMOTIVE.get());
+                output.accept(ModItems.PASSENGER_COACH.get());
+                output.accept(ModItems.FREIGHT_WAGON.get());
+                output.accept(ModItems.COUPLER.get());
+            })
+            .build());
+
+    private ModCreativeTabs() {
+    }
+}
