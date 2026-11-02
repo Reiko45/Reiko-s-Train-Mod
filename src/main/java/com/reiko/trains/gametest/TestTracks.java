@@ -6,6 +6,9 @@ import com.reiko.trains.signal.SignalBlock;
 import com.reiko.trains.signal.SignalBlockEntity;
 import com.reiko.trains.signal.StationBlock;
 import com.reiko.trains.signal.StationBlockEntity;
+import com.reiko.trains.signal.SwitchBlock;
+import com.reiko.trains.signal.SwitchBlockEntity;
+import com.reiko.trains.signal.TrackSide;
 import com.reiko.trains.track.TrackGraph;
 import com.reiko.trains.train.Timetable;
 import com.reiko.trains.track.TrackAxis;
@@ -90,6 +93,21 @@ public final class TestTracks {
         station.setName(name);
         station.setDwellSeconds(dwellSeconds);
         return station;
+    }
+
+    /** A switch stand at {@code pos}, working the nearest junction, as if a player had put it there (normal, unless it's powered). */
+    public static SwitchBlockEntity switchStand(ServerLevel level, BlockPos pos) {
+        level.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 2);
+        TrackSide.Junction junction = TrackSide.nearestJunction(level, pos);
+        if (junction == null) {
+            throw new IllegalStateException("No junction near " + pos.toShortString() + " for a switch stand");
+        }
+        boolean powered = level.hasNeighborSignal(pos);
+        level.setBlock(pos, ModBlocks.SWITCH.get().defaultBlockState().setValue(SwitchBlock.FACING, SwitchBlock.facing(junction, pos))
+                .setValue(SwitchBlock.POWERED, powered).setValue(SwitchBlock.THROWN, powered), 3);
+        SwitchBlockEntity stand = (SwitchBlockEntity) level.getBlockEntity(pos);
+        stand.attach(junction.node(), junction.side());
+        return stand;
     }
 
     /** A timetable stop for a station. */

@@ -17,6 +17,7 @@ public final class ModCreativeTabs {
             .displayItems((parameters, output) -> {
                 output.accept(ModItems.TRACK.get());
                 output.accept(ModItems.SIGNAL.get());
+                output.accept(ModItems.SWITCH.get());
                 output.accept(ModItems.STATION.get());
                 output.accept(ModItems.STEAM_LOCOMOTIVE.get());
                 output.accept(ModItems.PASSENGER_COACH.get());

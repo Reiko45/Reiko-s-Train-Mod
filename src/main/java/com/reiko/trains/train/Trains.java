@@ -2,6 +2,7 @@ package com.reiko.trains.train;
 
 import com.reiko.trains.ReikoTrains;
 import com.reiko.trains.config.TrainsConfig;
+import com.reiko.trains.signal.TrackSide;
 import com.reiko.trains.track.EdgeRef;
 import com.reiko.trains.track.TrackEdge;
 import com.reiko.trains.track.TrackGraph;
@@ -274,7 +275,8 @@ public final class Trains {
         TrackPos probe = (leadIsFront ? leadCar.front : leadCar.rear).copy();
         int steer = steering(cars);
         TrackPos.Chooser leaderChooser = (node, side, options, heading) -> {
-            EdgeRef chosen = chooser != null ? chooser.choose(node, side, options, heading) : TrackGraph.choose(options, heading, steer);
+            EdgeRef chosen = chooser != null ? chooser.choose(node, side, options, heading)
+                    : TrackSide.wayOn(level, node, side, options, heading, steer);
             head.routes.put(routeKey(node.asLong(), side), chosen);
             return chosen;
         };

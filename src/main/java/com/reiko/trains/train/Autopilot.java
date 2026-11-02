@@ -4,6 +4,7 @@ import com.mojang.serialization.Dynamic;
 import com.reiko.trains.ReikoTrains;
 import com.reiko.trains.config.TrainsConfig;
 import com.reiko.trains.signal.StationBlockEntity;
+import com.reiko.trains.signal.SwitchBlockEntity;
 import com.reiko.trains.signal.TrackSide;
 import com.reiko.trains.track.EdgeRef;
 import com.reiko.trains.track.TrackGraph;
@@ -109,13 +110,21 @@ public final class Autopilot {
     private boolean waitingAtSignal;
 
     /** Picks the way at a junction: the one that leads to the current stop, or heads most towards it. */
-    EdgeRef choose(Level level, BlockPos node, int side, List<EdgeRef> options, Vec3 heading) {
+    EdgeRef choose(Level level, BlockPos node, int side, List<EdgeRef> options, Vec3 heading, boolean setSwitch) {
         if (options.size() == 1) {
             return options.getFirst();
         }
+        SwitchBlockEntity found = TrackSide.switchAt(level, node, side);
+        if (found != null && found.isLocked()) {
+            return found.way(options, heading); // held by redstone: it has to go the way it's set
+        }
+        SwitchBlockEntity stand = setSwitch ? found : null;
         long key = node.asLong() * 2 + (side > 0 ? 1 : 0);
         EdgeRef chosen = choices.get(key);
         if (chosen != null && options.contains(chosen)) {
+            if (stand != null) {
+                stand.setTo(chosen, options, heading, loco.getUUID());
+            }
             return chosen;
         }
         Timetable.Stop stop = current();
@@ -143,6 +152,9 @@ public final class Autopilot {
             }
         }
         choices.put(key, chosen);
+        if (stand != null) {
+            stand.setTo(chosen, options, heading, loco.getUUID()); // sets the route as it comes up to it
+        }
         return chosen;
     }
 
@@ -165,7 +177,7 @@ public final class Autopilot {
             direction = chooseDirection(level, cars, signs, stop);
             chooseDirection = false;
         }
-        TrackPos.Chooser chooser = (node, side, options, heading) -> choose(level, node, side, options, heading);
+        TrackPos.Chooser chooser = (node, side, options, heading) -> choose(level, node, side, options, heading, true);
         Lookahead look = Lookahead.look(cars, signs, direction, chooser, stop.track());
         loco.showLookahead(look);
         double stopAt = Math.min(look.signalStop, Math.min(look.targetFound ? look.targetDistance : Double.POSITIVE_INFINITY,
@@ -236,7 +248,7 @@ public final class Autopilot {
     /** Whether the first signal along the track this way faces the other way (so this is the wrong way down the line). */
     private boolean wrongWay(Level level, TrackPos from, int direction) {
         boolean[] wrong = {false};
-        TrackScanner.scan(level, from, direction, Lookahead.RANGE * 2, (node, side, options, heading) -> choose(level, node, side, options, heading),
+        TrackScanner.scan(level, from, direction, Lookahead.RANGE * 2, (node, side, options, heading) -> choose(level, node, side, options, heading, false),
                 (node, arrivedSide, distance) -> {
                     if (TrackSide.signal(level, node, -arrivedSide) != null) {
                         return false;

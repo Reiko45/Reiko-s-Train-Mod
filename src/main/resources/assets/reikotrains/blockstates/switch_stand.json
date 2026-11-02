@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "facing=north,powered=false,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal"
+    },
+    "facing=north,powered=true,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal"
+    },
+    "facing=north,powered=false,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown"
+    },
+    "facing=north,powered=true,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown"
+    },
+    "facing=east,powered=false,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal",
+      "y": 90
+    },
+    "facing=east,powered=true,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal",
+      "y": 90
+    },
+    "facing=east,powered=false,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown",
+      "y": 90
+    },
+    "facing=east,powered=true,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown",
+      "y": 90
+    },
+    "facing=south,powered=false,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal",
+      "y": 180
+    },
+    "facing=south,powered=true,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal",
+      "y": 180
+    },
+    "facing=south,powered=false,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown",
+      "y": 180
+    },
+    "facing=south,powered=true,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown",
+      "y": 180
+    },
+    "facing=west,powered=false,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal",
+      "y": 270
+    },
+    "facing=west,powered=true,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal",
+      "y": 270
+    },
+    "facing=west,powered=false,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown",
+      "y": 270
+    },
+    "facing=west,powered=true,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown",
+      "y": 270
+    }
+  }
+}

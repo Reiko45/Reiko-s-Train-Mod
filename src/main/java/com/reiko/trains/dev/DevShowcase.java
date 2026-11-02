@@ -14,6 +14,7 @@ import com.reiko.trains.train.TrainCarEntity;
 import com.reiko.trains.train.Trains;
 import com.reiko.trains.menu.FreightWagonMenu;
 import com.reiko.trains.signal.StationBlockEntity;
+import com.reiko.trains.signal.SwitchBlockEntity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -142,6 +143,9 @@ public final class DevShowcase {
      * the south a loop (straights at z = 14 and z = 38, x 12 to 42, radius-12 ends) signalled for trains going round
      * clockwise, with two stations (Northgate, Southport) and two trains running between them on timetables.
      */
+    /** The switch stand for the junction at x = 52. */
+    private static final BlockPos SWITCH = new BlockPos(52, Y, -2);
+
     private static void build(ServerLevel level) {
         TestTracks.line(level, new BlockPos(-30, Y, 0), TrackAxis.X, 110);
         BlockPos branch = new BlockPos(52, Y, 0);
@@ -149,6 +153,7 @@ public final class DevShowcase {
         TestTracks.line(level, branch.offset(15, 0, 7), TrackAxis.SE, 10);
         TestTracks.station(level, new BlockPos(32, Y, -3), new BlockPos(32, Y, 0), "Riverside", 10);
         TestTracks.signal(level, new BlockPos(46, Y, -2), new BlockPos(46, Y, 0), 1);
+        TestTracks.switchStand(level, SWITCH);
 
         TestTracks.loop(level, new BlockPos(0, Y, 14), 30, 12);
         for (int x : new int[]{14, 26, 38}) {
@@ -242,6 +247,45 @@ public final class DevShowcase {
         at(780, mc -> mc.setScreen(new com.reiko.trains.client.StationScreen(new BlockPos(32, Y, -3), "Riverside", 10)));
         at(800, mc -> shot(mc, "11_station_screen"));
         at(805, mc -> mc.setScreen(null));
-        at(830, Minecraft::stop);
+        // The switch at the junction: set normally, then thrown; then a train on a timetable sets it for itself
+        at(806, mc -> {
+            mc.gameRenderer.setRenderHand(false);
+            mc.gameRenderer.setRenderBlockOutline(false);
+            look(mc, 51.0, Y, -4.4, -28.0F, 12.0F);
+        });
+        at(850, mc -> shot(mc, "12_switch_normal"));
+        at(852, mc -> server(mc, player -> {
+            if (player.serverLevel().getBlockEntity(SWITCH) instanceof SwitchBlockEntity stand) {
+                stand.setThrown(true);
+            }
+        }));
+        at(870, mc -> shot(mc, "13_switch_thrown"));
+        at(872, mc -> server(mc, player -> {
+            ServerLevel level = player.serverLevel();
+            if (level.getBlockEntity(SWITCH) instanceof SwitchBlockEntity stand) {
+                stand.setThrown(false);
+            }
+            StationBlockEntity halt = TestTracks.station(level, new BlockPos(77, Y, 13), new BlockPos(75, Y, 15), "Junction Halt", 10);
+            SteamLocomotive loco = level.getEntitiesOfClass(SteamLocomotive.class, new AABB(-40, Y - 2, -4, 80, Y + 4, 4)).getFirst();
+            player.getAbilities().flying = false;
+            player.onUpdateAbilities();
+            player.teleportTo(level, loco.getX(), loco.getY(), loco.getZ(), -90.0F, 6.0F);
+            player.startRiding(loco);
+            loco.control(TrainControlPayload.BRAKE_OFF);
+            loco.autopilot().start(List.of(TestTracks.stop(halt)));
+        }));
+        at(878, mc -> {
+            mc.player.setYRot(-90.0F);
+            mc.player.setXRot(6.0F);
+            mc.gameRenderer.setRenderBlockOutline(true);
+        });
+        at(900, mc -> shot(mc, "14_cab_points"));
+        at(902, mc -> {
+            mc.gameRenderer.setRenderBlockOutline(false);
+            look(mc, 49.0, Y + 7.0, -9.0, -40.0F, 28.0F);
+        });
+        at(975, mc -> shot(mc, "15_taking_the_branch"));
+        at(1010, mc -> shot(mc, "16_taking_the_branch_later"));
+        at(1020, Minecraft::stop);
     }
 }

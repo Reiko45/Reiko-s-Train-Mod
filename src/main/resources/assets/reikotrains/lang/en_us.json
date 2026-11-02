@@ -77,7 +77,7 @@
   "message.reikotrains.auto.next": "Next stop: %s",
   "message.reikotrains.auto.taken_over": "You're driving: the train's off its timetable",
   "hud.reikotrains.signal": "Signal %s m",
-  "hud.reikotrains.auto": "AUTO",
+  "hud.reikotrains.auto": "AUTO · TIMETABLE",
   "hud.reikotrains.auto.next": "Next stop: %s",
   "hud.reikotrains.auto.at": "At %s, leaving in %ss",
   "hud.reikotrains.auto.signal": "Waiting at a red signal",
@@ -87,5 +87,11 @@
   "screen.reikotrains.station": "Station",
   "screen.reikotrains.station.name": "Name",
   "screen.reikotrains.station.wait": "How long trains on a timetable wait",
-  "screen.reikotrains.station.dwell": "%s seconds"
+  "screen.reikotrains.station.dwell": "%s seconds",
+  "hud.reikotrains.points": "%s m",
+  "block.reikotrains.switch_stand": "Switch Stand",
+  "message.reikotrains.switch.no_junction": "A switch stand goes beside a junction, within 3 blocks of where the track divides",
+  "message.reikotrains.switch.locked": "Held by redstone",
+  "message.reikotrains.switch.thrown_left": "When thrown: to the left",
+  "message.reikotrains.switch.thrown_right": "When thrown: to the right"
 }

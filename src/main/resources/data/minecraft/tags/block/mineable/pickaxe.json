@@ -3,6 +3,7 @@
   "values": [
     "reikotrains:track",
     "reikotrains:signal",
-    "reikotrains:station"
+    "reikotrains:station",
+    "reikotrains:switch_stand"
   ]
 }

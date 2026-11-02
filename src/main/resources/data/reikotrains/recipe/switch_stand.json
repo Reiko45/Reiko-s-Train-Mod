@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "L": {
+      "item": "minecraft:lever"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "pattern": [
+    "L",
+    "I",
+    "I"
+  ],
+  "result": {
+    "count": 1,
+    "id": "reikotrains:switch_stand"
+  }
+}

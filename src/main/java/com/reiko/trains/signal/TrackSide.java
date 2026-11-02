@@ -1,5 +1,6 @@
 package com.reiko.trains.signal;
 
+import com.reiko.trains.track.EdgeRef;
 import com.reiko.trains.track.TrackAxis;
 import com.reiko.trains.track.TrackGraph;
 import java.util.HashMap;
@@ -23,6 +24,11 @@ public final class TrackSide {
 
     private static final Map<Level, Map<Long, List<SignalBlockEntity>>> SIGNALS = new WeakHashMap<>();
     private static final Map<Level, Map<Long, List<StationBlockEntity>>> STATIONS = new WeakHashMap<>();
+    private static final Map<Level, Map<Long, List<SwitchBlockEntity>>> SWITCHES = new WeakHashMap<>();
+
+    /** A junction: a track block with more than one way out of its side {@code side}. */
+    public record Junction(BlockPos node, int side) {
+    }
 
     private TrackSide() {
     }
@@ -43,6 +49,34 @@ public final class TrackSide {
                     if (d < bestDistance) {
                         bestDistance = d;
                         best = at;
+                    }
+                }
+            }
+        }
+        return best;
+    }
+
+    /** The nearest junction to {@code pos}, within reach (and a block up or down), or null if there isn't one. */
+    @Nullable
+    public static Junction nearestJunction(Level level, BlockPos pos) {
+        Junction best = null;
+        double bestDistance = Double.MAX_VALUE;
+        for (int dy = -1; dy <= 1; dy++) {
+            for (int dx = -REACH; dx <= REACH; dx++) {
+                for (int dz = -REACH; dz <= REACH; dz++) {
+                    BlockPos at = pos.offset(dx, dy, dz);
+                    if (TrackGraph.axis(level, at) == null) {
+                        continue;
+                    }
+                    double d = dx * dx + dz * dz + dy * dy * 0.5;
+                    if (d >= bestDistance) {
+                        continue;
+                    }
+                    for (int side = -1; side <= 1; side += 2) {
+                        if (TrackGraph.edgesFrom(level, at, side).size() >= 2) {
+                            bestDistance = d;
+                            best = new Junction(at.immutable(), side);
+                        }
                     }
                 }
             }
@@ -88,6 +122,50 @@ public final class TrackSide {
         if (map != null && map.containsKey(node.asLong())) {
             map.get(node.asLong()).remove(station);
         }
+    }
+
+    static synchronized void add(SwitchBlockEntity stand) {
+        SWITCHES.computeIfAbsent(stand.getLevel(), l -> new HashMap<>()).computeIfAbsent(stand.node().asLong(), k -> new ArrayList<>()).add(stand);
+    }
+
+    static synchronized void remove(SwitchBlockEntity stand, BlockPos node) {
+        Map<Long, List<SwitchBlockEntity>> map = SWITCHES.get(stand.getLevel());
+        if (map != null && map.containsKey(node.asLong())) {
+            map.get(node.asLong()).remove(stand);
+        }
+    }
+
+    /** The switch working the junction at this track block where the ways leave by {@code side}, if any (and loaded). */
+    @Nullable
+    public static synchronized SwitchBlockEntity switchAt(Level level, BlockPos node, int side) {
+        Map<Long, List<SwitchBlockEntity>> map = SWITCHES.get(level);
+        if (map == null) {
+            return null;
+        }
+        List<SwitchBlockEntity> here = map.get(node.asLong());
+        if (here == null) {
+            return null;
+        }
+        for (SwitchBlockEntity stand : here) {
+            if (!stand.isRemoved() && stand.side() == side) {
+                return stand;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The way a train takes at a junction when it isn't choosing for itself: the way the switch is set, if there's a
+     * switch, or else the way the driver's steering ({@code steer}: -1 left, 0 straight, +1 right).
+     */
+    public static EdgeRef wayOn(Level level, BlockPos node, int side, List<EdgeRef> options, Vec3 heading, int steer) {
+        if (options.size() > 1) {
+            SwitchBlockEntity stand = switchAt(level, node, side);
+            if (stand != null) {
+                return stand.way(options, heading);
+            }
+        }
+        return TrackGraph.choose(options, heading, steer);
     }
 
     /** The signal at this track block guarding the way out of it by {@code side}, if there is one (and it's loaded). */

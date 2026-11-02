@@ -3,12 +3,15 @@ package com.reiko.trains.train;
 import com.reiko.trains.signal.SignalBlockEntity;
 import com.reiko.trains.signal.StationBlockEntity;
 import com.reiko.trains.signal.TrackSide;
+import com.reiko.trains.track.EdgeRef;
+import com.reiko.trains.track.TrackGraph;
 import com.reiko.trains.track.TrackPos;
 import com.reiko.trains.track.TrackScanner;
 import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * What's on the track ahead of a train, measured from its leading buffer: the next signal (and whether it's clear),
@@ -31,6 +34,10 @@ final class Lookahead {
     /** The stop being made for (from {@code target}): found, and how far. */
     boolean targetFound;
     double targetDistance = Double.POSITIVE_INFINITY;
+    /** The next switch: how far, and which way it's set (-1 left, 0 straight on, +1 right). Negative distance if none. */
+    double pointsDistance = -1;
+    int pointsTurn;
+    private double lastBuffer;
     boolean endOfLine;
     double endDistance = Double.POSITIVE_INFINITY;
 
@@ -57,8 +64,18 @@ final class Lookahead {
         int carDirection = direction * signs[index];
         TrackPos bogie = carDirection > 0 ? car.front : car.rear;
         double overhang = car.halfLength() - car.bogieOffset();
-        TrackScanner.End end = TrackScanner.scan(level, bogie, carDirection, RANGE, chooser, (node, arrivedSide, distance) -> {
+        // Watches the way the train will go at the first switch ahead (the scan visits a track block, then chooses).
+        TrackPos.Chooser watching = (node, side, options, heading) -> {
+            EdgeRef way = chooser.choose(node, side, options, heading);
+            if (look.pointsDistance < 0 && options.size() > 1 && look.lastBuffer > -0.25 && TrackSide.switchAt(level, node, side) != null) {
+                look.pointsDistance = Math.max(0, look.lastBuffer);
+                look.pointsTurn = turn(options, heading, way);
+            }
+            return way;
+        };
+        TrackScanner.End end = TrackScanner.scan(level, bogie, carDirection, RANGE, watching, (node, arrivedSide, distance) -> {
             double buffer = distance - overhang;
+            look.lastBuffer = buffer;
             if (target != null && node.equals(target)) {
                 look.targetFound = true;
                 look.targetDistance = buffer;
@@ -88,5 +105,13 @@ final class Lookahead {
             look.endDistance = end.distance() - overhang;
         }
         return look;
+    }
+
+    /** Which way {@code way} goes, of these: -1 bending left, 0 the straightest, +1 bending right. */
+    static int turn(List<EdgeRef> options, Vec3 heading, EdgeRef way) {
+        if (way.equals(TrackGraph.choose(options, heading, 0))) {
+            return 0;
+        }
+        return way.equals(TrackGraph.choose(options, heading, 1)) ? 1 : -1;
     }
 }

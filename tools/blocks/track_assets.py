@@ -300,10 +300,79 @@ def station_models():
         json.dump({"variants": variants}, out, indent=2)
 
 
+def target(name, color):
+    """A switch stand's target: a disc of colour, rimmed, on a black plate."""
+    img = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            r = math.hypot(x - 7.5, y - 7.5)
+            if r <= 6.2:
+                c = shade(color, 1.08 - 0.18 * (r / 6.2) + 0.03 * noise(name, x, y))
+            elif r <= 7.3:
+                c = shade((232, 228, 214), 1)
+            else:
+                c = (20, 20, 22, 255)
+            img.putpixel((x, y), c)
+    img.save(f"{ASSETS}/textures/block/{name}.png")
+
+
+def switch_textures():
+    target("switch_target_green", (40, 170, 72))
+    target("switch_target_yellow", (236, 186, 30))
+    solid("switch_lever", (168, 36, 30))
+
+
+def switch_models():
+    """
+    The switch stand: a cast base, a spindle, a target on top and a hand lever. Set normally the target's green face
+    is square to the stand's front (it faces the junction); thrown, the spindle turns it a quarter round, to show the
+    yellow face, and the lever is over the other way.
+    """
+    for name, thrown in (("switch_stand_normal", False), ("switch_stand_thrown", True)):
+        plate = "#yellow" if thrown else "#green"
+        tex = {"particle": "reikotrains:block/signal_metal", "metal": "reikotrains:block/signal_metal",
+               "head": "reikotrains:block/signal_head", "lever": "reikotrains:block/switch_lever",
+               "green": "reikotrains:block/switch_target_green", "yellow": "reikotrains:block/switch_target_yellow"}
+        if thrown:
+            target_box = element([7.5, 12, 4.5], [8.5, 19, 11.5], {"east": (plate, [0, 0, 16, 16]), "west": (plate, [0, 0, 16, 16]),
+                                                                    "north": ("#head", [0, 0, 1, 7]), "south": ("#head", [0, 0, 1, 7]),
+                                                                    "up": ("#head", [0, 0, 1, 7]), "down": ("#head", [0, 0, 1, 7])})
+        else:
+            target_box = element([4.5, 12, 7.5], [11.5, 19, 8.5], {"north": (plate, [0, 0, 16, 16]), "south": (plate, [0, 0, 16, 16]),
+                                                                    "east": ("#head", [0, 0, 1, 7]), "west": ("#head", [0, 0, 1, 7]),
+                                                                    "up": ("#head", [0, 0, 7, 1]), "down": ("#head", [0, 0, 7, 1])})
+        lever = element([10.5, 2.5, 7.5], [11.5, 10, 8.5], all_faces("#lever", (0, 0, 1, 8)))
+        lever["rotation"] = {"origin": [11, 3, 8], "axis": "x", "angle": 45 if thrown else -45}
+        grip = element([10.5, 2, 6.5], [12, 4, 9.5], all_faces("#head", (0, 0, 3, 2)))
+        elements = [
+            element([4, 0, 4], [12, 2, 12], all_faces("#metal", (0, 0, 8, 8))),
+            element([5, 2, 5], [11, 3, 11], all_faces("#head", (0, 0, 6, 6))),
+            element([7, 3, 7], [9, 12, 9], all_faces("#metal", (0, 0, 2, 9))),
+            target_box,
+            grip,
+            lever,
+        ]
+        model = {"parent": "block/block", "ambientocclusion": False, "textures": tex, "elements": elements}
+        with open(f"{ASSETS}/models/block/{name}.json", "w") as out:
+            json.dump(model, out, indent=2)
+    variants = {}
+    for facing, y in (("north", 0), ("east", 90), ("south", 180), ("west", 270)):
+        for thrown in ("false", "true"):
+            for powered in ("false", "true"):
+                v = {"model": f"reikotrains:block/switch_stand_{'thrown' if thrown == 'true' else 'normal'}"}
+                if y:
+                    v["y"] = y
+                variants[f"facing={facing},powered={powered},thrown={thrown}"] = v
+    with open(f"{ASSETS}/blockstates/switch_stand.json", "w") as out:
+        json.dump({"variants": variants}, out, indent=2)
+
+
 def signals_and_stations():
     signal_textures()
     signal_models()
     station_models()
+    switch_textures()
+    switch_models()
 
 
 if __name__ == "__main__":

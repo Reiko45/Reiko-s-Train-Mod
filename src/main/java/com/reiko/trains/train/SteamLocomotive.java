@@ -5,7 +5,7 @@ import com.reiko.trains.config.TrainsConfig;
 import com.reiko.trains.network.TrainControlPayload;
 import com.reiko.trains.registry.ModItems;
 import com.reiko.trains.registry.ModSounds;
-import com.reiko.trains.track.TrackGraph;
+import com.reiko.trains.signal.TrackSide;
 import com.reiko.trains.track.TrackPos;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -61,6 +61,8 @@ public class SteamLocomotive extends TrainCarEntity {
     /** The next station ahead and how far, or the timetable's status, for the gauges. */
     private static final EntityDataAccessor<Component> DATA_STATUS = SynchedEntityData.defineId(SteamLocomotive.class, EntityDataSerializers.COMPONENT);
     private static final EntityDataAccessor<Boolean> DATA_AUTO = SynchedEntityData.defineId(SteamLocomotive.class, EntityDataSerializers.BOOLEAN);
+    /** The next switch ahead: (turn + 2) * 10000 + distance, or 0 if there's none in sight. */
+    private static final EntityDataAccessor<Integer> DATA_POINTS = SynchedEntityData.defineId(SteamLocomotive.class, EntityDataSerializers.INT);
 
     private double fuel;
     private final Autopilot autopilot = new Autopilot(this);
@@ -86,6 +88,7 @@ public class SteamLocomotive extends TrainCarEntity {
         builder.define(DATA_SIGNAL, 0);
         builder.define(DATA_STATUS, Component.empty());
         builder.define(DATA_AUTO, false);
+        builder.define(DATA_POINTS, 0);
     }
 
     @Override
@@ -260,7 +263,7 @@ public class SteamLocomotive extends TrainCarEntity {
         int throttle = getThrottle();
         int direction = Math.abs(speed) > 1.0E-4 ? (speed > 0 ? 1 : -1) : throttle != 0 ? Integer.signum(throttle) * signs[index] : 1;
         int steer = getSteer();
-        TrackPos.Chooser chooser = (node, side, options, heading) -> TrackGraph.choose(options, heading, steer);
+        TrackPos.Chooser chooser = (node, side, options, heading) -> TrackSide.wayOn(level(), node, side, options, heading, steer);
         Lookahead look = Lookahead.look(cars, signs, direction, chooser, null);
         showLookahead(look);
         updateAutoDisplay();
@@ -273,6 +276,10 @@ public class SteamLocomotive extends TrainCarEntity {
         int signal = look.signalDistance < 0 ? 0 : (look.signalClear ? 1 : 2) * 10000 + Mth.clamp((int) Math.round(look.signalDistance / 2) * 2, 0, 9999);
         if (entityData.get(DATA_SIGNAL) != signal) {
             entityData.set(DATA_SIGNAL, signal);
+        }
+        int points = look.pointsDistance < 0 ? 0 : (look.pointsTurn + 2) * 10000 + Mth.clamp((int) Math.round(look.pointsDistance), 0, 9999);
+        if (entityData.get(DATA_POINTS) != points) {
+            entityData.set(DATA_POINTS, points);
         }
         if (!autopilot.isOn()) {
             Component status = Component.empty();
@@ -300,6 +307,21 @@ public class SteamLocomotive extends TrainCarEntity {
                 entityData.set(DATA_STATUS, status);
             }
         }
+    }
+
+    /** Whether there's a switch in sight ahead (for the gauges). */
+    public boolean hasPointsAhead() {
+        return entityData.get(DATA_POINTS) != 0;
+    }
+
+    /** Which way the next switch ahead is set: -1 left, 0 straight on, +1 right. */
+    public int pointsTurn() {
+        return entityData.get(DATA_POINTS) / 10000 - 2;
+    }
+
+    /** How far ahead the next switch is, in blocks. */
+    public int pointsDistance() {
+        return entityData.get(DATA_POINTS) % 10000;
     }
 
     /** The train's speed in km/h, for the speedometer (either way). */

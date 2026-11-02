@@ -2,6 +2,20 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.4.0
+
+Switches.
+
+- Switch Stand: put it beside a junction and that junction goes the way it's set: normally the straightest way,
+  thrown the branch (sneak-click it to pick left or right at a three-way junction). Click it to throw it, or work it
+  with redstone like a door; while redstone holds it, it can't be moved. Its target shows green set normally and
+  yellow thrown.
+- Trains on a timetable set an unheld switch their way as they come up to it, and obey one held by redstone.
+- Drivers' left/right steering only counts at junctions without a switch.
+- The cab gauges show the next switch: an arrow for the way it's set (green straight on, yellow for a turn) and how
+  far. On a timetable, an AUTO bar takes the throttle's place.
+- Eight new game tests: 38 in all.
+
 ## 0.3.0
 
 Signals, stations and timetables.

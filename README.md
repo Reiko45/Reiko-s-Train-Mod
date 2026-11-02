@@ -1,8 +1,9 @@
 # Reiko's Train Mod
 
 Big steam trains for Minecraft **1.21.1** (NeoForge), on their own track. Lay a railway with curves, ramps and
-junctions, signal it, name its stations, and either drive the trains yourself (throttle, brake, whistle, a choice of
-way at every junction) or give them a timetable and let them run between the stations on their own.
+junctions, signal it, work its switches by hand or with redstone, name its stations, and either drive the trains
+yourself (throttle, brake, whistle, a choice of way at every junction) or give them a timetable and let them run
+between the stations on their own.
 
 ![A train on the line](docs/screenshots/train.jpg)
 
@@ -21,6 +22,7 @@ way at every junction) or give them a timetable and let them run between the sta
   it, crates pile up in it as it fills, and a full one is heavier to pull.
 - **Coupler**: joins cars into trains.
 - **Railway Signal**: red while there's a train on the line ahead, green when it's clear. Trains stop for red.
+- **Switch Stand**: sets which way trains go at a junction. Flip it by hand or with redstone.
 - **Station**: a nameboard beside the track. Trains stop with their front level with it.
 - **Timetable**: a list of stations for a train to run between by itself.
 
@@ -59,6 +61,7 @@ or ramp can cross gaps between them, so bridges are just long curves. Leave thre
 | Freight Wagon | Planks around a chest (top middle open); iron ingot, minecart, iron ingot |
 | Coupler | Iron ingot, chain, iron ingot (a column) |
 | Railway Signal (2) | Redstone lamp, iron ingot, iron ingot (a column) |
+| Switch Stand | Lever, iron ingot, iron ingot (a column) |
 | Station | Any sign, iron ingot, iron ingot (a column) |
 | Timetable | Two paper and a clock |
 
@@ -85,11 +88,12 @@ empty hand to climb into the cab.
 | Forward (W) | Throttle up a notch (hold to keep going) |
 | Back (S) | Throttle down a notch, through neutral into reverse |
 | Jump (Space) | Brake, while held |
-| Left / right (A / D) | Hold to take the left or right way at the next junction (otherwise it goes straight on) |
+| Left / right (A / D) | Hold to take the left or right way at the next junction (otherwise it goes straight on). Junctions with a switch stand go the way the switch is set |
 | H | Whistle (rebind under Controls, *Reiko's Trains*) |
 | Sneak | Get out |
 
-The gauges, bottom right, show the next signal (and how far), the next station, the throttle notch (R2, R1, N, 1-4),
+The gauges, bottom right, show the next signal (and how far), the next switch (which way it's set, and how far), the
+next station, the throttle notch (R2, R1, N, 1-4),
 the speed, which way you're steering, the brake and the firebox. Top speed is 43 km/h; a heavy train takes longer to get going, and slows (or stalls) going uphill.
 Cars roll downhill on their own. At the end of the line a train stops dead. If the track under a car is broken, the
 car comes off and drops as an item. With nobody at the controls the handbrake holds the train, and the fire only
@@ -131,6 +135,30 @@ when it's clear. Its lamps face the trains coming towards it.
   round is run that way round.
 
 ![A signal turns red behind a train](docs/screenshots/signals.jpg)
+
+## Switches
+
+Put a **Switch Stand** beside a junction, within three blocks of the track block where the line divides. From then
+on that junction goes the way the switch is set, for every train going through it towards the fork:
+
+- **Normal** (green target): the straightest way.
+- **Thrown** (yellow target, lever over): the way that branches off. Where three ways leave the same end of a block,
+  sneak-click the stand to choose whether thrown means the left or the right one.
+
+Click the stand to throw it over or put it back. **Redstone** works it like a door: powered, it's thrown, and back
+again when the power goes off; while it's powered it's held there and clicking does nothing. Trains coming the other
+way (out of either branch towards the main line) just run through.
+
+Trains on a timetable set an unheld switch for themselves as they come up to it, to the way to their next station.
+A switch held by redstone they have to obey, so redstone can send them round a different way (or into a siding).
+Drivers' A / D steering only counts at junctions with no switch. Throwing a switch under a train doesn't split it:
+the cars behind follow the engine.
+
+![A switch stand, set normally (left) and thrown](docs/screenshots/switch_stand.jpg)
+
+![A train on a timetable sets the switch for the branch](docs/screenshots/switch_branch.jpg)
+
+![The gauges: the switch 3 m ahead is set to the right](docs/screenshots/switch_gauges.png)
 
 ## Stations and timetables
 
@@ -176,7 +204,9 @@ end, one locomotive per train), saving, derailing when the track goes, the 108-s
 recipes. `SignalGameTests` covers signals (red with a train ahead, green when it's gone, redstone, comparators),
 drivers stopping at red, stations' redstone, the timetable item, a timetabled train shuttling between two stations,
 waiting at a signal, taking a branch to reach its station, handing over to a driver, and two timetabled trains
-sharing a signalled loop without ever meeting.
+sharing a signalled loop without ever meeting. `SwitchGameTests` covers switch stands finding their junction,
+clicking and redstone (and being held), drivers going the way the switch is set whatever they steer, throwing a
+switch under a train without splitting it, and timetabled trains setting switches their way or obeying a held one.
 
 `./gradlew runClient -Pshowcase -PwindowSize=1280x720` builds a test railway, runs trains round it and saves
 screenshots to `run/screenshots/` (that's where the pictures above come from).
@@ -202,9 +232,10 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
   the same distance along the track. The bogie at the very front chooses the way at junctions, and the rest follow its
   choices, so a train never splits at a junction. Cars are made of several hitbox parts along their length, as entity
   boxes can't turn.
-- **Signals and stations** (`signal/`): each is tied to a track block. A signal works out its section (the track ahead
-  up to the next signals) and checks it for trains. `TrackSide` keeps track of which are at which block, so trains
-  look them up as they go.
+- **Signals, switches and stations** (`signal/`): each is tied to a track block. A signal works out its section (the
+  track ahead up to the next signals) and checks it for trains. A switch stand works one side of a junction block.
+  `TrackSide` keeps track of which are at which block, so trains look them up as they go: wherever a train chooses
+  its way (driving, looking ahead, or a timetable's route), a switch there decides.
 - **Driving** (`train/Lookahead`, `Autopilot`): every tick a train looks 80 blocks down the line for signals,
   stations and the end of the track, and slows to stop in time for a red signal (or its station). A timetabled train's
   `Autopilot` searches the track for the way to its next station.
@@ -215,7 +246,6 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
 ## Ideas for later
 
 - More locomotives (a diesel?), tenders, more wagons
-- Track switches you can set by hand or with redstone
 - Loading and unloading wagons at stations automatically
 - A departures board
 

@@ -3,6 +3,7 @@ package com.reiko.trains.registry;
 import com.reiko.trains.ReikoTrains;
 import com.reiko.trains.signal.SignalBlockEntity;
 import com.reiko.trains.signal.StationBlockEntity;
+import com.reiko.trains.signal.SwitchBlockEntity;
 import com.reiko.trains.track.TrackBlockEntity;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
@@ -22,6 +23,10 @@ public final class ModBlockEntities {
     @SuppressWarnings("DataFlowIssue")
     public static final Supplier<BlockEntityType<StationBlockEntity>> STATION = BLOCK_ENTITIES.register("station",
             () -> BlockEntityType.Builder.of(StationBlockEntity::new, ModBlocks.STATION.get()).build(null));
+
+    @SuppressWarnings("DataFlowIssue")
+    public static final Supplier<BlockEntityType<SwitchBlockEntity>> SWITCH = BLOCK_ENTITIES.register("switch_stand",
+            () -> BlockEntityType.Builder.of(SwitchBlockEntity::new, ModBlocks.SWITCH.get()).build(null));
 
     private ModBlockEntities() {
     }
