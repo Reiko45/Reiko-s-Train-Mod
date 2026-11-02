@@ -126,5 +126,12 @@
   "entity.reikotrains.guards_van": "Guard's Van",
   "item.reikotrains.guards_van": "Guard's Van",
   "message.reikotrains.tank.empty": "Tank wagon: empty (holds %s buckets)",
-  "message.reikotrains.tank.contents": "Tank wagon: %s of %s buckets of %s"
+  "message.reikotrains.tank.contents": "Tank wagon: %s of %s buckets of %s",
+  "screen.reikotrains.loader.loading": "Loading",
+  "screen.reikotrains.loader.unloading": "Unloading",
+  "screen.reikotrains.loader.allow": "Only these",
+  "screen.reikotrains.loader.deny": "All but these",
+  "screen.reikotrains.loader.allow.tooltip": "Moves only the items shown (a filled bucket stands for its fluid, for tank wagons). With nothing shown, it moves everything.",
+  "screen.reikotrains.loader.deny.tooltip": "Moves everything except the items shown (a filled bucket stands for its fluid, for tank wagons).",
+  "screen.reikotrains.loader.slot": "Click with an item to add it to the filter"
 }

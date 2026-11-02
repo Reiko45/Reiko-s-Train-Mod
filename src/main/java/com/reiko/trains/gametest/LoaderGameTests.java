@@ -8,12 +8,20 @@ import com.reiko.trains.network.TrainControlPayload;
 import com.reiko.trains.registry.ModEntities;
 import com.reiko.trains.signal.StationBlockEntity;
 import com.reiko.trains.track.TrackAxis;
+import com.reiko.trains.menu.WagonLoaderMenu;
 import com.reiko.trains.train.FreightWagon;
+import com.reiko.trains.train.TankWagon;
 import com.reiko.trains.train.SteamLocomotive;
 import com.reiko.trains.train.TrainCarEntity;
 import com.reiko.trains.train.Trains;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.level.material.Fluids;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -190,9 +198,10 @@ public final class LoaderGameTests {
             helper.assertTrue(left.isEmpty() && count(wagon, Items.IRON_INGOT) == 10, "loading, goods put in should go into the wagon");
             helper.assertTrue(port.extractItem(0, 10, false).isEmpty(), "loading, nothing should come out");
             Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            player.setShiftKeyDown(true); // sneak-click switches loading and unloading
             helper.getLevel().getBlockState(loader.getBlockPos()).useWithoutItem(helper.getLevel(), player,
                     new net.minecraft.world.phys.BlockHitResult(Vec3.atCenterOf(loader.getBlockPos()), Direction.UP, loader.getBlockPos(), false));
-            helper.assertTrue(loader.mode() == LoaderMode.UNLOAD, "a click should switch it to unloading");
+            helper.assertTrue(loader.mode() == LoaderMode.UNLOAD, "a sneak-click should switch it to unloading");
             helper.assertTrue(port.insertItem(0, new ItemStack(Items.IRON_INGOT, 10), false).getCount() == 10, "unloading, nothing should go in");
             helper.assertTrue(port.extractItem(0, 4, false).getCount() == 4 && count(wagon, Items.IRON_INGOT) == 6, "unloading, goods should come out");
             helper.succeed();
@@ -245,6 +254,106 @@ public final class LoaderGameTests {
             helper.assertTrue(count(wagon, Items.GRAVEL) == 81 * 64, "and have it all in its wagon, not " + count(wagon, Items.GRAVEL));
             helper.assertTrue(said[0], "the cab should have said it was loading");
         });
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------
+    // Filters
+
+    @GameTest(template = LINE, timeoutTicks = 200)
+    public static void filterLoadsOnlyWhatsShown(GameTestHelper helper) {
+        line(helper);
+        WagonLoaderBlockEntity loader = loader(helper, 20, LoaderMode.LOAD, false);
+        ChestBlockEntity chest = chest(helper, loader.getBlockPos().east(), Items.COBBLESTONE, 10);
+        for (int i = 10; i < 15; i++) {
+            chest.setItem(i, new ItemStack(Items.IRON_INGOT, 64));
+        }
+        loader.filter().setItem(0, new ItemStack(Items.IRON_INGOT));
+        FreightWagon wagon = TestTracks.car(helper.getLevel(), ModEntities.FREIGHT_WAGON.get(), at(helper, 20), EAST);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(count(wagon, Items.IRON_INGOT) == 5 * 64, "all the iron should be loaded, " + count(wagon, Items.IRON_INGOT));
+            helper.assertTrue(count(wagon, Items.COBBLESTONE) == 0 && count(chest, Items.COBBLESTONE) == 10 * 64, "and none of the cobblestone");
+        });
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 200)
+    public static void denyFilterUnloadsAllButWhatsShown(GameTestHelper helper) {
+        line(helper);
+        WagonLoaderBlockEntity loader = loader(helper, 20, LoaderMode.UNLOAD, false);
+        ChestBlockEntity chest = chest(helper, loader.getBlockPos().east(), Items.COBBLESTONE, 0);
+        loader.filter().setItem(4, new ItemStack(Items.COAL));
+        loader.setDeny(true);
+        FreightWagon wagon = TestTracks.car(helper.getLevel(), ModEntities.FREIGHT_WAGON.get(), at(helper, 20), EAST);
+        for (int i = 0; i < 6; i++) {
+            wagon.setItem(i, new ItemStack(i % 2 == 0 ? Items.COAL : Items.OAK_LOG, 64));
+        }
+        helper.succeedWhen(() -> {
+            helper.assertTrue(count(chest, Items.OAK_LOG) == 3 * 64, "the logs should be unloaded, " + count(chest, Items.OAK_LOG));
+            helper.assertTrue(count(wagon, Items.COAL) == 3 * 64 && count(chest, Items.COAL) == 0, "and the coal left in the wagon");
+        });
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 100)
+    public static void filterAppliesToHoppersAndKeepsTheTenderFuelled(GameTestHelper helper) {
+        line(helper);
+        WagonLoaderBlockEntity loader = loader(helper, 20, LoaderMode.LOAD, false);
+        loader.filter().setItem(0, new ItemStack(Items.IRON_INGOT));
+        ChestBlockEntity chest = chest(helper, loader.getBlockPos().east(), Items.COAL, 2);
+        FreightWagon wagon = TestTracks.car(helper.getLevel(), ModEntities.FREIGHT_WAGON.get(), at(helper, 26), EAST);
+        com.reiko.trains.train.Tender tender = TestTracks.car(helper.getLevel(), ModEntities.TENDER.get(), at(helper, 20), EAST);
+        Trains.couple(wagon, tender);
+        helper.runAfterDelay(4, () -> {
+            IItemHandler port = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, loader.getBlockPos(), Direction.UP);
+            helper.assertTrue(port.insertItem(0, new ItemStack(Items.DIRT, 5), false).getCount() == 5, "the filter should turn dirt away at the port");
+            helper.assertTrue(port.insertItem(0, new ItemStack(Items.IRON_INGOT, 5), false).isEmpty(), "and let iron in");
+        });
+        helper.succeedWhen(() -> {
+            helper.assertTrue(chest.isEmpty() && tender.fuel() == 2 * 64 * 1600, "the tender should still take its coal: fuel isn't filtered");
+            helper.assertTrue(count(wagon, Items.COAL) == 0 && count(wagon, Items.IRON_INGOT) == 5, "but no coal goes in the wagon");
+        });
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 200)
+    public static void bucketInTheFilterPicksTheFluid(GameTestHelper helper) {
+        line(helper);
+        WagonLoaderBlockEntity loader = loader(helper, 20, LoaderMode.LOAD, false);
+        loader.filter().setItem(0, new ItemStack(Items.WATER_BUCKET));
+        BlockPos lavaPos = loader.getBlockPos().east();
+        BlockPos waterPos = loader.getBlockPos().west();
+        for (BlockPos pos : List.of(lavaPos, waterPos)) {
+            helper.getLevel().setBlock(pos, BuiltInRegistries.BLOCK.get(ResourceLocation.parse("buildcraftreborn:tank")).defaultBlockState(), 3);
+        }
+        IFluidHandler lava = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, lavaPos, null);
+        IFluidHandler water = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, waterPos, null);
+        lava.fill(new FluidStack(Fluids.LAVA, 8000), IFluidHandler.FluidAction.EXECUTE);
+        water.fill(new FluidStack(Fluids.WATER, 8000), IFluidHandler.FluidAction.EXECUTE);
+        TankWagon tank = TestTracks.car(helper.getLevel(), ModEntities.TANK_WAGON.get(), at(helper, 20), EAST);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(tank.tank().getFluid().is(Fluids.WATER) && tank.tank().getFluidAmount() == 8000, "the tank wagon should take the water");
+            helper.assertTrue(lava.getFluidInTank(0).getAmount() == 8000, "and leave the lava, which isn't in the filter");
+        });
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 60)
+    public static void loaderScreenSetsTheFilter(GameTestHelper helper) {
+        line(helper);
+        WagonLoaderBlockEntity loader = loader(helper, 20, LoaderMode.LOAD, false);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.getInventory().setItem(5, new ItemStack(Items.IRON_INGOT, 32));
+        WagonLoaderMenu menu = new WagonLoaderMenu(1, player.getInventory(), loader);
+        menu.setCarried(new ItemStack(Items.GOLD_INGOT, 10));
+        menu.clicked(3, 0, ClickType.PICKUP, player);
+        helper.assertTrue(loader.filter().getItem(3).is(Items.GOLD_INGOT) && loader.filter().getItem(3).getCount() == 1, "clicking with gold should show gold");
+        helper.assertTrue(menu.getCarried().getCount() == 10, "and keep all ten in hand");
+        menu.setCarried(ItemStack.EMPTY);
+        menu.clicked(3, 0, ClickType.PICKUP, player);
+        helper.assertTrue(loader.filter().getItem(3).isEmpty(), "clicking empty-handed should clear it");
+        int inventorySlot = 9 + 27 + 5; // the hotbar's sixth slot, after the filter and the main inventory
+        menu.quickMoveStack(player, inventorySlot);
+        helper.assertTrue(loader.filter().getItem(0).is(Items.IRON_INGOT) && player.getInventory().getItem(5).getCount() == 32,
+                "shift-clicking iron in the inventory should add it to the filter, and leave the iron where it was");
+        helper.assertTrue(menu.clickMenuButton(player, WagonLoaderMenu.BUTTON_FILTER) && loader.isDeny(), "the filter button should switch to all-but");
+        helper.assertTrue(menu.clickMenuButton(player, WagonLoaderMenu.BUTTON_MODE) && loader.mode() == LoaderMode.UNLOAD, "the mode button should switch to unloading");
+        helper.succeed();
     }
 
     /** All the cars of the train {@code car} is in (for debugging failures). */

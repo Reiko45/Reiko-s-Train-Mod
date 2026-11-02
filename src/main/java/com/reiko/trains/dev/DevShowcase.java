@@ -19,6 +19,7 @@ import com.reiko.trains.train.TrainCarEntity;
 import com.reiko.trains.train.Trains;
 import com.reiko.trains.menu.FreightWagonMenu;
 import com.reiko.trains.freight.LoaderMode;
+import com.reiko.trains.freight.WagonLoaderBlockEntity;
 import com.reiko.trains.signal.StationBlockEntity;
 import com.reiko.trains.signal.SwitchBlockEntity;
 import java.util.ArrayList;
@@ -375,6 +376,19 @@ public final class DevShowcase {
         }));
         at(1324, mc -> look(mc, 52.0, Y + 1.5, -30.0, 115.0F, 6.0F));
         at(1400, mc -> shot(mc, "23_diesel_running"));
-        at(1420, Minecraft::stop);
+        // The wagon loader's screen, with a filter set
+        at(1402, mc -> look(mc, 12.5, Y, -11.0, 140.0F, 20.0F));
+        at(1420, mc -> server(mc, player -> {
+            if (player.serverLevel().getBlockEntity(new BlockPos(10, Y, -14)) instanceof WagonLoaderBlockEntity loader) {
+                loader.filter().setItem(0, new ItemStack(Items.IRON_ORE));
+                loader.filter().setItem(1, new ItemStack(Items.COAL));
+                loader.filter().setItem(2, new ItemStack(Items.WATER_BUCKET));
+                player.openMenu(new net.minecraft.world.SimpleMenuProvider(
+                        (id, inventory, p) -> new com.reiko.trains.menu.WagonLoaderMenu(id, inventory, loader),
+                        net.minecraft.network.chat.Component.translatable("block.reikotrains.wagon_loader")), loader.getBlockPos());
+            }
+        }));
+        at(1450, mc -> shot(mc, "24_loader_screen"));
+        at(1460, Minecraft::stop);
     }
 }

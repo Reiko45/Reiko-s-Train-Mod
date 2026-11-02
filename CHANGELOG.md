@@ -2,6 +2,19 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.10.0
+
+Wagon loader filters.
+
+- Click a wagon loader to open its screen: nine filter slots, a loading/unloading button, and a button for "only
+  these" or "all but these". Filter slots hold copies (click with an item, or shift-click it in your inventory; click
+  empty-handed to clear). An empty filter moves everything.
+- A filled bucket (or other fluid container) in the filter stands for its fluid, for tank wagons. Items and fluids
+  are filtered separately, and engines' fuel (a tender's coal, a diesel's diesel) isn't filtered. Hoppers through the
+  loader are filtered too.
+- Sneak-click a loader to switch between loading and unloading (a plain click now opens its screen).
+- Five new game tests: 71 in all.
+
 ## 0.9.1
 
 - The tank wagon holds 256 buckets (was 64).

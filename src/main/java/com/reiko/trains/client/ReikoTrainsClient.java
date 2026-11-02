@@ -140,6 +140,7 @@ public final class ReikoTrainsClient {
 
     private static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.FREIGHT_WAGON.get(), FreightWagonScreen::new);
+        event.register(ModMenus.WAGON_LOADER.get(), WagonLoaderScreen::new);
     }
 
     /** A diesel arriving in the client's world starts its engine sound (silent while it's shut down). */

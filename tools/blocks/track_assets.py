@@ -167,6 +167,60 @@ def wagon_screen():
     img.save(f"{ASSETS}/textures/gui/freight_wagon.png")
 
 
+def loader_screen():
+    """The wagon loader's screen: a row of nine filter slots, room for two buttons, and the player's inventory."""
+    width, height = 176, 166
+    img = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
+    bg, light, dark, black = (198, 198, 198, 255), (255, 255, 255, 255), (85, 85, 85, 255), (0, 0, 0, 255)
+    for y in range(height):
+        for x in range(width):
+            img.putpixel((x, y), bg)
+    for x in range(2, width - 2):
+        img.putpixel((x, 0), black)
+        img.putpixel((x, height - 1), black)
+        img.putpixel((x, 1), light)
+        img.putpixel((x, 2), light)
+        img.putpixel((x, height - 2), dark)
+        img.putpixel((x, height - 3), dark)
+    for y in range(2, height - 2):
+        img.putpixel((0, y), black)
+        img.putpixel((width - 1, y), black)
+        img.putpixel((1, y), light)
+        img.putpixel((2, y), light)
+        img.putpixel((width - 2, y), dark)
+        img.putpixel((width - 3, y), dark)
+    for (x, y) in ((1, 1), (width - 2, height - 2)):
+        img.putpixel((x, y), black)
+    for (x, y) in ((0, 0), (1, 0), (0, 1), (width - 1, 0), (width - 2, 0), (width - 1, 1), (0, height - 1), (1, height - 1),
+                   (0, height - 2), (width - 1, height - 1), (width - 2, height - 1), (width - 1, height - 2)):
+        img.putpixel((x, y), (0, 0, 0, 0))
+    img.putpixel((width - 2, 1), bg)
+    img.putpixel((1, height - 2), bg)
+
+    def slot(sx, sy, inner=(139, 139, 139, 255)):
+        for i in range(18):
+            img.putpixel((sx - 1 + i, sy - 1), (55, 55, 55, 255))
+            img.putpixel((sx - 1, sy - 1 + i), (55, 55, 55, 255))
+            img.putpixel((sx - 1 + i, sy + 16), light)
+            img.putpixel((sx + 16, sy - 1 + i), light)
+        for i in range(16):
+            for j in range(16):
+                img.putpixel((sx + i, sy + j), inner)
+        img.putpixel((sx - 1, sy + 16), bg)
+        img.putpixel((sx + 16, sy - 1), bg)
+
+    # Filter slots: a little bluer than inventory slots, as they only show items
+    for c in range(9):
+        slot(8 + c * 18, 20, (128, 136, 150, 255))
+    for r in range(3):
+        for c in range(9):
+            slot(8 + c * 18, 84 + r * 18)
+    for c in range(9):
+        slot(8 + c * 18, 142)
+    os.makedirs(f"{ASSETS}/textures/gui", exist_ok=True)
+    img.save(f"{ASSETS}/textures/gui/wagon_loader.png")
+
+
 def main():
     textures()
     models()
@@ -459,3 +513,4 @@ def signals_and_stations():
 if __name__ == "__main__":
     main()
     signals_and_stations()
+    loader_screen()

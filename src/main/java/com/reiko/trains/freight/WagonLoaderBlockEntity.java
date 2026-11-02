@@ -16,11 +16,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -28,6 +31,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -40,6 +44,10 @@ import net.neoforged.neoforge.items.wrapper.InvWrapper;
  * into the train's freight wagons, front to back; unloading, the other way. Redstone pauses it. A comparator reads how
  * full the train's wagons are. Hoppers (or pipes) can also put goods into the train through it, or take them out,
  * whichever way it's working. Trains on a timetable don't leave a station while a loader's still busy with them.
+ * <p>
+ * Its filter (nine items, set in its screen) limits what it moves for the wagons, both ways: only the items shown, or
+ * all but them. A filled bucket (or other fluid container) in the filter stands for its fluid, for tank wagons. An
+ * empty filter lets everything through. Engines' fuel (a tender's coal, a diesel's diesel) isn't filtered.
  */
 public class WagonLoaderBlockEntity extends BlockEntity {
     /** How often it works, in ticks. */
@@ -63,9 +71,74 @@ public class WagonLoaderBlockEntity extends BlockEntity {
     private long lastMoved = Long.MIN_VALUE / 2;
     private int comparator;
     private final Port port = new Port();
+    /** The filter: up to nine items (copies; it holds nothing really). */
+    private final SimpleContainer filter = new SimpleContainer(FILTER_SLOTS);
+    /** Whether the filter lets through all but what's in it, rather than only what's in it. */
+    private boolean deny;
+
+    public static final int FILTER_SLOTS = 9;
 
     public WagonLoaderBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.WAGON_LOADER.get(), pos, state);
+        filter.addListener(changed -> setChanged());
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------
+    // The filter
+
+    public SimpleContainer filter() {
+        return filter;
+    }
+
+    /** Whether the filter lets through all but what's in it (rather than only what's in it). */
+    public boolean isDeny() {
+        return deny;
+    }
+
+    public void setDeny(boolean deny) {
+        this.deny = deny;
+        setChanged();
+    }
+
+    /** Switches between loading and unloading. */
+    public LoaderMode toggleMode() {
+        LoaderMode mode = mode().other();
+        if (level != null) {
+            level.setBlock(worldPosition, getBlockState().setValue(WagonLoaderBlock.MODE, mode).setValue(WagonLoaderBlock.ACTIVE, false), 3);
+        }
+        return mode;
+    }
+
+    /** Whether the filter lets this item through. Filled fluid containers in the filter stand for fluids, not items. */
+    public boolean allows(ItemStack stack) {
+        boolean any = false;
+        for (int i = 0; i < FILTER_SLOTS; i++) {
+            ItemStack entry = filter.getItem(i);
+            if (entry.isEmpty() || FluidUtil.getFluidContained(entry).isPresent()) {
+                continue;
+            }
+            any = true;
+            if (ItemStack.isSameItem(entry, stack)) {
+                return !deny;
+            }
+        }
+        return deny || !any;
+    }
+
+    /** Whether the filter lets this fluid through (for tank wagons): the fluids of filled containers in the filter. */
+    public boolean allows(FluidStack fluid) {
+        boolean any = false;
+        for (int i = 0; i < FILTER_SLOTS; i++) {
+            var entry = FluidUtil.getFluidContained(filter.getItem(i));
+            if (entry.isEmpty()) {
+                continue;
+            }
+            any = true;
+            if (FluidStack.isSameFluid(entry.get(), fluid)) {
+                return !deny;
+            }
+        }
+        return deny || !any;
     }
 
     public void attach(BlockPos node) {
@@ -163,12 +236,18 @@ public class WagonLoaderBlockEntity extends BlockEntity {
                 for (TankWagon tank : tanks) {
                     int room = FLUID_PER_PERIOD;
                     for (IFluidHandler source : fluids) {
-                        room -= FluidUtil.tryFluidTransfer(tank.tank(), source, room, true).getAmount();
+                        FluidStack offered = source.drain(room, IFluidHandler.FluidAction.SIMULATE);
+                        if (!offered.isEmpty() && loader.allows(offered)) {
+                            room -= FluidUtil.tryFluidTransfer(tank.tank(), source, offered, true).getAmount();
+                        }
                     }
                     pumped += FLUID_PER_PERIOD - room;
                 }
             } else {
                 for (TankWagon tank : tanks) {
+                    if (tank.tank().isEmpty() || !loader.allows(tank.tank().getFluid())) {
+                        continue;
+                    }
                     int left = FLUID_PER_PERIOD;
                     for (IFluidHandler target : fluids) {
                         left -= FluidUtil.tryFluidTransfer(target, tank.tank(), left, true).getAmount();
@@ -185,12 +264,12 @@ public class WagonLoaderBlockEntity extends BlockEntity {
             List<IItemHandler> storage = loader.storage();
             int moved;
             if (loader.mode() == LoaderMode.LOAD) {
-                // Tenders take their coal first (their chutes take nothing else), then the wagons fill.
-                List<IItemHandler> targets = new ArrayList<>(tenders);
-                targets.addAll(handlers(wagons));
-                moved = move(storage, targets, budget);
+                // Tenders take their coal first (their chutes take nothing else, and fuel isn't filtered), then the
+                // wagons fill with what the filter lets through.
+                moved = move(storage, tenders, budget, stack -> true);
+                moved += move(storage, handlers(wagons), budget - moved, loader::allows);
             } else {
-                moved = move(handlers(wagons), storage, budget);
+                moved = move(handlers(wagons), storage, budget, loader::allows);
             }
             if (moved > 0) {
                 loader.moved(train.getFirst());
@@ -274,13 +353,19 @@ public class WagonLoaderBlockEntity extends BlockEntity {
         return handlers;
     }
 
-    /** Moves up to {@code budget} items from the slots of {@code from}, in order, into {@code to}; returns how many. */
-    static int move(List<IItemHandler> from, List<IItemHandler> to, int budget) {
+    /**
+     * Moves up to {@code budget} items that {@code allowed} lets through from the slots of {@code from}, in order, into
+     * {@code to}; returns how many.
+     */
+    static int move(List<IItemHandler> from, List<IItemHandler> to, int budget, Predicate<ItemStack> allowed) {
         int moved = 0;
+        if (budget <= 0 || to.isEmpty()) {
+            return 0;
+        }
         for (IItemHandler source : from) {
             for (int slot = 0; slot < source.getSlots() && moved < budget; slot++) {
                 ItemStack available = source.extractItem(slot, budget - moved, true);
-                if (available.isEmpty()) {
+                if (available.isEmpty() || !allowed.test(available)) {
                     continue;
                 }
                 int fits = available.getCount() - insert(to, available, true).getCount();
@@ -377,6 +462,8 @@ public class WagonLoaderBlockEntity extends BlockEntity {
         if (node != null) {
             tag.putLong("Track", node.asLong());
         }
+        tag.put("Filter", filter.createTag(registries));
+        tag.putBoolean("FilterDeny", deny);
     }
 
     @Override
@@ -385,6 +472,11 @@ public class WagonLoaderBlockEntity extends BlockEntity {
         if (tag.contains("Track")) {
             node = BlockPos.of(tag.getLong("Track"));
         }
+        filter.clearContent();
+        if (tag.contains("Filter")) {
+            filter.fromTag(tag.getList("Filter", Tag.TAG_COMPOUND), registries);
+        }
+        deny = tag.getBoolean("FilterDeny");
     }
 
     /** The train's wagons as one inventory, for hoppers and pipes: in only when loading, out only when unloading. */
@@ -423,7 +515,7 @@ public class WagonLoaderBlockEntity extends BlockEntity {
         @Override
         public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
             FreightWagon wagon = wagon(live(), slot);
-            if (wagon == null || mode() != LoaderMode.LOAD || !working()) {
+            if (wagon == null || mode() != LoaderMode.LOAD || !working() || !allows(stack)) {
                 return stack;
             }
             ItemStack left = new InvWrapper(wagon).insertItem(slot % FreightWagon.SLOTS, stack, simulate);
@@ -436,7 +528,7 @@ public class WagonLoaderBlockEntity extends BlockEntity {
         @Override
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
             FreightWagon wagon = wagon(live(), slot);
-            if (wagon == null || mode() != LoaderMode.UNLOAD || !working()) {
+            if (wagon == null || mode() != LoaderMode.UNLOAD || !working() || !allows(wagon.getItem(slot % FreightWagon.SLOTS))) {
                 return ItemStack.EMPTY;
             }
             ItemStack taken = new InvWrapper(wagon).extractItem(slot % FreightWagon.SLOTS, amount, simulate);

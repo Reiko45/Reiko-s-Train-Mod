@@ -1,5 +1,6 @@
 package com.reiko.trains.freight;
 
+import com.reiko.trains.menu.WagonLoaderMenu;
 import com.reiko.trains.registry.ModBlockEntities;
 import com.reiko.trains.signal.TrackSide;
 import com.reiko.trains.track.TrackEdge;
@@ -11,6 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -32,8 +34,8 @@ import net.minecraft.world.phys.Vec3;
 /**
  * A wagon loader. Placed beside the track (up to three blocks away; it ties itself to the nearest track block and
  * faces it), it fills the freight wagons of a train standing there from the storage next to it, or empties them into
- * it. Click it to switch between loading and unloading. Redstone pauses it; a comparator reads how full the train is.
- * Its lamp is lit while it's working.
+ * it. Click it to open its screen (its filter, and loading or unloading); sneak-click to switch between loading and
+ * unloading. Redstone pauses it; a comparator reads how full the train is. Its lamp is lit while it's working.
  */
 public class WagonLoaderBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public static final com.mojang.serialization.MapCodec<WagonLoaderBlock> CODEC = simpleCodec(WagonLoaderBlock::new);
@@ -95,8 +97,15 @@ public class WagonLoaderBlock extends HorizontalDirectionalBlock implements Enti
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
-        LoaderMode mode = state.getValue(MODE).other();
-        level.setBlock(pos, state.setValue(MODE, mode).setValue(ACTIVE, false), 3);
+        if (!(level.getBlockEntity(pos) instanceof WagonLoaderBlockEntity loader)) {
+            return InteractionResult.PASS;
+        }
+        if (!player.isSecondaryUseActive()) {
+            player.openMenu(new SimpleMenuProvider((id, inventory, p) -> new WagonLoaderMenu(id, inventory, loader),
+                    Component.translatable("block.reikotrains.wagon_loader")), pos);
+            return InteractionResult.CONSUME;
+        }
+        LoaderMode mode = loader.toggleMode();
         level.playSound(null, pos, SoundEvents.IRON_TRAPDOOR_OPEN, SoundSource.BLOCKS, 0.5F, mode == LoaderMode.LOAD ? 1.2F : 0.9F);
         player.displayClientMessage(Component.translatable("message.reikotrains.loader." + mode.getSerializedName()), true);
         return InteractionResult.CONSUME;

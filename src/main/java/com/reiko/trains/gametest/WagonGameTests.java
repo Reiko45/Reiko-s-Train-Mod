@@ -110,6 +110,7 @@ public final class WagonGameTests {
                 helper.assertTrue(loader.comparatorSignal() > 0, "the comparator should read the tank wagons");
                 emptying[0] = true;
                 Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+                player.setShiftKeyDown(true); // sneak-click switches loading and unloading
                 helper.getLevel().getBlockState(loader.getBlockPos()).useWithoutItem(helper.getLevel(), player,
                         new net.minecraft.world.phys.BlockHitResult(Vec3.atCenterOf(loader.getBlockPos()), net.minecraft.core.Direction.UP, loader.getBlockPos(), false));
                 bcTank(helper, loader.getBlockPos().west(), FluidStack.EMPTY);
