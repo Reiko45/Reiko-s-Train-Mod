@@ -1,0 +1,378 @@
+{
+  "parent": "block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "reikotrains:block/track_rail",
+    "rail": "reikotrains:block/track_rail",
+    "sleeper": "reikotrains:block/track_sleeper"
+  },
+  "elements": [
+    {
+      "from": [
+        -4,
+        0,
+        -1.042
+      ],
+      "to": [
+        20,
+        2,
+        1.958
+      ],
+      "faces": {
+        "up": {
+          "texture": "#sleeper",
+          "uv": [
+            0,
+            0,
+            16,
+            3
+          ]
+        },
+        "north": {
+          "texture": "#sleeper",
+          "uv": [
+            0,
+            3,
+            16,
+            5
+          ]
+        },
+        "south": {
+          "texture": "#sleeper",
+          "uv": [
+            0,
+            3,
+            16,
+            5
+          ]
+        },
+        "east": {
+          "texture": "#sleeper",
+          "uv": [
+            0,
+            3,
+            3,
+            5
+          ]
+        },
+        "west": {
+          "texture": "#sleeper",
+          "uv": [
+            0,
+            3,
+            3,
+            5
+          ]
+        },
+        "down": {
+          "texture": "#sleeper",
+          "uv": [
+            0,
+            0,
+            16,
+            3
+          ]
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          0,
+          8
+        ],
+        "axis": "y",
+        "angle": 45
+      }
+    },
+    {
+      "from": [
+        -4,
+        0,
+        6.5
+      ],
+      "to": [
+        20,
+        2,
+        9.5
+      ],
+      "faces": {
+        "up": {
+          "texture": "#sleeper",
+          "uv": [
+            0,
+            0,
+            16,
+            3
+          ]
+        },
+        "north": {
+          "texture": "#sleeper",
+          "uv": [
+            0,
+            3,
+            16,
+            5
+          ]
+        },
+        "south": {
+          "texture": "#sleeper",
+          "uv": [
+            0,
+            3,
+            16,
+            5
+          ]
+        },
+        "east": {
+          "texture": "#sleeper",
+          "uv": [
+            0,
+            3,
+            3,
+            5
+          ]
+        },
+        "west": {
+          "texture": "#sleeper",
+          "uv": [
+            0,
+            3,
+            3,
+            5
+          ]
+        },
+        "down": {
+          "texture": "#sleeper",
+          "uv": [
+            0,
+            0,
+            16,
+            3
+          ]
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          0,
+          8
+        ],
+        "axis": "y",
+        "angle": 45
+      }
+    },
+    {
+      "from": [
+        -4,
+        0,
+        14.042
+      ],
+      "to": [
+        20,
+        2,
+        17.042
+      ],
+      "faces": {
+        "up": {
+          "texture": "#sleeper",
+          "uv": [
+            0,
+            0,
+            16,
+            3
+          ]
+        },
+        "north": {
+          "texture": "#sleeper",
+          "uv": [
+            0,
+            3,
+            16,
+            5
+          ]
+        },
+        "south": {
+          "texture": "#sleeper",
+          "uv": [
+            0,
+            3,
+            16,
+            5
+          ]
+        },
+        "east": {
+          "texture": "#sleeper",
+          "uv": [
+            0,
+            3,
+            3,
+            5
+          ]
+        },
+        "west": {
+          "texture": "#sleeper",
+          "uv": [
+            0,
+            3,
+            3,
+            5
+          ]
+        },
+        "down": {
+          "texture": "#sleeper",
+          "uv": [
+            0,
+            0,
+            16,
+            3
+          ]
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          0,
+          8
+        ],
+        "axis": "y",
+        "angle": 45
+      }
+    },
+    {
+      "from": [
+        0,
+        2,
+        -3.314
+      ],
+      "to": [
+        2,
+        4,
+        19.314
+      ],
+      "faces": {
+        "up": {
+          "texture": "#rail",
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#rail",
+          "uv": [
+            2,
+            0,
+            4,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#rail",
+          "uv": [
+            2,
+            0,
+            4,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#rail",
+          "uv": [
+            4,
+            0,
+            6,
+            2
+          ]
+        },
+        "south": {
+          "texture": "#rail",
+          "uv": [
+            4,
+            0,
+            6,
+            2
+          ]
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          0,
+          8
+        ],
+        "axis": "y",
+        "angle": 45
+      }
+    },
+    {
+      "from": [
+        14,
+        2,
+        -3.314
+      ],
+      "to": [
+        16,
+        4,
+        19.314
+      ],
+      "faces": {
+        "up": {
+          "texture": "#rail",
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#rail",
+          "uv": [
+            2,
+            0,
+            4,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#rail",
+          "uv": [
+            2,
+            0,
+            4,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#rail",
+          "uv": [
+            4,
+            0,
+            6,
+            2
+          ]
+        },
+        "south": {
+          "texture": "#rail",
+          "uv": [
+            4,
+            0,
+            6,
+            2
+          ]
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          0,
+          8
+        ],
+        "axis": "y",
+        "angle": 45
+      }
+    }
+  ]
+}

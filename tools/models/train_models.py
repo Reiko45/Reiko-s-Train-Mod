@@ -54,13 +54,13 @@ def box(x0, y0, z0, x1, y1, z1, mat):
     return Box(x0, y0, z0, int(round(w)), int(round(h)), int(round(d)), mat)
 
 
-def wheel_parts(prefix, xs, radius, center_y, mat, z_out=6):
-    """A pair of wheels (left and right) per axle; each is its own part so it can turn about its axle."""
+def wheel_parts(prefix, xs, radius, center_y, mat, z=7):
+    """A pair of wheels (left and right, on the rails) per axle; each is its own part so it can turn on its axle."""
     parts = []
     for i, x in enumerate(xs):
-        for side, z in (("l", -z_out + 0.5), ("r", z_out - 0.5)):
-            p = Part(f"{prefix}_{side}{i}", (x, center_y, z))
-            p.boxes.append(Box(-radius, -radius, -0.5, int(2 * radius), int(2 * radius), 1, mat))
+        for side, zc in (("l", -z), ("r", z)):
+            p = Part(f"{prefix}_{side}{i}", (x, center_y, zc))
+            p.boxes.append(Box(-radius, -radius, -1, int(2 * radius), int(2 * radius), 2, mat))
             parts.append(p)
     return parts
 
@@ -70,111 +70,134 @@ def mirrored(x0, y0, z0, x1, y1, z1, mat):
     return [box(x0, y0, z0, x1, y1, z1, mat), box(x0, y0, -z1, x1, y1, -z0, mat)]
 
 
-def buffers(half):
+def buffers(half, y0=-14, y1=-10, z=11, length=4):
     """Buffers at both ends; their faces are `half` pixels from the middle."""
     out = []
-    for zc in (-5, 5):
-        out.append(box(-half, -4, zc - 1, -half + 2, -2, zc + 1, "buffer"))
-        out.append(box(half - 2, -4, zc - 1, half, -2, zc + 1, "buffer"))
+    for zc in (-z, z):
+        out.append(box(-half, y0, zc - 2, -half + length, y1, zc + 2, "buffer"))
+        out.append(box(half - length, y0, zc - 2, half, y1, zc + 2, "buffer"))
     return out
 
+
+def round_body(x0, x1, cy, r, mat, steps=((1.0, 0.6), (0.8, 0.8), (0.6, 1.0)), inset=0.5):
+    """A cylinder along x (boiler, smokebox) made of overlapping boxes: wide-and-low to narrow-and-tall."""
+    out = []
+    for i, (w, h) in enumerate(steps):
+        hw = round(r * w)
+        hh = round(r * h)
+        out.append(box(x0 + inset * i, cy - hh, -hw, x1 - inset * i, cy + hh, hw, mat))
+    return out
+
+
+# All models: 16 px to the block, the rails' tops at y = 0, -y up, -x the front, z across (rails at z = +-7).
 
 def steam_locomotive():
     body = Part("body")
     b = body.boxes
-    # Running gear and frame
-    b.append(box(-16, -3, -4, 16, 2, 4, "frame"))
-    b.append(box(-16, -5, -7, 16, -4, 7, "deck"))
-    b.append(box(-17, -5, -7, -16, -1, 7, "beam"))
-    b.append(box(16, -5, -7, 17, -1, 7, "beam"))
-    b += buffers(19)
-    # Boiler (two boxes make an octagon), smokebox, chimney, domes
-    b.append(box(-12, -14, -5, 5, -6, 5, "boiler"))
-    b.append(box(-11.5, -15, -4, 4.5, -5, 4, "boiler"))
-    b.append(box(-15, -15, -5, -12, -5, 5, "smokebox"))
-    b.append(box(-16, -14, -1, -15, -12, 1, "lamp"))
-    b.append(box(-14, -21, -1.5, -11, -15, 1.5, "chimney"))
-    b.append(box(-14.5, -22, -2, -10.5, -21, 2, "chimney_cap"))
-    b.append(box(-4, -18, -2, 0, -15, 2, "brass"))
-    b.append(box(2, -17, -0.5, 3, -15, 0.5, "brass"))
+    # Frame, running board, buffer beams, buffers
+    b.append(box(-40, -13, -5, 40, -4, 5, "frame"))
+    b.append(box(-42, -15, -16, 42, -13, 16, "deck"))
+    b.append(box(-44, -16, -16, -42, -7, 16, "beam"))
+    b.append(box(42, -16, -16, 44, -7, 16, "beam"))
+    b += buffers(48)
+    # Cylinders, outside the frame at the front
+    b += mirrored(-36, -14, 10, -24, -5, 15, "cylinder")
+    # Boiler and smokebox
+    b += round_body(-30, 14, -26, 10, "boiler")
+    b += round_body(-38, -30, -26, 11, "smokebox")
+    b.append(box(-40, -40, -2, -38, -36, 2, "lamp"))
+    b += mirrored(-44, -21, 10, -42, -16, 14, "lamp")
+    b.append(box(-36, -46, -3, -30, -36, 3, "chimney"))
+    b.append(box(-37, -48, -4, -29, -46, 4, "chimney_cap"))
+    b.append(box(-12, -42, -4, -4, -36, 4, "dome"))
+    b.append(box(-11, -44, -3, -5, -42, 3, "brass"))
+    b.append(box(6, -40, -1, 8, -36, 1, "brass"))
+    b.append(box(10, -42, -0.5, 11, -36, 0.5, "brass"))
     # Side tanks
-    b += mirrored(-9, -11, 5, 5, -5, 7, "tank")
-    # Cab: front wall with a big window over the boiler, sides with posts, a low back wall, and a roof
-    b.append(box(5, -15, -6, 6, -5, 6, "cab"))
-    b.append(box(5, -24, -6, 6, -22, 6, "cab"))
-    b += mirrored(5, -22, 4, 6, -15, 6, "cab")
-    b += mirrored(5, -12, 6, 16, -5, 7, "cab")
-    b += mirrored(5, -24, 6, 7, -12, 7, "cab")
-    b += mirrored(14, -24, 6, 16, -12, 7, "cab")
-    b.append(box(15, -12, -6, 16, -5, 6, "cab"))
-    b.append(box(4, -25, -8, 17, -24, 8, "roof"))
-    b.append(box(4, -26, -6, 17, -25, 6, "roof"))
-    # Fire door and a coal shelf inside the cab
-    b.append(box(6, -10, -3, 7, -5, 3, "firebox"))
-    b.append(box(13, -8, -6, 15, -5, -2, "coal"))
+    b += mirrored(-24, -32, 10, 12, -15, 15, "tank")
+    # Cab: spectacle plate with two windows, sides open above the waist, roof
+    b.append(box(14, -30, -15, 15, -15, 15, "cab"))
+    b.append(box(14, -46, -15, 15, -40, 15, "cab"))
+    b.append(box(14, -40, -5, 15, -30, 5, "cab"))
+    b += mirrored(14, -40, 13, 15, -30, 15, "cab")
+    b += mirrored(15, -28, 14, 32, -15, 15, "cab")
+    b += mirrored(15, -46, 14, 18, -28, 15, "cab")
+    b += mirrored(29, -46, 14, 32, -28, 15, "cab")
+    b.append(box(31, -46, -14, 32, -30, -4, "cab"))
+    b.append(box(31, -46, 4, 32, -30, 14, "cab"))
+    b.append(box(13, -48, -16, 33, -46, 16, "roof"))
+    b.append(box(13, -49, -12, 33, -48, 12, "roof"))
+    # Coal bunker behind the cab, firebox door, and the crew's bench
+    b.append(box(32, -30, -15, 42, -15, 15, "bunker"))
+    b.append(box(33, -31, -13, 41, -30, 13, "coal"))
+    b.append(box(15, -24, -4, 16, -16, 4, "firebox"))
+    b.append(box(26, -17, -13, 30, -15, 13, "bench"))
 
     parts = [body]
-    parts += wheel_parts("wheel", [-13], 2.5, 2.5, "wheel_small")
-    parts += wheel_parts("driver", [-6, 3, 12], 4, 1, "wheel_driver")
+    parts += wheel_parts("wheel", [-32, 32], 4, -4, "wheel_small")
+    parts += wheel_parts("driver", [-16, 0, 16], 7, -7, "wheel_driver")
     # Coupling rods, one each side, joining the crank pins of the three drivers
-    for side, z in (("l", -6.5), ("r", 6.5)):
-        p = Part(f"rod_{side}", (3, 1, z))
-        p.boxes.append(Box(-9.5, -0.5, -0.5, 19, 1, 1, "rod"))
+    for side, z in (("l", -9), ("r", 9)):
+        p = Part(f"rod_{side}", (0, -7, z))
+        p.boxes.append(Box(-16.5, -1, -0.5, 33, 2, 1, "rod"))
         parts.append(p)
     return parts
 
 
-COACH_SEATS = [-15, -5, 5, 15]
+COACH_BAYS = [-30, -10, 10, 30]
 
 
 def passenger_coach():
     body = Part("body")
     b = body.boxes
-    b.append(box(-20, -4, -6, 20, -2, 6, "frame"))
-    b += buffers(22)
-    # Bogies
-    for xc in (-13, 13):
-        b += mirrored(xc - 6, 0, 6, xc + 6, 2, 7, "frame")
-        b.append(box(xc - 2, -2, -4, xc + 2, 0, 4, "frame"))
-    # Floor
-    b.append(box(-19, -5, -6, 19, -4, 6, "floor"))
-    # Sides: chocolate lower panels, cream window posts and upper band
-    b += mirrored(-20, -11, 6, 20, -4, 7, "coach_lower")
-    b += mirrored(-20, -24, 6, 20, -19, 7, "coach_upper")
-    for x0, x1 in ((-20, -18), (-12, -8), (-2, 2), (8, 12), (18, 20)):
-        b += mirrored(x0, -19, 6, x1, -11, 7, "coach_upper")
+    b.append(box(-50, -16, -12, 50, -12, 12, "frame"))
+    b += buffers(52)
+    b.append(box(-50, -17, -15, 50, -16, 15, "floor"))
+    # Sides: chocolate panels to the waist, cream window posts and band above
+    b += mirrored(-50, -27, 14, 50, -17, 15, "coach_lower")
+    b += mirrored(-50, -44, 14, 50, -38, 15, "coach_upper")
+    for x0, x1 in ((-50, -37), (-23, -17), (-3, 3), (17, 23), (37, 50)):
+        b += mirrored(x0, -38, 14, x1, -27, 15, "coach_upper")
     # Ends, with doors
-    b.append(box(-20, -24, -6, -19, -4, 6, "coach_end"))
-    b.append(box(19, -24, -6, 20, -4, 6, "coach_end"))
+    b.append(box(-50, -44, -14, -49, -17, 14, "coach_end"))
+    b.append(box(49, -44, -14, 50, -17, 14, "coach_end"))
     # Roof
-    b.append(box(-21, -25, -8, 21, -24, 8, "roof"))
-    b.append(box(-21, -26, -5, 21, -25, 5, "roof"))
-    # Benches, one under each seat, facing forward
-    for s in COACH_SEATS:
-        b.append(box(s - 2, -6, -5, s + 2, -5, 5, "seat"))
-        b.append(box(s + 2, -13, -5, s + 3, -5, 5, "seat"))
-    parts = [body]
-    parts += wheel_parts("wheel", [-16.5, -9.5, 9.5, 16.5], 2.5, 2.5, "wheel_small")
-    return parts
+    b.append(box(-51, -45, -16, 51, -44, 16, "roof"))
+    b.append(box(-51, -46, -13, 51, -45, 13, "roof"))
+    b.append(box(-49, -47, -8, 49, -46, 8, "roof"))
+    # Benches: two either side of the aisle in each bay, facing forwards
+    for c in COACH_BAYS:
+        b += mirrored(c - 3, -20, 2, c + 5, -17, 13, "seat")
+        b += mirrored(c + 5, -31, 2, c + 7, -17, 13, "seat")
+    return [body]
 
 
 def freight_wagon():
     body = Part("body")
     b = body.boxes
-    b.append(box(-18, -4, -6, 18, -2, 6, "frame"))
-    b += buffers(20)
-    b += mirrored(-14, 0, 6, -8, 2, 7, "frame")
-    b += mirrored(8, 0, 6, 14, 2, 7, "frame")
-    b.append(box(-18, -5, -7, 18, -4, 7, "planks"))
-    b += mirrored(-18, -13, 6, 18, -5, 7, "planks")
-    b.append(box(-18, -13, -6, -17, -5, 6, "planks"))
-    b.append(box(17, -13, -6, 18, -5, 6, "planks"))
+    b.append(box(-38, -16, -12, 38, -12, 12, "frame"))
+    b += buffers(40)
+    b.append(box(-38, -17, -16, 38, -16, 16, "planks"))
+    b += mirrored(-38, -33, 15, 38, -17, 16, "planks")
+    b.append(box(-38, -33, -15, -37, -17, 15, "planks"))
+    b.append(box(37, -33, -15, 38, -17, 15, "planks"))
     parts = [body]
-    parts += wheel_parts("wheel", [-11, 11], 2.5, 2.5, "wheel_small")
-    for i, (x0, x1) in enumerate(((-16, -6), (-5, 5), (6, 16))):
+    for i, (x0, x1) in enumerate(((-35, -19), (-17, -1), (1, 17), (19, 35))):
         p = Part(f"cargo_{i}", (0, 0, 0))
-        p.boxes.append(box(x0, -15, -5, x1, -5, 5, "crate"))
+        p.boxes.append(box(x0, -35, -13, x1, -17, 13, "crate"))
         parts.append(p)
+    return parts
+
+
+def bogie():
+    frame = Part("frame")
+    b = frame.boxes
+    b += mirrored(-14, -10, 8, 14, -6, 10, "frame")
+    b.append(box(-3, -12, -10, 3, -8, 10, "frame"))
+    b += mirrored(-11, -9, 10, -7, -5, 11, "axlebox")
+    b += mirrored(7, -9, 10, 11, -5, 11, "axlebox")
+    parts = [frame]
+    parts += wheel_parts("wheel", [-9, 9], 4.5, -4.5, "wheel_small")
     return parts
 
 
@@ -240,9 +263,12 @@ def plain(color, edge_factor=0.78, amount=0.05):
     return paint
 
 
+BOILER_BANDS = (-20, -19, -2, -1, 10, 11)
+
+
 def boiler(t):
     c = jitter(GREEN, (t.x, t.y, t.z, t.face))
-    if not t.end and int(math.floor(t.x)) in (-9, -3, 3):
+    if not t.end and int(math.floor(t.x)) in BOILER_BANDS:
         return jitter(BRASS, (t.x, t.y, t.z))
     if t.edge and t.end:
         return shade(c, 0.8)
@@ -252,14 +278,14 @@ def boiler(t):
 def smokebox(t):
     c = jitter(BLACK, (t.x, t.y, t.z, t.face), 0.08)
     if t.face == "west":
-        cy, cz = -10.0, 0.0
+        cy, cz = -26.0, 0.0
         r = math.hypot(t.y - cy, t.z - cz)
-        if 3.0 <= r < 4.0:
-            return (78, 78, 84)
-        if r < 0.8:
+        if 6.5 <= r < 7.6:
+            return (84, 84, 90)
+        if r < 1.3:
             return STEEL
-        if abs(t.y - cy) < 0.6 and r < 3.0:
-            return (60, 60, 66)
+        if abs(t.y - cy) < 0.6 and r < 6.5:
+            return (64, 64, 70)
     return c
 
 
@@ -274,7 +300,7 @@ def chimney(t):
 
 
 def chimney_cap(t):
-    if t.face == "up" and abs(t.x + 12.5) < 1.2 and abs(t.z) < 1.2:
+    if t.face == "down" and abs(t.x + 33) < 2.2 and abs(t.z) < 2.2:
         return (12, 12, 12)
     return shade(jitter(BLACK, (t.x, t.y, t.z)), 1.1)
 
@@ -317,7 +343,7 @@ def deck(t):
     return jitter(RED, (t.x, t.y, t.z))
 
 
-def wheel(rim, body, hub, spokes):
+def wheel(rim, body, hub, spokes, crank=3.0):
     def paint(t):
         if not t.side:
             return TRANSPARENT
@@ -328,17 +354,21 @@ def wheel(rim, body, hub, spokes):
             return TRANSPARENT
         if r > r_out - 1:
             return rim
-        if r < 1.0:
+        if r < 1.4:
             return hub
         if spokes:
-            if dx < -1.4 and abs(dy) < 2.2 and r > 1.4:  # counterweight
-                return shade(body, 0.75)
-            if abs(dx - 2) < 0.8 and abs(dy) < 0.8:  # crank pin
+            if abs(dx - crank) < 1.0 and abs(dy) < 1.0:  # crank pin
                 return BRASS
-            a = math.degrees(math.atan2(dy, dx)) % 45
-            if min(a, 45 - a) < 13:
+            if dx < -2.2 and abs(dy) < 3.6 and r < r_out - 1:  # counterweight
+                return shade(body, 0.72)
+            a = math.degrees(math.atan2(dy, dx)) % 30
+            if min(a, 30 - a) < 6:
                 return body
+            if r > r_out - 2:
+                return shade(body, 0.85)
             return TRANSPARENT
+        if r > r_out - 2:
+            return shade(body, 0.8)
         return body
 
     return paint
@@ -363,16 +393,18 @@ def coach_upper(t):
 
 
 def coach_end(t):
-    upper = t.y < -11
+    upper = t.y < -27
     c = jitter(CREAM if upper else CHOCOLATE, (t.x, t.y, t.z, t.face), 0.04)
-    if t.end and abs(t.z) < 2.5 and t.y > -20:
-        if abs(t.z) < 2.0 and -19 < t.y < -14:
+    if t.end and abs(t.z) < 4 and t.y > -39:
+        if abs(t.z) < 2.6 and -37 < t.y < -30:
             return (40, 52, 64)  # door window
-        if abs(t.z) > 2.0 or t.y < -19.5:
+        if abs(t.z) > 3.0 or t.y < -38:
             return shade(c, 0.7)  # door frame
-        if abs(t.z - 1.4) < 0.6 and abs(t.y + 11) < 0.6:
+        if abs(t.z - 2.0) < 0.6 and abs(t.y + 24) < 0.6:
             return BRASS  # handle
         return shade(c, 0.93)
+    if t.end and t.y < -27 and abs(abs(t.z) - 9) < 3.5 and -37 < t.y < -29:
+        return (40, 52, 64)  # end windows
     return c
 
 
@@ -399,9 +431,9 @@ def planks(t):
     c = jitter(WOOD, (t.x, t.y, t.z, t.face), 0.07)
     if int(math.floor(along)) % 2 == 0:
         c = shade(c, 0.88)
-    if t.side and int(math.floor(t.x)) in (-18, -12, -6, 5, 11, 17):
+    if t.side and (int(math.floor(t.x)) + 38) % 13 in (0, 1):
         return (54, 54, 58)
-    if t.end and int(math.floor(t.z)) in (-6, 5):
+    if t.end and int(math.floor(t.z)) in (-8, -7, 7, 8):
         return (54, 54, 58)
     return c
 
@@ -420,9 +452,31 @@ def frame(t):
     return jitter(BLACK, (t.x, t.y, t.z, t.face), 0.06)
 
 
+def cylinder(t):
+    if t.end:
+        r = math.hypot(t.y + 9.5, t.z - (12.5 if t.z > 0 else -12.5))
+        if r < 3.6:
+            return shade(STEEL, 0.9 if r > 2.6 else 1.0)
+    return jitter((48, 48, 52), (t.x, t.y, t.z, t.face), 0.06)
+
+
+def bunker(t):
+    c = jitter(GREEN, (t.x, t.y, t.z, t.face))
+    if t.face in ("north", "south", "east"):
+        ii, jj = t.i, t.j
+        if (ii in (1, t.fw - 2) and 1 <= jj <= t.fh - 2) or (jj in (1, t.fh - 2) and 1 <= ii <= t.fw - 2):
+            return LINING
+    return shade(c, 0.78) if t.edge else c
+
+
 MATERIALS = {
     "frame": frame,
     "deck": deck,
+    "cylinder": cylinder,
+    "bunker": bunker,
+    "dome": plain(GREEN),
+    "bench": plain((112, 76, 46)),
+    "axlebox": plain((70, 70, 76)),
     "beam": plain(RED),
     "buffer": buffer,
     "boiler": boiler,
@@ -437,7 +491,7 @@ MATERIALS = {
     "firebox": firebox,
     "coal": coal,
     "wheel_small": wheel((44, 44, 48), (70, 70, 76), STEEL, False),
-    "wheel_driver": wheel((44, 44, 48), RED, BRASS, True),
+    "wheel_driver": wheel((44, 44, 48), RED, BRASS, True, 3.0),
     "rod": rod,
     "floor": floor,
     "coach_lower": coach_lower,
@@ -566,17 +620,17 @@ def build(name, class_name, parts, width, extra=""):
 
 
 def main():
-    loco = steam_locomotive()
-    build("steam_locomotive", "SteamLocomotiveGeometry", loco, 256,
+    build("steam_locomotive", "SteamLocomotiveGeometry", steam_locomotive(), 512,
           "    /** The coupling rods: they follow the crank pins, this far (pixels) from the axles. */\n"
           '    public static final String[] RODS = {"rod_l", "rod_r"};\n'
-          "    public static final float CRANK_RADIUS = 2.0F;\n"
+          "    public static final float CRANK_RADIUS = 3.0F;\n"
           "    /** The radius of the driving wheels the rods are pinned to, in pixels. */\n"
-          "    public static final float DRIVER_RADIUS = 4.0F;\n")
-    build("passenger_coach", "PassengerCoachGeometry", passenger_coach(), 256)
-    build("freight_wagon", "FreightWagonGeometry", freight_wagon(), 256,
-          "    /** The crates that show how full the wagon is: one, two or all three. */\n"
-          '    public static final String[] CARGO = {"cargo_0", "cargo_1", "cargo_2"};\n')
+          "    public static final float DRIVER_RADIUS = 7.0F;\n")
+    build("passenger_coach", "PassengerCoachGeometry", passenger_coach(), 512)
+    build("freight_wagon", "FreightWagonGeometry", freight_wagon(), 512,
+          "    /** The crates that show how full the wagon is: one to four. */\n"
+          '    public static final String[] CARGO = {"cargo_0", "cargo_1", "cargo_2", "cargo_3"};\n')
+    build("bogie", "BogieGeometry", bogie(), 128)
 
 
 if __name__ == "__main__":

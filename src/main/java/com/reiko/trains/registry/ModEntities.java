@@ -24,8 +24,11 @@ public final class ModEntities {
     private ModEntities() {
     }
 
-    /** Train cars are minecarts underneath: the same hitbox (the model is longer), seen from a bit further away. */
+    /**
+     * The car's own box is just its middle; its whole length is covered by its hitbox sections (see CarPart). Cars
+     * send their position every tick, as they can move fast.
+     */
     private static <T extends Entity> Supplier<EntityType<T>> register(String name, EntityType.Builder<T> builder) {
-        return ENTITIES.register(name, () -> builder.sized(0.98F, 0.7F).clientTrackingRange(10).build(name));
+        return ENTITIES.register(name, () -> builder.sized(1.8F, 2.2F).clientTrackingRange(10).updateInterval(1).build(name));
     }
 }

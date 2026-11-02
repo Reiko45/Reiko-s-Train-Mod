@@ -9,16 +9,16 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 
 public final class SteamLocomotiveGeometry {
-    public static final int TEXTURE_WIDTH = 256;
-    public static final int TEXTURE_HEIGHT = 64;
+    public static final int TEXTURE_WIDTH = 512;
+    public static final int TEXTURE_HEIGHT = 256;
     /** The wheel parts, which turn as the car rolls, and their radii in pixels. */
-    public static final String[] WHEELS = {"wheel_l0", "wheel_r0", "driver_l0", "driver_r0", "driver_l1", "driver_r1", "driver_l2", "driver_r2"};
-    public static final float[] WHEEL_RADII = {2.5F, 2.5F, 4.0F, 4.0F, 4.0F, 4.0F, 4.0F, 4.0F};
+    public static final String[] WHEELS = {"wheel_l0", "wheel_r0", "wheel_l1", "wheel_r1", "driver_l0", "driver_r0", "driver_l1", "driver_r1", "driver_l2", "driver_r2"};
+    public static final float[] WHEEL_RADII = {4.0F, 4.0F, 4.0F, 4.0F, 7.0F, 7.0F, 7.0F, 7.0F, 7.0F, 7.0F};
     /** The coupling rods: they follow the crank pins, this far (pixels) from the axles. */
     public static final String[] RODS = {"rod_l", "rod_r"};
-    public static final float CRANK_RADIUS = 2.0F;
+    public static final float CRANK_RADIUS = 3.0F;
     /** The radius of the driving wheels the rods are pinned to, in pixels. */
-    public static final float DRIVER_RADIUS = 4.0F;
+    public static final float DRIVER_RADIUS = 7.0F;
 
     private SteamLocomotiveGeometry() {
     }
@@ -27,70 +27,89 @@ public final class SteamLocomotiveGeometry {
         MeshDefinition mesh = new MeshDefinition();
         PartDefinition root = mesh.getRoot();
         root.addOrReplaceChild("body", CubeListBuilder.create()
-                .texOffs(176, 22).addBox(-16.0F, -3.0F, -4.0F, 32.0F, 5.0F, 8.0F)
-                .texOffs(58, 22).addBox(-16.0F, -5.0F, -7.0F, 32.0F, 1.0F, 14.0F)
-                .texOffs(78, 0).addBox(-17.0F, -5.0F, -7.0F, 1.0F, 4.0F, 14.0F)
-                .texOffs(108, 0).addBox(16.0F, -5.0F, -7.0F, 1.0F, 4.0F, 14.0F)
-                .texOffs(148, 52).addBox(-19.0F, -4.0F, -6.0F, 2.0F, 2.0F, 2.0F)
-                .texOffs(156, 52).addBox(17.0F, -4.0F, -6.0F, 2.0F, 2.0F, 2.0F)
-                .texOffs(164, 52).addBox(-19.0F, -4.0F, 4.0F, 2.0F, 2.0F, 2.0F)
-                .texOffs(172, 52).addBox(17.0F, -4.0F, 4.0F, 2.0F, 2.0F, 2.0F)
-                .texOffs(138, 0).addBox(-12.0F, -14.0F, -5.0F, 17.0F, 8.0F, 10.0F)
-                .texOffs(192, 0).addBox(-11.5F, -15.0F, -4.0F, 16.0F, 10.0F, 8.0F)
-                .texOffs(26, 0).addBox(-15.0F, -15.0F, -5.0F, 3.0F, 10.0F, 10.0F)
-                .texOffs(180, 52).addBox(-16.0F, -14.0F, -1.0F, 1.0F, 2.0F, 2.0F)
-                .texOffs(88, 39).addBox(-14.0F, -21.0F, -1.5F, 3.0F, 6.0F, 3.0F)
-                .texOffs(132, 52).addBox(-14.5F, -22.0F, -2.0F, 4.0F, 1.0F, 4.0F)
-                .texOffs(80, 52).addBox(-4.0F, -18.0F, -2.0F, 4.0F, 3.0F, 4.0F)
-                .texOffs(186, 52).addBox(2.0F, -17.0F, -0.5F, 1.0F, 2.0F, 1.0F)
-                .texOffs(220, 39).addBox(-9.0F, -11.0F, 5.0F, 14.0F, 6.0F, 2.0F)
-                .texOffs(0, 52).addBox(-9.0F, -11.0F, -7.0F, 14.0F, 6.0F, 2.0F)
-                .texOffs(0, 0).addBox(5.0F, -15.0F, -6.0F, 1.0F, 10.0F, 12.0F)
-                .texOffs(150, 22).addBox(5.0F, -24.0F, -6.0F, 1.0F, 2.0F, 12.0F)
-                .texOffs(100, 39).addBox(5.0F, -22.0F, 4.0F, 1.0F, 7.0F, 2.0F)
-                .texOffs(106, 39).addBox(5.0F, -22.0F, -6.0F, 1.0F, 7.0F, 2.0F)
-                .texOffs(32, 52).addBox(5.0F, -12.0F, 6.0F, 11.0F, 7.0F, 1.0F)
-                .texOffs(56, 52).addBox(5.0F, -12.0F, -7.0F, 11.0F, 7.0F, 1.0F)
-                .texOffs(0, 39).addBox(5.0F, -24.0F, 6.0F, 2.0F, 12.0F, 1.0F)
-                .texOffs(6, 39).addBox(5.0F, -24.0F, -7.0F, 2.0F, 12.0F, 1.0F)
-                .texOffs(12, 39).addBox(14.0F, -24.0F, 6.0F, 2.0F, 12.0F, 1.0F)
-                .texOffs(18, 39).addBox(14.0F, -24.0F, -7.0F, 2.0F, 12.0F, 1.0F)
-                .texOffs(52, 0).addBox(15.0F, -12.0F, -6.0F, 1.0F, 7.0F, 12.0F)
-                .texOffs(0, 22).addBox(4.0F, -25.0F, -8.0F, 13.0F, 1.0F, 16.0F)
-                .texOffs(24, 39).addBox(4.0F, -26.0F, -6.0F, 13.0F, 1.0F, 12.0F)
-                .texOffs(74, 39).addBox(6.0F, -10.0F, -3.0F, 1.0F, 5.0F, 6.0F)
-                .texOffs(96, 52).addBox(13.0F, -8.0F, -6.0F, 2.0F, 3.0F, 4.0F),
+                .texOffs(186, 111).addBox(-40.0F, -13.0F, -5.0F, 80.0F, 9.0F, 10.0F)
+                .texOffs(0, 45).addBox(-42.0F, -15.0F, -16.0F, 84.0F, 2.0F, 32.0F)
+                .texOffs(142, 0).addBox(-44.0F, -16.0F, -16.0F, 2.0F, 9.0F, 32.0F)
+                .texOffs(210, 0).addBox(42.0F, -16.0F, -16.0F, 2.0F, 9.0F, 32.0F)
+                .texOffs(448, 133).addBox(-48.0F, -14.0F, -13.0F, 4.0F, 4.0F, 4.0F)
+                .texOffs(464, 133).addBox(44.0F, -14.0F, -13.0F, 4.0F, 4.0F, 4.0F)
+                .texOffs(480, 133).addBox(-48.0F, -14.0F, 9.0F, 4.0F, 4.0F, 4.0F)
+                .texOffs(496, 133).addBox(44.0F, -14.0F, 9.0F, 4.0F, 4.0F, 4.0F)
+                .texOffs(128, 133).addBox(-36.0F, -14.0F, 10.0F, 12.0F, 9.0F, 5.0F)
+                .texOffs(162, 133).addBox(-36.0F, -14.0F, -15.0F, 12.0F, 9.0F, 5.0F)
+                .texOffs(336, 45).addBox(-30.0F, -32.0F, -10.0F, 44.0F, 12.0F, 20.0F)
+                .texOffs(0, 79).addBox(-29.5F, -34.0F, -8.0F, 43.0F, 16.0F, 16.0F)
+                .texOffs(118, 79).addBox(-29.0F, -36.0F, -6.0F, 42.0F, 20.0F, 12.0F)
+                .texOffs(278, 0).addBox(-38.0F, -33.0F, -11.0F, 8.0F, 14.0F, 22.0F)
+                .texOffs(338, 0).addBox(-37.5F, -35.0F, -9.0F, 7.0F, 18.0F, 18.0F)
+                .texOffs(388, 0).addBox(-37.0F, -37.0F, -7.0F, 6.0F, 22.0F, 14.0F)
+                .texOffs(0, 149).addBox(-40.0F, -40.0F, -2.0F, 2.0F, 4.0F, 4.0F)
+                .texOffs(424, 133).addBox(-44.0F, -21.0F, 10.0F, 2.0F, 5.0F, 4.0F)
+                .texOffs(436, 133).addBox(-44.0F, -21.0F, -14.0F, 2.0F, 5.0F, 4.0F)
+                .texOffs(398, 111).addBox(-36.0F, -46.0F, -3.0F, 6.0F, 10.0F, 6.0F)
+                .texOffs(312, 133).addBox(-37.0F, -48.0F, -4.0F, 8.0F, 2.0F, 8.0F)
+                .texOffs(196, 133).addBox(-12.0F, -42.0F, -4.0F, 8.0F, 6.0F, 8.0F)
+                .texOffs(12, 149).addBox(-11.0F, -44.0F, -3.0F, 6.0F, 2.0F, 6.0F)
+                .texOffs(40, 149).addBox(6.0F, -40.0F, -1.0F, 2.0F, 4.0F, 2.0F)
+                .texOffs(36, 149).addBox(10.0F, -42.0F, -0.5F, 1.0F, 6.0F, 1.0F)
+                .texOffs(0, 111).addBox(-24.0F, -32.0F, 10.0F, 36.0F, 17.0F, 5.0F)
+                .texOffs(82, 111).addBox(-24.0F, -32.0F, -15.0F, 36.0F, 17.0F, 5.0F)
+                .texOffs(0, 0).addBox(14.0F, -30.0F, -15.0F, 1.0F, 15.0F, 30.0F)
+                .texOffs(428, 0).addBox(14.0F, -46.0F, -15.0F, 1.0F, 6.0F, 30.0F)
+                .texOffs(164, 111).addBox(14.0F, -40.0F, -5.0F, 1.0F, 10.0F, 10.0F)
+                .texOffs(300, 133).addBox(14.0F, -40.0F, 13.0F, 1.0F, 10.0F, 2.0F)
+                .texOffs(306, 133).addBox(14.0F, -40.0F, -15.0F, 1.0F, 10.0F, 2.0F)
+                .texOffs(228, 133).addBox(15.0F, -28.0F, 14.0F, 17.0F, 13.0F, 1.0F)
+                .texOffs(264, 133).addBox(15.0F, -28.0F, -15.0F, 17.0F, 13.0F, 1.0F)
+                .texOffs(366, 111).addBox(15.0F, -46.0F, 14.0F, 3.0F, 18.0F, 1.0F)
+                .texOffs(374, 111).addBox(15.0F, -46.0F, -15.0F, 3.0F, 18.0F, 1.0F)
+                .texOffs(382, 111).addBox(29.0F, -46.0F, 14.0F, 3.0F, 18.0F, 1.0F)
+                .texOffs(390, 111).addBox(29.0F, -46.0F, -15.0F, 3.0F, 18.0F, 1.0F)
+                .texOffs(354, 79).addBox(31.0F, -46.0F, -14.0F, 1.0F, 16.0F, 10.0F)
+                .texOffs(376, 79).addBox(31.0F, -46.0F, 4.0F, 1.0F, 16.0F, 10.0F)
+                .texOffs(232, 45).addBox(13.0F, -48.0F, -16.0F, 20.0F, 2.0F, 32.0F)
+                .texOffs(398, 79).addBox(13.0F, -49.0F, -12.0F, 20.0F, 1.0F, 24.0F)
+                .texOffs(62, 0).addBox(32.0F, -30.0F, -15.0F, 10.0F, 15.0F, 30.0F)
+                .texOffs(286, 79).addBox(33.0F, -31.0F, -13.0F, 8.0F, 1.0F, 26.0F)
+                .texOffs(422, 111).addBox(15.0F, -24.0F, -4.0F, 1.0F, 8.0F, 8.0F)
+                .texOffs(226, 79).addBox(26.0F, -17.0F, -13.0F, 4.0F, 2.0F, 26.0F),
                 PartPose.offset(0.0F, 0.0F, 0.0F));
         root.addOrReplaceChild("wheel_l0", CubeListBuilder.create()
-                .texOffs(108, 52).addBox(-2.5F, -2.5F, -0.5F, 5.0F, 5.0F, 1.0F),
-                PartPose.offset(-13.0F, 2.5F, -5.5F));
+                .texOffs(344, 133).addBox(-4.0F, -4.0F, -1.0F, 8.0F, 8.0F, 2.0F),
+                PartPose.offset(-32.0F, -4.0F, -7.0F));
         root.addOrReplaceChild("wheel_r0", CubeListBuilder.create()
-                .texOffs(120, 52).addBox(-2.5F, -2.5F, -0.5F, 5.0F, 5.0F, 1.0F),
-                PartPose.offset(-13.0F, 2.5F, 5.5F));
+                .texOffs(364, 133).addBox(-4.0F, -4.0F, -1.0F, 8.0F, 8.0F, 2.0F),
+                PartPose.offset(-32.0F, -4.0F, 7.0F));
+        root.addOrReplaceChild("wheel_l1", CubeListBuilder.create()
+                .texOffs(384, 133).addBox(-4.0F, -4.0F, -1.0F, 8.0F, 8.0F, 2.0F),
+                PartPose.offset(32.0F, -4.0F, -7.0F));
+        root.addOrReplaceChild("wheel_r1", CubeListBuilder.create()
+                .texOffs(404, 133).addBox(-4.0F, -4.0F, -1.0F, 8.0F, 8.0F, 2.0F),
+                PartPose.offset(32.0F, -4.0F, 7.0F));
         root.addOrReplaceChild("driver_l0", CubeListBuilder.create()
-                .texOffs(112, 39).addBox(-4.0F, -4.0F, -0.5F, 8.0F, 8.0F, 1.0F),
-                PartPose.offset(-6.0F, 1.0F, -5.5F));
+                .texOffs(440, 111).addBox(-7.0F, -7.0F, -1.0F, 14.0F, 14.0F, 2.0F),
+                PartPose.offset(-16.0F, -7.0F, -7.0F));
         root.addOrReplaceChild("driver_r0", CubeListBuilder.create()
-                .texOffs(130, 39).addBox(-4.0F, -4.0F, -0.5F, 8.0F, 8.0F, 1.0F),
-                PartPose.offset(-6.0F, 1.0F, 5.5F));
+                .texOffs(472, 111).addBox(-7.0F, -7.0F, -1.0F, 14.0F, 14.0F, 2.0F),
+                PartPose.offset(-16.0F, -7.0F, 7.0F));
         root.addOrReplaceChild("driver_l1", CubeListBuilder.create()
-                .texOffs(148, 39).addBox(-4.0F, -4.0F, -0.5F, 8.0F, 8.0F, 1.0F),
-                PartPose.offset(3.0F, 1.0F, -5.5F));
+                .texOffs(0, 133).addBox(-7.0F, -7.0F, -1.0F, 14.0F, 14.0F, 2.0F),
+                PartPose.offset(0.0F, -7.0F, -7.0F));
         root.addOrReplaceChild("driver_r1", CubeListBuilder.create()
-                .texOffs(166, 39).addBox(-4.0F, -4.0F, -0.5F, 8.0F, 8.0F, 1.0F),
-                PartPose.offset(3.0F, 1.0F, 5.5F));
+                .texOffs(32, 133).addBox(-7.0F, -7.0F, -1.0F, 14.0F, 14.0F, 2.0F),
+                PartPose.offset(0.0F, -7.0F, 7.0F));
         root.addOrReplaceChild("driver_l2", CubeListBuilder.create()
-                .texOffs(184, 39).addBox(-4.0F, -4.0F, -0.5F, 8.0F, 8.0F, 1.0F),
-                PartPose.offset(12.0F, 1.0F, -5.5F));
+                .texOffs(64, 133).addBox(-7.0F, -7.0F, -1.0F, 14.0F, 14.0F, 2.0F),
+                PartPose.offset(16.0F, -7.0F, -7.0F));
         root.addOrReplaceChild("driver_r2", CubeListBuilder.create()
-                .texOffs(202, 39).addBox(-4.0F, -4.0F, -0.5F, 8.0F, 8.0F, 1.0F),
-                PartPose.offset(12.0F, 1.0F, 5.5F));
+                .texOffs(96, 133).addBox(-7.0F, -7.0F, -1.0F, 14.0F, 14.0F, 2.0F),
+                PartPose.offset(16.0F, -7.0F, 7.0F));
         root.addOrReplaceChild("rod_l", CubeListBuilder.create()
-                .texOffs(190, 52).addBox(-9.5F, -0.5F, -0.5F, 19.0F, 1.0F, 1.0F),
-                PartPose.offset(3.0F, 1.0F, -6.5F));
+                .texOffs(48, 149).addBox(-16.5F, -1.0F, -0.5F, 33.0F, 2.0F, 1.0F),
+                PartPose.offset(0.0F, -7.0F, -9.0F));
         root.addOrReplaceChild("rod_r", CubeListBuilder.create()
-                .texOffs(0, 60).addBox(-9.5F, -0.5F, -0.5F, 19.0F, 1.0F, 1.0F),
-                PartPose.offset(3.0F, 1.0F, 6.5F));
+                .texOffs(116, 149).addBox(-16.5F, -1.0F, -0.5F, 33.0F, 2.0F, 1.0F),
+                PartPose.offset(0.0F, -7.0F, 9.0F));
         return LayerDefinition.create(mesh, TEXTURE_WIDTH, TEXTURE_HEIGHT);
     }
 }

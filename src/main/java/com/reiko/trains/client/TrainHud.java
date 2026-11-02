@@ -10,7 +10,8 @@ import net.minecraft.network.chat.Component;
 
 /**
  * The cab gauges, bottom right while you drive a locomotive: the throttle's notch (reverse, neutral, 1-4), the
- * speed, the brake light and how much fuel is in the firebox. Drawn in code, so it needs no textures.
+ * speed, the brake light, which way you'll go at the next junction and how much fuel is in the firebox. Drawn in
+ * code, so it needs no textures.
  */
 public final class TrainHud implements LayeredDraw.Layer {
     private static final int WIDTH = 118;
@@ -45,9 +46,14 @@ public final class TrainHud implements LayeredDraw.Layer {
             graphics.drawString(font, label, bx + (boxW - font.width(label)) / 2 + 1, by + 2, lit ? 0xFF101010 : 0xFFD0D0D0, false);
         }
 
-        // Speed and brake
-        String speed = Math.round(locomotive.getSpeedKmh()) + " km/h";
+        // Speed, junction steering and brake
+        String speed = Math.round(locomotive.clientSpeedKmh()) + " km/h";
         graphics.drawString(font, speed, x + 5, y + 19, 0xFFFFFFFF, true);
+        int steer = locomotive.getSteer();
+        if (steer != 0) {
+            String arrow = steer < 0 ? "\u25C0" : "\u25B6";
+            graphics.drawString(font, arrow, x + 58, y + 19, 0xFF4CC266, true);
+        }
         if (locomotive.isBraking()) {
             Component brake = Component.translatable("hud.reikotrains.brake");
             int bw = font.width(brake) + 6;

@@ -1,25 +1,20 @@
 {
   "itemGroup.reikotrains": "Reiko's Trains",
-
   "item.reikotrains.steam_locomotive": "Steam Locomotive",
   "item.reikotrains.passenger_coach": "Passenger Coach",
   "item.reikotrains.freight_wagon": "Freight Wagon",
   "item.reikotrains.coupler": "Coupler",
   "item.reikotrains.coupler.tooltip": "Click a train car, then the car to couple it to",
   "item.reikotrains.coupler.tooltip2": "Sneak-click a car to uncouple it",
-
   "entity.reikotrains.steam_locomotive": "Steam Locomotive",
   "entity.reikotrains.passenger_coach": "Passenger Coach",
   "entity.reikotrains.freight_wagon": "Freight Wagon",
-
   "key.categories.reikotrains": "Reiko's Trains",
   "key.reikotrains.whistle": "Locomotive Whistle",
-
   "hud.reikotrains.brake": "BRAKE",
   "hud.reikotrains.fuel": "Fuel",
   "hud.reikotrains.no_fire": "NO FIRE",
-
-  "message.reikotrains.controls": "%s / %s: throttle   %s: brake   %s: whistle",
+  "message.reikotrains.controls": "%s / %s: throttle   %s: brake   %s / %s: junctions   %s: whistle",
   "message.reikotrains.no_fuel": "The fire's out: put coal in the locomotive",
   "message.reikotrains.fuel": "Firebox %s%% full",
   "message.reikotrains.firebox_full": "The firebox is full",
@@ -34,10 +29,32 @@
   "message.reikotrains.couple.too_far": "Those cars are too far apart: bring them closer",
   "message.reikotrains.couple.not_an_end": "Couple cars at the ends of their trains",
   "message.reikotrains.couple.two_locomotives": "A train can only have one locomotive",
-  "message.reikotrains.couple.locomotive_front": "Couple to the back of the train: the locomotive leads",
   "message.reikotrains.couple.too_long": "That would make the train too long",
-
   "subtitles.reikotrains.steam_whistle": "Locomotive whistles",
   "subtitles.reikotrains.steam_chuff": "Locomotive chuffs",
-  "subtitles.reikotrains.couple": "Coupling clanks"
+  "subtitles.reikotrains.couple": "Coupling clanks",
+  "block.reikotrains.track": "Train Track",
+  "item.reikotrains.track.tooltip": "Click a track block, then where the track should go, to lay a curve or ramp",
+  "item.reikotrains.track.tooltip2": "Sneak when clicking the end to face it the way you look",
+  "message.reikotrains.track.picked": "Track start picked: now click where the track should go",
+  "message.reikotrains.track.cleared": "Track start cleared",
+  "message.reikotrains.track.built": "Laid %s blocks of track (%s used)",
+  "message.reikotrains.track.preview": "%s blocks of track: needs %s",
+  "message.reikotrains.track.need": "You need %s pieces of track for that",
+  "message.reikotrains.track.start_gone": "The track you started from isn't there any more",
+  "message.reikotrains.track.same_block": "Pick a different block for the other end",
+  "message.reikotrains.track.too_short": "Too close: put track blocks next to each other instead",
+  "message.reikotrains.track.too_long": "Too far: track can reach %s blocks at most",
+  "message.reikotrains.track.behind": "The track can't go that way from where it starts",
+  "message.reikotrains.track.cant_place": "Track can't go there: it needs solid ground and space",
+  "message.reikotrains.track.too_sharp": "Too sharp a bend: curves need a radius of %s blocks or more",
+  "message.reikotrains.track.too_steep": "Too steep: make the ramp longer",
+  "message.reikotrains.track.already": "Those two are already joined",
+  "message.reikotrains.place.not_track": "Put trains on train track",
+  "message.reikotrains.place.no_room": "There isn't enough track here for it",
+  "message.reikotrains.place.blocked": "There's already a train there",
+  "message.reikotrains.derailed": "The track's gone: the car came off the rails",
+  "message.reikotrains.couple.not_on_track": "Those cars aren't on the same line of track",
+  "message.reikotrains.couple.moving": "Stop the trains before coupling them",
+  "container.reikotrains.freight_wagon": "Freight Wagon"
 }

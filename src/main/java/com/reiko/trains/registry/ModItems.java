@@ -3,6 +3,7 @@ package com.reiko.trains.registry;
 import com.reiko.trains.ReikoTrains;
 import com.reiko.trains.item.CouplerItem;
 import com.reiko.trains.item.TrainCarItem;
+import com.reiko.trains.track.TrackItem;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -10,6 +11,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 public final class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(ReikoTrains.MODID);
 
+    public static final DeferredItem<TrackItem> TRACK = ITEMS.register("track",
+            () -> new TrackItem(ModBlocks.TRACK.get(), new Item.Properties()));
     public static final DeferredItem<TrainCarItem> STEAM_LOCOMOTIVE = ITEMS.register("steam_locomotive",
             () -> new TrainCarItem(ModEntities.STEAM_LOCOMOTIVE, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<TrainCarItem> PASSENGER_COACH = ITEMS.register("passenger_coach",

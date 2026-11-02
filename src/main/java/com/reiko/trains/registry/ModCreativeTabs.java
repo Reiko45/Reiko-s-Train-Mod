@@ -15,6 +15,7 @@ public final class ModCreativeTabs {
             .title(Component.translatable("itemGroup.reikotrains"))
             .icon(() -> new ItemStack(ModItems.STEAM_LOCOMOTIVE.get()))
             .displayItems((parameters, output) -> {
+                output.accept(ModItems.TRACK.get());
                 output.accept(ModItems.STEAM_LOCOMOTIVE.get());
                 output.accept(ModItems.PASSENGER_COACH.get());
                 output.accept(ModItems.FREIGHT_WAGON.get());

@@ -9,13 +9,13 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 
 public final class FreightWagonGeometry {
-    public static final int TEXTURE_WIDTH = 256;
-    public static final int TEXTURE_HEIGHT = 64;
+    public static final int TEXTURE_WIDTH = 512;
+    public static final int TEXTURE_HEIGHT = 128;
     /** The wheel parts, which turn as the car rolls, and their radii in pixels. */
-    public static final String[] WHEELS = {"wheel_l0", "wheel_r0", "wheel_l1", "wheel_r1"};
-    public static final float[] WHEEL_RADII = {2.5F, 2.5F, 2.5F, 2.5F};
-    /** The crates that show how full the wagon is: one, two or all three. */
-    public static final String[] CARGO = {"cargo_0", "cargo_1", "cargo_2"};
+    public static final String[] WHEELS = {};
+    public static final float[] WHEEL_RADII = {};
+    /** The crates that show how full the wagon is: one to four. */
+    public static final String[] CARGO = {"cargo_0", "cargo_1", "cargo_2", "cargo_3"};
 
     private FreightWagonGeometry() {
     }
@@ -24,41 +24,28 @@ public final class FreightWagonGeometry {
         MeshDefinition mesh = new MeshDefinition();
         PartDefinition root = mesh.getRoot();
         root.addOrReplaceChild("body", CubeListBuilder.create()
-                .texOffs(100, 20).addBox(-18.0F, -4.0F, -6.0F, 36.0F, 2.0F, 12.0F)
-                .texOffs(196, 35).addBox(-20.0F, -4.0F, -6.0F, 2.0F, 2.0F, 2.0F)
-                .texOffs(204, 35).addBox(18.0F, -4.0F, -6.0F, 2.0F, 2.0F, 2.0F)
-                .texOffs(212, 35).addBox(-20.0F, -4.0F, 4.0F, 2.0F, 2.0F, 2.0F)
-                .texOffs(220, 35).addBox(18.0F, -4.0F, 4.0F, 2.0F, 2.0F, 2.0F)
-                .texOffs(228, 35).addBox(-14.0F, 0.0F, 6.0F, 6.0F, 2.0F, 1.0F)
-                .texOffs(242, 35).addBox(-14.0F, 0.0F, -7.0F, 6.0F, 2.0F, 1.0F)
-                .texOffs(0, 44).addBox(8.0F, 0.0F, 6.0F, 6.0F, 2.0F, 1.0F)
-                .texOffs(14, 44).addBox(8.0F, 0.0F, -7.0F, 6.0F, 2.0F, 1.0F)
-                .texOffs(0, 20).addBox(-18.0F, -5.0F, -7.0F, 36.0F, 1.0F, 14.0F)
-                .texOffs(0, 35).addBox(-18.0F, -13.0F, 6.0F, 36.0F, 8.0F, 1.0F)
-                .texOffs(74, 35).addBox(-18.0F, -13.0F, -7.0F, 36.0F, 8.0F, 1.0F)
-                .texOffs(0, 0).addBox(-18.0F, -13.0F, -6.0F, 1.0F, 8.0F, 12.0F)
-                .texOffs(26, 0).addBox(17.0F, -13.0F, -6.0F, 1.0F, 8.0F, 12.0F),
+                .texOffs(216, 46).addBox(-38.0F, -16.0F, -12.0F, 76.0F, 4.0F, 24.0F)
+                .texOffs(308, 79).addBox(-40.0F, -14.0F, -13.0F, 4.0F, 4.0F, 4.0F)
+                .texOffs(324, 79).addBox(36.0F, -14.0F, -13.0F, 4.0F, 4.0F, 4.0F)
+                .texOffs(340, 79).addBox(-40.0F, -14.0F, 9.0F, 4.0F, 4.0F, 4.0F)
+                .texOffs(356, 79).addBox(36.0F, -14.0F, 9.0F, 4.0F, 4.0F, 4.0F)
+                .texOffs(0, 46).addBox(-38.0F, -17.0F, -16.0F, 76.0F, 1.0F, 32.0F)
+                .texOffs(0, 79).addBox(-38.0F, -33.0F, 15.0F, 76.0F, 16.0F, 1.0F)
+                .texOffs(154, 79).addBox(-38.0F, -33.0F, -16.0F, 76.0F, 16.0F, 1.0F)
+                .texOffs(0, 0).addBox(-38.0F, -33.0F, -15.0F, 1.0F, 16.0F, 30.0F)
+                .texOffs(62, 0).addBox(37.0F, -33.0F, -15.0F, 1.0F, 16.0F, 30.0F),
                 PartPose.offset(0.0F, 0.0F, 0.0F));
-        root.addOrReplaceChild("wheel_l0", CubeListBuilder.create()
-                .texOffs(148, 35).addBox(-2.5F, -2.5F, -0.5F, 5.0F, 5.0F, 1.0F),
-                PartPose.offset(-11.0F, 2.5F, -5.5F));
-        root.addOrReplaceChild("wheel_r0", CubeListBuilder.create()
-                .texOffs(160, 35).addBox(-2.5F, -2.5F, -0.5F, 5.0F, 5.0F, 1.0F),
-                PartPose.offset(-11.0F, 2.5F, 5.5F));
-        root.addOrReplaceChild("wheel_l1", CubeListBuilder.create()
-                .texOffs(172, 35).addBox(-2.5F, -2.5F, -0.5F, 5.0F, 5.0F, 1.0F),
-                PartPose.offset(11.0F, 2.5F, -5.5F));
-        root.addOrReplaceChild("wheel_r1", CubeListBuilder.create()
-                .texOffs(184, 35).addBox(-2.5F, -2.5F, -0.5F, 5.0F, 5.0F, 1.0F),
-                PartPose.offset(11.0F, 2.5F, 5.5F));
         root.addOrReplaceChild("cargo_0", CubeListBuilder.create()
-                .texOffs(52, 0).addBox(-16.0F, -15.0F, -5.0F, 10.0F, 10.0F, 10.0F),
+                .texOffs(124, 0).addBox(-35.0F, -35.0F, -13.0F, 16.0F, 18.0F, 26.0F),
                 PartPose.offset(0.0F, 0.0F, 0.0F));
         root.addOrReplaceChild("cargo_1", CubeListBuilder.create()
-                .texOffs(92, 0).addBox(-5.0F, -15.0F, -5.0F, 10.0F, 10.0F, 10.0F),
+                .texOffs(208, 0).addBox(-17.0F, -35.0F, -13.0F, 16.0F, 18.0F, 26.0F),
                 PartPose.offset(0.0F, 0.0F, 0.0F));
         root.addOrReplaceChild("cargo_2", CubeListBuilder.create()
-                .texOffs(132, 0).addBox(6.0F, -15.0F, -5.0F, 10.0F, 10.0F, 10.0F),
+                .texOffs(292, 0).addBox(1.0F, -35.0F, -13.0F, 16.0F, 18.0F, 26.0F),
+                PartPose.offset(0.0F, 0.0F, 0.0F));
+        root.addOrReplaceChild("cargo_3", CubeListBuilder.create()
+                .texOffs(376, 0).addBox(19.0F, -35.0F, -13.0F, 16.0F, 18.0F, 26.0F),
                 PartPose.offset(0.0F, 0.0F, 0.0F));
         return LayerDefinition.create(mesh, TEXTURE_WIDTH, TEXTURE_HEIGHT);
     }

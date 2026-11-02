@@ -1,80 +1,47 @@
 package com.reiko.trains.train;
 
 import com.reiko.trains.registry.ModItems;
-import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.AbstractMinecart;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 
-/**
- * A coach with four seats. Like a minecart, a moving coach with a free seat picks up mobs (and villagers) it runs
- * into, and a powered activator rail lets everyone off.
- */
-public class PassengerCoach extends AbstractMinecart implements TrainCar {
+/** A coach with eight seats, two either side of the aisle in four rows, all facing forwards. */
+public class PassengerCoach extends TrainCarEntity {
+    private static final double SEAT_SIDE = 7.5 / 16;
+    private static final double SEAT_UP = 1.25;
     private static final Seat[] SEATS = {
-            new Seat(0.9375, 0.0, 0.55), new Seat(0.3125, 0.0, 0.55), new Seat(-0.3125, 0.0, 0.55), new Seat(-0.9375, 0.0, 0.55)};
-
-    private final TrainCarState trainState = new TrainCarState();
+            seat(-30, -1), seat(-30, 1), seat(-10, -1), seat(-10, 1), seat(10, -1), seat(10, 1), seat(30, -1), seat(30, 1)};
 
     public PassengerCoach(EntityType<? extends PassengerCoach> type, Level level) {
         super(type, level);
     }
 
-    @Override
-    public void tick() {
-        if (!level().isClientSide) {
-            Trains.follow(this);
-        }
-        super.tick();
-        if (level().isClientSide) {
-            Trains.rollWheels(this);
-        }
-    }
-
-    @Override
-    public void moveMinecartOnRail(BlockPos pos) {
-        Trains.moveOnRail(this);
-    }
-
-    @Override
-    protected void applyNaturalSlowdown() {
-        Trains.slowDown(this);
-    }
-
-    @Override
-    public void activateMinecart(int x, int y, int z, boolean powered) {
-        if (powered && isVehicle()) {
-            ejectPassengers();
-        }
-    }
-
-    @Override
-    public InteractionResult interact(Player player, InteractionHand hand) {
-        InteractionResult coupler = Trains.useCoupler(this, player, hand);
-        if (coupler != InteractionResult.PASS) {
-            return coupler;
-        }
-        return Trains.board(this, player);
-    }
-
-    @Override
-    public TrainCarState trainState() {
-        return trainState;
+    /** A seat on the bench whose cushion is centred {@code x} pixels along the model (front is negative). */
+    private static Seat seat(int x, int side) {
+        return new Seat(-(x + 1) / 16.0, side * SEAT_SIDE, SEAT_UP);
     }
 
     @Override
     public double halfLength() {
-        return 22.0 / 16.0;
+        return 3.25;
+    }
+
+    @Override
+    public double bogieOffset() {
+        return 2.25;
+    }
+
+    @Override
+    public double mass() {
+        return 1.5;
+    }
+
+    @Override
+    protected float partHeight() {
+        return 3.0F;
     }
 
     @Override
@@ -83,56 +50,12 @@ public class PassengerCoach extends AbstractMinecart implements TrainCar {
     }
 
     @Override
-    protected boolean canAddPassenger(Entity passenger) {
-        return Trains.hasFreeSeat(this);
-    }
-
-    @Override
-    protected Vec3 getPassengerAttachmentPoint(Entity passenger, EntityDimensions dimensions, float partialTick) {
-        Vec3 seat = Trains.seatPosition(this, passenger);
-        return seat != null ? seat : super.getPassengerAttachmentPoint(passenger, dimensions, partialTick);
-    }
-
-    @Override
-    public AABB getBoundingBoxForCulling() {
-        return Trains.cullingBox(this);
-    }
-
-    @Override
-    public float getPickRadius() {
-        return 0.5F;
-    }
-
-    @Override
-    public Type getMinecartType() {
-        return Type.RIDEABLE;
+    protected InteractionResult interactCar(Player player, InteractionHand hand) {
+        return board(player);
     }
 
     @Override
     protected Item getDropItem() {
         return ModItems.PASSENGER_COACH.get();
-    }
-
-    @Override
-    public ItemStack getPickResult() {
-        return new ItemStack(getDropItem());
-    }
-
-    @Override
-    public void remove(RemovalReason reason) {
-        Trains.onRemoved(this, reason);
-        super.remove(reason);
-    }
-
-    @Override
-    protected void addAdditionalSaveData(CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
-        Trains.save(this, tag);
-    }
-
-    @Override
-    protected void readAdditionalSaveData(CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
-        Trains.load(this, tag);
     }
 }

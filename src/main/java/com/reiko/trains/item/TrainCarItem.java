@@ -1,85 +1,99 @@
 package com.reiko.trains.item;
 
+import com.reiko.trains.track.TrackGraph;
+import com.reiko.trains.track.TrackPos;
+import com.reiko.trains.train.TrainCarEntity;
 import com.reiko.trains.train.Trains;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.AbstractMinecart;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseRailBlock;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.RailShape;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 
-/** Puts a train car on the rails clicked, facing along them the way the player is looking. */
+/** Puts a train car on the track clicked, centred on that block and facing along the track the way you look. */
 public class TrainCarItem extends Item {
-    private final Supplier<? extends EntityType<? extends AbstractMinecart>> type;
+    private final Supplier<? extends EntityType<? extends TrainCarEntity>> type;
 
-    public TrainCarItem(Supplier<? extends EntityType<? extends AbstractMinecart>> type, Properties properties) {
+    public TrainCarItem(Supplier<? extends EntityType<? extends TrainCarEntity>> type, Properties properties) {
         super(properties);
         this.type = type;
+    }
+
+    /** Why a car can't go somewhere, or null if it can (and was put there). */
+    public enum Problem {
+        NOT_TRACK("not_track"),
+        NO_ROOM("no_room"),
+        BLOCKED("blocked");
+
+        private final String key;
+
+        Problem(String key) {
+            this.key = key;
+        }
+
+        public net.minecraft.network.chat.MutableComponent message() {
+            return Component.translatable("message.reikotrains.place." + key);
+        }
     }
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
-        BlockState state = level.getBlockState(pos);
-        if (!state.is(BlockTags.RAILS)) {
+        Player player = context.getPlayer();
+        if (TrackGraph.axis(level, pos) == null) {
+            if (player != null && !level.isClientSide) {
+                player.displayClientMessage(Problem.NOT_TRACK.message().withStyle(ChatFormatting.RED), true);
+            }
             return InteractionResult.FAIL;
         }
-        ItemStack stack = context.getItemInHand();
         if (level instanceof ServerLevel serverLevel) {
-            RailShape shape = state.getBlock() instanceof BaseRailBlock rail
-                    ? rail.getRailDirection(state, level, pos, null) : RailShape.NORTH_SOUTH;
-            Player player = context.getPlayer();
-            Vec3 look = player != null ? player.getLookAngle() : new Vec3(0, 0, 1);
-            AbstractMinecart car = place(serverLevel, type.get(), pos, shape, look, stack, player);
-            if (car == null) {
+            ItemStack stack = context.getItemInHand();
+            Vec3 look = player != null ? player.getLookAngle() : new Vec3(1, 0, 0);
+            TrainCarEntity car = type.get().create(serverLevel);
+            Problem problem = car == null ? Problem.NOT_TRACK : place(serverLevel, car, pos, look);
+            if (problem != null) {
+                if (player != null) {
+                    player.displayClientMessage(problem.message().withStyle(ChatFormatting.RED), true);
+                }
                 return InteractionResult.FAIL;
             }
-            serverLevel.gameEvent(GameEvent.ENTITY_PLACE, pos, GameEvent.Context.of(player, serverLevel.getBlockState(pos.below())));
+            EntityType.<TrainCarEntity>createDefaultStackConfig(serverLevel, stack, player).accept(car);
+            serverLevel.addFreshEntity(car);
+            serverLevel.gameEvent(GameEvent.ENTITY_PLACE, pos, GameEvent.Context.of(player));
+            stack.shrink(1);
+            return InteractionResult.CONSUME;
         }
-        stack.shrink(1);
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
-    /** Creates a car on the rail at {@code pos}, facing the way along it closest to {@code look}. */
-    public static <T extends AbstractMinecart> T place(ServerLevel level, EntityType<T> type, BlockPos pos, RailShape shape, Vec3 look,
-                                                      ItemStack stack, Player player) {
-        T car = type.create(level);
-        if (car == null) {
-            return null;
+    /**
+     * Sets a car on the track centred on the track block at {@code pos}, facing the way along it nearest
+     * {@code look}, without adding it to the world. Returns why it can't go there, or null if it's in place.
+     */
+    @Nullable
+    public static Problem place(Level level, TrainCarEntity car, BlockPos pos, Vec3 look) {
+        TrackPos centre = TrackPos.at(level, pos, look);
+        if (centre == null) {
+            return Problem.NO_ROOM;
         }
-        Vec3 along = along(shape);
-        if (along.x * look.x + along.z * look.z < 0) {
-            along = along.reverse();
+        TrackPos front = centre.copy();
+        TrackPos rear = centre.copy();
+        double offset = car.bogieOffset();
+        if (front.walk(level, offset, TrackPos.STRAIGHTEST) < offset - 1.0E-6 || rear.walk(level, -offset, TrackPos.STRAIGHTEST) < offset - 1.0E-6) {
+            return Problem.NO_ROOM;
         }
-        float yaw = Trains.yawFacing(along);
-        car.moveTo(pos.getX() + 0.5, pos.getY() + 0.0625 + (shape.isAscending() ? 0.5 : 0.0), pos.getZ() + 0.5, yaw, 0.0F);
-        EntityType.<AbstractMinecart>createDefaultStackConfig(level, stack, player).accept(car);
-        level.addFreshEntity(car);
-        return car;
-    }
-
-    /** The direction a rail runs in, flat (one of the two). */
-    public static Vec3 along(RailShape shape) {
-        double s = Math.sqrt(0.5);
-        return switch (shape) {
-            case EAST_WEST, ASCENDING_EAST, ASCENDING_WEST -> new Vec3(1, 0, 0);
-            case SOUTH_EAST -> new Vec3(s, 0, -s);
-            case SOUTH_WEST -> new Vec3(-s, 0, -s);
-            case NORTH_WEST -> new Vec3(-s, 0, s);
-            case NORTH_EAST -> new Vec3(s, 0, s);
-            default -> new Vec3(0, 0, 1);
-        };
+        car.setBogies(front, rear);
+        return Trains.clear(level, car) ? null : Problem.BLOCKED;
     }
 }

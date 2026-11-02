@@ -2,7 +2,7 @@ package com.reiko.trains.item;
 
 import com.reiko.trains.registry.ModDataComponents;
 import com.reiko.trains.registry.ModSounds;
-import com.reiko.trains.train.TrainCar;
+import com.reiko.trains.train.TrainCarEntity;
 import com.reiko.trains.train.Trains;
 import java.util.List;
 import java.util.UUID;
@@ -13,7 +13,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.AbstractMinecart;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -28,11 +27,11 @@ public class CouplerItem extends Item {
         super(properties);
     }
 
-    public static InteractionResult useOnCar(ItemStack stack, Player player, TrainCar car) {
+    public static InteractionResult useOnCar(ItemStack stack, Player player, TrainCarEntity car) {
         if (!(player.level() instanceof ServerLevel level)) {
             return InteractionResult.SUCCESS;
         }
-        AbstractMinecart cart = car.cart();
+        TrainCarEntity cart = car;
         if (player.isSecondaryUseActive()) {
             stack.remove(ModDataComponents.COUPLING_FROM.get());
             int undone = Trains.uncouple(car);
@@ -55,14 +54,14 @@ public class CouplerItem extends Item {
             return InteractionResult.CONSUME;
         }
         stack.remove(ModDataComponents.COUPLING_FROM.get());
-        if (!(level.getEntity(firstId) instanceof TrainCar first) || first.cart().isRemoved()) {
+        if (!(level.getEntity(firstId) instanceof TrainCarEntity first) || first.isRemoved()) {
             player.displayClientMessage(Component.translatable("message.reikotrains.couple.gone"), true);
             return InteractionResult.CONSUME;
         }
         Trains.CoupleResult result = Trains.couple(first, car);
         if (result == Trains.CoupleResult.COUPLED) {
             level.playSound(null, cart.getX(), cart.getY(), cart.getZ(), ModSounds.COUPLE.get(), SoundSource.NEUTRAL, 1.0F, 1.0F);
-            player.displayClientMessage(Component.translatable("message.reikotrains.couple.coupled", first.cart().getDisplayName(),
+            player.displayClientMessage(Component.translatable("message.reikotrains.couple.coupled", first.getDisplayName(),
                     cart.getDisplayName(), Trains.train(car).size()), true);
         } else {
             player.displayClientMessage(result.message(), true);
