@@ -157,6 +157,8 @@ public final class DevShowcase {
     private static final int CROSSING_LINE = -48;
     /** The line with the electric and its charging point, along x at this z. */
     private static final int ELECTRIC_LINE = -62;
+    /** The line where a goods train leaves wagons at a yard, along x at this z. */
+    private static final int GOODS_LINE = -76;
     /** The switch stand for the junction at x = 52. */
     private static final BlockPos SWITCH = new BlockPos(52, Y, -2);
 
@@ -281,6 +283,22 @@ public final class DevShowcase {
         level.setBlock(sensor.getBlockPos(), sensor.getBlockState().setValue(com.reiko.trains.signal.TrackSensorBlock.DIRECTION,
                 com.reiko.trains.signal.SensorDirection.RIGHT), 3);
         level.setBlock(new BlockPos(45, Y, ELECTRIC_LINE + 3), Blocks.REDSTONE_LAMP.defaultBlockState(), 3);
+
+        // A sixth line, with a diesel and three loaded wagons, a goods yard to leave two of them at, and a far end.
+        TestTracks.line(level, new BlockPos(0, Y, GOODS_LINE), TrackAxis.X, 90);
+        TestTracks.station(level, new BlockPos(40, Y, GOODS_LINE - 3), new BlockPos(40, Y, GOODS_LINE), "Goods Yard", 1);
+        TestTracks.station(level, new BlockPos(85, Y, GOODS_LINE - 3), new BlockPos(85, Y, GOODS_LINE), "Far End", 10);
+        DieselLocomotive shunter = TestTracks.car(level, ModEntities.DIESEL_LOCOMOTIVE.get(), new BlockPos(24, Y, GOODS_LINE), EAST);
+        TrainCarEntity behind = shunter;
+        for (int x : new int[]{17, 11, 5}) {
+            FreightWagon goods = TestTracks.car(level, ModEntities.FREIGHT_WAGON.get(), new BlockPos(x, Y, GOODS_LINE), EAST);
+            for (int slot = 0; slot < 50 + x * 3; slot++) {
+                goods.setItem(slot, new ItemStack(x == 17 ? Items.IRON_ORE : Items.OAK_LOG, 64));
+            }
+            Trains.couple(behind, goods);
+            behind = goods;
+        }
+        shunter.setFuel(DieselLocomotive.FUEL_CAPACITY * 0.5);
 
         Locomotive a = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(22, Y, 14), EAST);
         PassengerCoach aCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(15, Y, 14), EAST);
@@ -501,6 +519,18 @@ public final class DevShowcase {
         // The track sensor lighting its lamp as the electric goes by
         at(1892, mc -> look(mc, 42.4, Y + 1.0, ELECTRIC_LINE + 6.3, 214.0F, 18.0F));
         at(1925, mc -> shot(mc, "31_track_sensor"));
-        at(1935, Minecraft::stop);
+        // The goods train: off to the yard, where it leaves its last two wagons, and on without them
+        at(1790, mc -> server(mc, player -> {
+            ServerLevel level = player.serverLevel();
+            DieselLocomotive shunter = level.getEntitiesOfClass(DieselLocomotive.class,
+                    new AABB(18, Y - 2, GOODS_LINE - 4, 30, Y + 4, GOODS_LINE + 4)).getFirst();
+            if (level.getBlockEntity(new BlockPos(40, Y, GOODS_LINE - 3)) instanceof StationBlockEntity yard
+                    && level.getBlockEntity(new BlockPos(85, Y, GOODS_LINE - 3)) instanceof StationBlockEntity far) {
+                shunter.autopilot().start(List.of(TestTracks.stop(yard).withWagons(2), TestTracks.stop(far)));
+            }
+        }));
+        at(1927, mc -> look(mc, 22.0, Y + 4.0, GOODS_LINE + 9.0, 222.0F, 16.0F));
+        at(1975, mc -> shot(mc, "32_wagons_left"));
+        at(1985, Minecraft::stop);
     }
 }

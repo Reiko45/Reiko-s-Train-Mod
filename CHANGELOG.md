@@ -2,6 +2,22 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.15.0
+
+Leaving wagons at stations and picking them up.
+
+- A timetable stop can now leave wagons or pick them up. Click a station again just after adding it to a timetable to
+  go round: leave a wagon, 2, 3 or 4 wagons, leave all its wagons, pick up waiting wagons, or nothing. The timetable's
+  tooltip shows what each stop does.
+- Leaving: before it sets off, the train uncouples that many cars from the end it won't be leading with, and leaves
+  them standing at the station. So it leaves its back wagons going on through, and the far ones coming back out of a
+  dead end (push them in).
+- Picking up: wagons with no locomotive standing at the station (up to 32 blocks short of the nameboard or 24 past
+  it): the train runs up to them, couples on and takes them along.
+- Timetables made before keep working: their stops have nothing to do with wagons. Clicking the last stop again no
+  longer just says it's already there.
+- Six new game tests: 98 in all.
+
 ## 0.14.0
 
 Track sensors.

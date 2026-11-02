@@ -37,6 +37,11 @@ import net.minecraft.world.phys.Vec3;
 public final class Autopilot {
     /** How far it searches the track for the way to a station, in blocks. */
     private static final double SEARCH = 3000;
+    /** At a stop to pick up wagons: how far short of the station they can be waiting, and how far past it, in blocks. */
+    static final double WAITING_BEFORE = 32;
+    static final double WAITING_BEYOND = 24;
+    /** How far short of waiting wagons it stops, to couple on (buffer to buffer). */
+    private static final double PICK_UP_SHORT = 0.5;
 
     enum Phase {
         OFF, RUNNING, DWELLING
@@ -188,6 +193,9 @@ public final class Autopilot {
                 timer--;
             }
             if (timer <= 0 && loading == null && !charging) {
+                if (stop.dropsWagons()) {
+                    dropWagons(level, cars, signs, stop);
+                }
                 depart(cars);
             }
             loco.updateAutoDisplay();
@@ -200,13 +208,26 @@ public final class Autopilot {
         TrackPos.Chooser chooser = (node, side, options, heading) -> choose(level, node, side, options, heading, true);
         Lookahead look = Lookahead.look(cars, signs, direction, chooser, stop.track());
         loco.showLookahead(look);
-        double stopAt = Math.min(look.signalStop, Math.min(look.targetFound ? look.targetDistance : Double.POSITIVE_INFINITY,
-                look.endOfLine ? look.endDistance - 0.05 : Double.POSITIVE_INFINITY));
+        // Picking up wagons: if they're waiting around the station, it runs up to them instead of to the nameboard.
+        Trains.Ahead waiting = stop.picksUpWagons() && look.targetFound ? waitingWagons(level, cars, signs, look.targetDistance) : null;
+        double targetStop = waiting != null ? waiting.distance() - PICK_UP_SHORT
+                : look.targetFound ? look.targetDistance : Double.POSITIVE_INFINITY;
+        double stopAt = Math.min(look.signalStop, Math.min(targetStop, look.endOfLine ? look.endDistance - 0.05 : Double.POSITIVE_INFINITY));
         double limit = Drive.stoppingSpeed(stopAt);
         double target = Math.min(loco.maxSpeed(), limit);
         boolean stopped = Math.abs(speed) < 0.002;
         waitingAtSignal = look.signalStop != Double.POSITIVE_INFINITY && look.signalStop <= look.targetDistance;
-        if (look.targetFound && Math.abs(look.targetDistance) < 0.6 && stopped && !waitingAtSignal) {
+        if (waiting != null && stopped && waiting.distance() <= Trains.COUPLING_REACH && look.signalStop >= waiting.distance()) {
+            TrainCarEntity lead = cars.get(Lookahead.leadIndex(cars, direction));
+            int before = cars.size();
+            if (Trains.couple(lead, waiting.car()) == Trains.CoupleResult.COUPLED) {
+                arrive(level, cars, stop);
+                int picked = Trains.train(lead).size() - before;
+                announce(cars, Component.translatable("message.reikotrains.auto.picked_up", picked, stationName(level, stop)));
+                return new Drive(direction, chooser, 0, true, 0);
+            }
+        }
+        if (waiting == null && look.targetFound && Math.abs(look.targetDistance) < 0.6 && stopped && !waitingAtSignal) {
             arrive(level, cars, stop);
             return new Drive(direction, chooser, 0, true, 0);
         }
@@ -263,6 +284,78 @@ public final class Autopilot {
         Vec3 forward = cars.getFirst().flatForward().scale(signs[0]);
         Vec3 toStop = Vec3.atCenterOf(stop.track()).subtract(cars.getFirst().position());
         return forward.x * toStop.x + forward.z * toStop.z >= 0 ? 1 : -1;
+    }
+
+    /**
+     * Wagons waiting to be picked up at a station: the nearest car ahead (going the way it's going, by its route) of a
+     * train with no locomotive, if it's somewhere around the station (from {@link #WAITING_BEFORE} blocks short of it to
+     * {@link #WAITING_BEYOND} past it). The distance is from buffer to buffer.
+     */
+    @Nullable
+    private Trains.Ahead waitingWagons(Level level, List<TrainCarEntity> cars, int[] signs, double stationDistance) {
+        List<TrainCarEntity> loose = new ArrayList<>();
+        Map<TrainCarEntity, Boolean> hasEngine = new HashMap<>();
+        for (TrainCarEntity car : Trains.loadedCars(level)) {
+            if (cars.contains(car) || !car.isOnTrack() || car.isRemoved()) {
+                continue;
+            }
+            List<TrainCarEntity> train = Trains.train(car);
+            boolean engine = hasEngine.computeIfAbsent(train.getFirst(), head -> train.stream().anyMatch(c -> c instanceof Locomotive));
+            if (!engine) {
+                loose.add(car);
+            }
+        }
+        if (loose.isEmpty()) {
+            return null;
+        }
+        int index = Lookahead.leadIndex(cars, direction);
+        TrainCarEntity lead = cars.get(index);
+        double overhang = lead.halfLength() - lead.bogieOffset();
+        TrackPos.Chooser route = (node, side, options, heading) -> choose(level, node, side, options, heading, false);
+        Trains.Ahead found = Trains.nearestAlong(level, Lookahead.leadBogie(cars, signs, direction), direction * signs[index], loose,
+                stationDistance + overhang + WAITING_BEYOND + 8, route);
+        if (found == null) {
+            return null;
+        }
+        TrainCarEntity car = found.car();
+        double gap = found.distance() - overhang - (car.halfLength() - car.bogieOffset()) - Trains.BUFFER_GAP;
+        if (gap < stationDistance - WAITING_BEFORE || gap > stationDistance + WAITING_BEYOND) {
+            return null;
+        }
+        return new Trains.Ahead(car, Math.max(0, gap));
+    }
+
+    /**
+     * Leaves cars at the station: up to the stop's number of them (or all), from the end of the train it won't be
+     * leading with when it sets off for the next stop, stopping at the first locomotive or tender. They stay standing
+     * there, a train of their own.
+     */
+    private void dropWagons(Level level, List<TrainCarEntity> cars, int[] signs, Timetable.Stop stop) {
+        Timetable.Stop next = stops.get((index + 1) % stops.size());
+        int leave = chooseDirection(level, cars, signs, next);
+        int from = leave > 0 ? cars.size() - 1 : 0;
+        int step = leave > 0 ? -1 : 1;
+        int count = 0;
+        for (int i = from; i >= 0 && i < cars.size() && count < stop.wagons(); i += step) {
+            TrainCarEntity car = cars.get(i);
+            if (car instanceof Locomotive || car instanceof Tender) {
+                break;
+            }
+            count++;
+        }
+        String name = stationName(level, stop);
+        if (count == 0 || count >= cars.size()) {
+            announce(cars, Component.translatable("message.reikotrains.auto.nothing_to_leave", name));
+            return;
+        }
+        Trains.split(cars, leave > 0 ? cars.size() - count - 1 : count - 1);
+        announce(cars, Component.translatable("message.reikotrains.auto.left_wagons", count, name));
+        ReikoTrains.LOGGER.debug("Train {} left {} cars at {}", loco.getUUID(), count, name);
+    }
+
+    private static String stationName(Level level, Timetable.Stop stop) {
+        return level.isLoaded(stop.station()) && level.getBlockEntity(stop.station()) instanceof StationBlockEntity station
+                ? station.name() : stop.name();
     }
 
     /** Whether the first signal along the track this way faces the other way (so this is the wrong way down the line). */

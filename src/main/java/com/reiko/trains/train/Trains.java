@@ -668,6 +668,73 @@ public final class Trains {
         return count;
     }
 
+    /**
+     * Uncouples a train between its cars {@code k} and {@code k + 1} (in train order, first to last): each half stands
+     * where it is, the back half's first car now the front of its own train.
+     */
+    static void split(List<TrainCarEntity> cars, int k) {
+        int[] signs = signs(cars);
+        double speed = cars.getFirst().speed;
+        TrainCarEntity front = cars.get(k);
+        TrainCarEntity back = cars.get(k + 1);
+        front.follower = null;
+        front.followerCache = null;
+        back.leader = null;
+        back.leaderCache = null;
+        back.flipped = signs[k + 1] < 0;
+        back.speed = speed;
+        back.routes.clear();
+    }
+
+    /** A car found along the track, and how far it is to its nearest bogie. */
+    record Ahead(TrainCarEntity car, double distance) {
+    }
+
+    /**
+     * The nearest of {@code candidates} along the track from {@code start} (the way {@code direction}, +1 forwards and
+     * -1 backwards in car terms), going the way {@code chooser} picks at junctions, up to {@code maxDistance} blocks;
+     * how far it is to its nearest bogie. Null if none is.
+     */
+    @Nullable
+    static Ahead nearestAlong(Level level, TrackPos start, int direction, List<TrainCarEntity> candidates, double maxDistance,
+                              TrackPos.Chooser chooser) {
+        TrackPos pos = start.copy();
+        double travelled = 0;
+        for (int guard = 0; guard < 4096; guard++) {
+            EdgeRef edge = pos.edge();
+            TrackEdge shape = edge.geometry();
+            boolean along = (direction >= 0) == pos.facingAlong();
+            double here = pos.distance();
+            Ahead best = null;
+            for (TrainCarEntity car : candidates) {
+                for (TrackPos bogie : new TrackPos[]{car.front, car.rear}) {
+                    if (bogie == null || !bogie.edge().sameTrack(edge)) {
+                        continue;
+                    }
+                    double there = bogie.edge().equals(edge) ? bogie.distance() : shape.length() - bogie.distance();
+                    double gap = along ? there - here : here - there;
+                    if (gap >= -1.0E-4 && (best == null || travelled + gap < best.distance())) {
+                        best = new Ahead(car, travelled + Math.max(0, gap));
+                    }
+                }
+            }
+            if (best != null) {
+                return best.distance() <= maxDistance ? best : null;
+            }
+            double room = along ? shape.length() - here : here;
+            if (travelled + room > maxDistance) {
+                return null;
+            }
+            double step = room + 1.0E-4;
+            double moved = pos.walk(level, direction * step, chooser);
+            if (moved < step - 1.0E-6) {
+                return null;
+            }
+            travelled += step;
+        }
+        return null;
+    }
+
     /** Whether a car could go at this spot: no other car is already on the track there. */
     public static boolean clear(Level level, TrainCarEntity car) {
         Vec3 flat = car.flatForward();

@@ -64,7 +64,6 @@
   "item.reikotrains.timetable.tooltip3": "Click a train to run these; sneak-click a train to stop it",
   "message.reikotrains.trackside.no_track": "Put it within three blocks of train track",
   "message.reikotrains.timetable.added": "Added %s (stop %s)",
-  "message.reikotrains.timetable.same": "%s is already the last stop",
   "message.reikotrains.timetable.full": "A timetable holds %s stops",
   "message.reikotrains.timetable.no_track": "That station isn't beside any track",
   "message.reikotrains.timetable.cleared": "Timetable cleared",
@@ -161,5 +160,15 @@
   "message.reikotrains.sensor.filter.car": "Senses only trains with a %s",
   "message.reikotrains.sensor.filter.any_timetable": "Senses only trains running a timetable",
   "message.reikotrains.sensor.filter.timetable": "Senses only trains running this timetable (%s stops)",
-  "message.reikotrains.sensor.filter.carrying": "Senses only trains carrying %s"
+  "message.reikotrains.sensor.filter.carrying": "Senses only trains carrying %s",
+  "message.reikotrains.timetable.wagons": "%s (stop %s): %s",
+  "item.reikotrains.timetable.stop_with_wagons": "%s: %s",
+  "timetable.reikotrains.wagons.none": "nothing to do with wagons",
+  "timetable.reikotrains.wagons.drop_one": "leave a wagon",
+  "timetable.reikotrains.wagons.drop": "leave %s wagons",
+  "timetable.reikotrains.wagons.drop_all": "leave all its wagons",
+  "timetable.reikotrains.wagons.pick_up": "pick up waiting wagons",
+  "message.reikotrains.auto.left_wagons": "Left %s wagons at %s",
+  "message.reikotrains.auto.picked_up": "Picked up %s wagons at %s",
+  "message.reikotrains.auto.nothing_to_leave": "No wagons to leave at %s: the locomotive's at that end"
 }

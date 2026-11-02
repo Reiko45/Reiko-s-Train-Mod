@@ -21,8 +21,10 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 
 /**
- * A timetable. Click stations to add them as stops, in order; then click a train to set it running them on its own,
- * round and round. Sneak-click a train to stop it running automatically, and sneak-click the air to clear the stops.
+ * A timetable. Click stations to add them as stops, in order; click the station just added again to say what the
+ * train does with wagons there (leave some, leave them all, or pick up what's waiting). Then click a train to set it
+ * running them on its own, round and round. Sneak-click a train to stop it running automatically, and sneak-click the
+ * air to clear the stops.
  */
 public class TimetableItem extends Item {
     public TimetableItem(Properties properties) {
@@ -45,11 +47,17 @@ public class TimetableItem extends Item {
             List<Timetable.Stop> stops = new ArrayList<>(stops(stack));
             if (!station.isAttached()) {
                 player.displayClientMessage(Component.translatable("message.reikotrains.timetable.no_track").withStyle(ChatFormatting.RED), true);
+            } else if (!stops.isEmpty() && stops.getLast().station().equals(context.getClickedPos())) {
+                // Clicking the last stop again: what the train does with wagons there, going round.
+                Timetable.Stop last = stops.getLast();
+                Timetable.Stop changed = last.withWagons(last.nextWagons());
+                stops.set(stops.size() - 1, changed);
+                stack.set(ModDataComponents.TIMETABLE.get(), stops);
+                player.displayClientMessage(Component.translatable("message.reikotrains.timetable.wagons", station.name(), stops.size(),
+                        changed.describeWagons()), true);
             } else if (stops.size() >= Timetable.MAX_STOPS) {
                 player.displayClientMessage(Component.translatable("message.reikotrains.timetable.full", Timetable.MAX_STOPS)
                         .withStyle(ChatFormatting.RED), true);
-            } else if (!stops.isEmpty() && stops.getLast().station().equals(context.getClickedPos())) {
-                player.displayClientMessage(Component.translatable("message.reikotrains.timetable.same", station.name()), true);
             } else {
                 stops.add(new Timetable.Stop(context.getClickedPos().immutable(), station.node(), station.name()));
                 stack.set(ModDataComponents.TIMETABLE.get(), stops);
@@ -120,7 +128,12 @@ public class TimetableItem extends Item {
             return;
         }
         for (int i = 0; i < stops.size(); i++) {
-            tooltip.add(Component.literal((i + 1) + ". " + stops.get(i).name()).withStyle(ChatFormatting.GRAY));
+            Timetable.Stop stop = stops.get(i);
+            Component line = Component.literal((i + 1) + ". " + stop.name());
+            if (stop.wagons() != Timetable.Stop.NONE) {
+                line = Component.translatable("item.reikotrains.timetable.stop_with_wagons", line, stop.describeWagons());
+            }
+            tooltip.add(line.copy().withStyle(ChatFormatting.GRAY));
         }
         tooltip.add(Component.translatable("item.reikotrains.timetable.tooltip3").withStyle(ChatFormatting.DARK_GRAY));
     }
