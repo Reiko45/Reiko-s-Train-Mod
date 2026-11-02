@@ -137,6 +137,33 @@ public final class SwitchGameTests {
         helper.succeed();
     }
 
+    @GameTest(template = YARD, timeoutTicks = 60)
+    public static void markerShowsWhatRedstoneDoes(GameTestHelper helper) {
+        BlockPos west = junction(helper);
+        SwitchBlockEntity stand = stand(helper, west);
+        helper.assertTrue(!straightMarker(stand), "a new stand's marker should say redstone throws it");
+        Player sneaking = helper.makeMockPlayer(GameType.SURVIVAL);
+        sneaking.setShiftKeyDown(true);
+        click(helper, stand, sneaking);
+        helper.assertTrue(stand.redstoneWay() == 0 && straightMarker(stand), "set to hold it straight, the marker should say so");
+        click(helper, stand, sneaking);
+        helper.assertTrue(!straightMarker(stand), "and back to throwing");
+        click(helper, stand, sneaking);
+        helper.getLevel().setBlock(stand.getBlockPos().north(), Blocks.REDSTONE_BLOCK.defaultBlockState(), 3);
+        helper.assertTrue(straightMarker(stand) && stand.isLocked() && !thrown(stand), "powered, it should hold it straight, marker lit");
+        // A stand from before the marker: its marker is put right when it loads.
+        helper.getLevel().setBlock(stand.getBlockPos(), stand.getBlockState().setValue(SwitchBlock.REDSTONE_STRAIGHT, false), 3);
+        stand.onLoad();
+        helper.runAfterDelay(3, () -> {
+            helper.assertTrue(straightMarker(stand), "an out-of-date marker should be put right");
+            helper.succeed();
+        });
+    }
+
+    private static boolean straightMarker(SwitchBlockEntity stand) {
+        return stand.getBlockState().getValue(SwitchBlock.REDSTONE_STRAIGHT);
+    }
+
     @GameTest(template = YARD, timeoutTicks = 300)
     public static void thrownSwitchSendsTheTrainDownTheBranch(GameTestHelper helper) {
         BlockPos west = junction(helper);

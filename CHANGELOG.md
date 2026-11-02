@@ -2,6 +2,14 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.11.0
+
+- Switch stands have a marker on the post showing what redstone does to them: yellow, it throws the switch; green, it
+  holds it straight on. It lights up while redstone is holding the switch. Stands in existing worlds get theirs when
+  they load.
+- New game tests: a marker test, and one checking that no way of clicking a wagon loader's filter slot hands out an
+  item: 73 in all.
+
 ## 0.10.0
 
 Wagon loader filters.

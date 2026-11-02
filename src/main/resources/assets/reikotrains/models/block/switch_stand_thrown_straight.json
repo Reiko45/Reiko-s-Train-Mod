@@ -7,7 +7,8 @@
     "head": "reikotrains:block/signal_head",
     "lever": "reikotrains:block/switch_lever",
     "green": "reikotrains:block/switch_target_green",
-    "yellow": "reikotrains:block/switch_target_yellow"
+    "yellow": "reikotrains:block/switch_target_yellow",
+    "marker": "reikotrains:block/switch_marker_straight"
   },
   "elements": [
     {
@@ -210,6 +211,74 @@
             0,
             2,
             9
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        5.5,
+        4.5,
+        5.5
+      ],
+      "to": [
+        10.5,
+        9.5,
+        10.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#marker",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#marker",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#marker",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#marker",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#head",
+          "uv": [
+            0,
+            0,
+            5,
+            5
+          ]
+        },
+        "down": {
+          "texture": "#head",
+          "uv": [
+            0,
+            0,
+            5,
+            5
           ]
         }
       }

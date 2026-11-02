@@ -56,6 +56,19 @@ public class SwitchBlockEntity extends BlockEntity {
         redstoneWay = thrownSide;
         setChanged();
         register();
+        showRedstoneWay();
+    }
+
+    /** Sets the marker on the post to show what redstone does: green, it holds it straight on; yellow, it throws it. */
+    public void showRedstoneWay() {
+        if (level == null || level.isClientSide) {
+            return;
+        }
+        BlockState state = getBlockState();
+        boolean straight = redstoneWay == 0;
+        if (state.hasProperty(SwitchBlock.REDSTONE_STRAIGHT) && state.getValue(SwitchBlock.REDSTONE_STRAIGHT) != straight) {
+            level.setBlock(worldPosition, state.setValue(SwitchBlock.REDSTONE_STRAIGHT, straight), 3);
+        }
     }
 
     /** The sides the junction's branches bend off to: -1 left and/or +1 right (empty if it isn't a junction now). */
@@ -116,6 +129,7 @@ public class SwitchBlockEntity extends BlockEntity {
         if (isLocked()) {
             set(redstoneWay);
         }
+        showRedstoneWay();
         return redstoneWay;
     }
 
@@ -217,6 +231,10 @@ public class SwitchBlockEntity extends BlockEntity {
     public void onLoad() {
         super.onLoad();
         register();
+        // A stand from before the marker (or whose setting and marker disagree) gets its marker put right next tick.
+        if (level != null && !level.isClientSide && getBlockState().getValue(SwitchBlock.REDSTONE_STRAIGHT) != (redstoneWay == 0)) {
+            level.scheduleTick(worldPosition, getBlockState().getBlock(), 1);
+        }
     }
 
     @Override

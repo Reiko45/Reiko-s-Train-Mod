@@ -389,6 +389,25 @@ public final class DevShowcase {
             }
         }));
         at(1450, mc -> shot(mc, "24_loader_screen"));
-        at(1460, Minecraft::stop);
+        // The switch stand set to hold the line straight, and held there by a redstone block under it: its marker lit
+        at(1452, mc -> {
+            mc.setScreen(null);
+            server(mc, player -> {
+                player.closeContainer();
+                if (player.serverLevel().getBlockEntity(SWITCH) instanceof SwitchBlockEntity stand) {
+                    while (stand.redstoneWay() != 0) {
+                        stand.cycleRedstoneWay();
+                    }
+                    player.serverLevel().setBlock(SWITCH.below(), Blocks.REDSTONE_BLOCK.defaultBlockState(), 3);
+                }
+            });
+        });
+        at(1456, mc -> {
+            mc.gameRenderer.setRenderHand(false);
+            mc.gameRenderer.setRenderBlockOutline(false);
+            look(mc, 51.0, Y, -4.4, -28.0F, 12.0F);
+        });
+        at(1500, mc -> shot(mc, "25_switch_held_straight"));
+        at(1510, Minecraft::stop);
     }
 }

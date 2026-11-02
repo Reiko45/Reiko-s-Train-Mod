@@ -1,63 +1,123 @@
 {
   "variants": {
-    "facing=north,powered=false,thrown=false": {
-      "model": "reikotrains:block/switch_stand_normal"
+    "facing=north,powered=false,redstone_straight=false,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal_throws"
     },
-    "facing=north,powered=true,thrown=false": {
-      "model": "reikotrains:block/switch_stand_normal"
+    "facing=north,powered=false,redstone_straight=true,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal_straight"
     },
-    "facing=north,powered=false,thrown=true": {
-      "model": "reikotrains:block/switch_stand_thrown"
+    "facing=north,powered=true,redstone_straight=false,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal_throws_lit"
     },
-    "facing=north,powered=true,thrown=true": {
-      "model": "reikotrains:block/switch_stand_thrown"
+    "facing=north,powered=true,redstone_straight=true,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal_straight_lit"
     },
-    "facing=east,powered=false,thrown=false": {
-      "model": "reikotrains:block/switch_stand_normal",
+    "facing=north,powered=false,redstone_straight=false,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown_throws"
+    },
+    "facing=north,powered=false,redstone_straight=true,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown_straight"
+    },
+    "facing=north,powered=true,redstone_straight=false,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown_throws_lit"
+    },
+    "facing=north,powered=true,redstone_straight=true,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown_straight_lit"
+    },
+    "facing=east,powered=false,redstone_straight=false,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal_throws",
       "y": 90
     },
-    "facing=east,powered=true,thrown=false": {
-      "model": "reikotrains:block/switch_stand_normal",
+    "facing=east,powered=false,redstone_straight=true,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal_straight",
       "y": 90
     },
-    "facing=east,powered=false,thrown=true": {
-      "model": "reikotrains:block/switch_stand_thrown",
+    "facing=east,powered=true,redstone_straight=false,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal_throws_lit",
       "y": 90
     },
-    "facing=east,powered=true,thrown=true": {
-      "model": "reikotrains:block/switch_stand_thrown",
+    "facing=east,powered=true,redstone_straight=true,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal_straight_lit",
       "y": 90
     },
-    "facing=south,powered=false,thrown=false": {
-      "model": "reikotrains:block/switch_stand_normal",
+    "facing=east,powered=false,redstone_straight=false,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown_throws",
+      "y": 90
+    },
+    "facing=east,powered=false,redstone_straight=true,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown_straight",
+      "y": 90
+    },
+    "facing=east,powered=true,redstone_straight=false,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown_throws_lit",
+      "y": 90
+    },
+    "facing=east,powered=true,redstone_straight=true,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown_straight_lit",
+      "y": 90
+    },
+    "facing=south,powered=false,redstone_straight=false,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal_throws",
       "y": 180
     },
-    "facing=south,powered=true,thrown=false": {
-      "model": "reikotrains:block/switch_stand_normal",
+    "facing=south,powered=false,redstone_straight=true,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal_straight",
       "y": 180
     },
-    "facing=south,powered=false,thrown=true": {
-      "model": "reikotrains:block/switch_stand_thrown",
+    "facing=south,powered=true,redstone_straight=false,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal_throws_lit",
       "y": 180
     },
-    "facing=south,powered=true,thrown=true": {
-      "model": "reikotrains:block/switch_stand_thrown",
+    "facing=south,powered=true,redstone_straight=true,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal_straight_lit",
       "y": 180
     },
-    "facing=west,powered=false,thrown=false": {
-      "model": "reikotrains:block/switch_stand_normal",
+    "facing=south,powered=false,redstone_straight=false,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown_throws",
+      "y": 180
+    },
+    "facing=south,powered=false,redstone_straight=true,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown_straight",
+      "y": 180
+    },
+    "facing=south,powered=true,redstone_straight=false,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown_throws_lit",
+      "y": 180
+    },
+    "facing=south,powered=true,redstone_straight=true,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown_straight_lit",
+      "y": 180
+    },
+    "facing=west,powered=false,redstone_straight=false,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal_throws",
       "y": 270
     },
-    "facing=west,powered=true,thrown=false": {
-      "model": "reikotrains:block/switch_stand_normal",
+    "facing=west,powered=false,redstone_straight=true,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal_straight",
       "y": 270
     },
-    "facing=west,powered=false,thrown=true": {
-      "model": "reikotrains:block/switch_stand_thrown",
+    "facing=west,powered=true,redstone_straight=false,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal_throws_lit",
       "y": 270
     },
-    "facing=west,powered=true,thrown=true": {
-      "model": "reikotrains:block/switch_stand_thrown",
+    "facing=west,powered=true,redstone_straight=true,thrown=false": {
+      "model": "reikotrains:block/switch_stand_normal_straight_lit",
+      "y": 270
+    },
+    "facing=west,powered=false,redstone_straight=false,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown_throws",
+      "y": 270
+    },
+    "facing=west,powered=false,redstone_straight=true,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown_straight",
+      "y": 270
+    },
+    "facing=west,powered=true,redstone_straight=false,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown_throws_lit",
+      "y": 270
+    },
+    "facing=west,powered=true,redstone_straight=true,thrown=true": {
+      "model": "reikotrains:block/switch_stand_thrown_straight_lit",
       "y": 270
     }
   }

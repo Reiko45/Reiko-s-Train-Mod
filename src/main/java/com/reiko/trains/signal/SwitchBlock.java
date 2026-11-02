@@ -43,11 +43,14 @@ public class SwitchBlock extends HorizontalDirectionalBlock implements EntityBlo
     public static final com.mojang.serialization.MapCodec<SwitchBlock> CODEC = simpleCodec(SwitchBlock::new);
     public static final BooleanProperty THROWN = BooleanProperty.create("thrown");
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
+    /** The marker on the post: what redstone sets the switch to. True: it holds it straight on; false: it throws it. */
+    public static final BooleanProperty REDSTONE_STRAIGHT = BooleanProperty.create("redstone_straight");
     private static final VoxelShape SHAPE = Block.box(4, 0, 4, 12, 19, 12);
 
     public SwitchBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(THROWN, false).setValue(POWERED, false));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(THROWN, false).setValue(POWERED, false)
+                .setValue(REDSTONE_STRAIGHT, false));
     }
 
     @Override
@@ -57,7 +60,7 @@ public class SwitchBlock extends HorizontalDirectionalBlock implements EntityBlo
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, THROWN, POWERED);
+        builder.add(FACING, THROWN, POWERED, REDSTONE_STRAIGHT);
     }
 
     @Nullable
@@ -136,6 +139,14 @@ public class SwitchBlock extends HorizontalDirectionalBlock implements EntityBlo
             }
         }
         super.neighborChanged(state, level, pos, neighbor, neighborPos, movedByPiston);
+    }
+
+    /** Brings the marker into line with the stand's redstone setting (scheduled when an older stand loads). */
+    @Override
+    protected void tick(BlockState state, net.minecraft.server.level.ServerLevel level, BlockPos pos, net.minecraft.util.RandomSource random) {
+        if (level.getBlockEntity(pos) instanceof SwitchBlockEntity stand) {
+            stand.showRedstoneWay();
+        }
     }
 
     @Override

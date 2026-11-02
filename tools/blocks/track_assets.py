@@ -370,55 +370,93 @@ def target(name, color):
     img.save(f"{ASSETS}/textures/block/{name}.png")
 
 
+def marker(name, color, lit):
+    """The marker on a switch stand's post: a redstone-red box with a window showing what redstone sets it to."""
+    img = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            edge = x < 3 or x > 12 or y < 3 or y > 12
+            if edge:
+                c = shade((210, 34, 26) if lit else (140, 26, 20), 1 + 0.06 * noise(name, x, y))
+            else:
+                c = shade(color, (1.2 if lit else 0.85) - 0.1 * (abs(x - 7.5) + abs(y - 7.5)) / 5)
+            img.putpixel((x, y), c)
+    img.save(f"{ASSETS}/textures/block/{name}.png")
+
+
 def switch_textures():
     target("switch_target_green", (40, 170, 72))
     target("switch_target_yellow", (236, 186, 30))
     solid("switch_lever", (168, 36, 30))
+    for way, color in (("straight", (40, 190, 80)), ("throws", (240, 190, 30))):
+        marker(f"switch_marker_{way}", color, False)
+        marker(f"switch_marker_{way}_on", color, True)
 
 
 def switch_models():
     """
     The switch stand: a cast base, a spindle, a target on top and a hand lever. Set normally the target's green face
     is square to the stand's front (it faces the junction); thrown, the spindle turns it a quarter round, to show the
-    yellow face, and the lever is over the other way.
+    yellow face, and the lever is over the other way. A marker box on the post shows what redstone sets it to (green,
+    it holds it straight on; yellow, it throws it), and lights up while redstone is holding it.
     """
-    for name, thrown in (("switch_stand_normal", False), ("switch_stand_thrown", True)):
-        plate = "#yellow" if thrown else "#green"
-        tex = {"particle": "reikotrains:block/signal_metal", "metal": "reikotrains:block/signal_metal",
-               "head": "reikotrains:block/signal_head", "lever": "reikotrains:block/switch_lever",
-               "green": "reikotrains:block/switch_target_green", "yellow": "reikotrains:block/switch_target_yellow"}
-        if thrown:
-            target_box = element([7.5, 12, 4.5], [8.5, 19, 11.5], {"east": (plate, [0, 0, 16, 16]), "west": (plate, [0, 0, 16, 16]),
-                                                                    "north": ("#head", [0, 0, 1, 7]), "south": ("#head", [0, 0, 1, 7]),
-                                                                    "up": ("#head", [0, 0, 1, 7]), "down": ("#head", [0, 0, 1, 7])})
-        else:
-            target_box = element([4.5, 12, 7.5], [11.5, 19, 8.5], {"north": (plate, [0, 0, 16, 16]), "south": (plate, [0, 0, 16, 16]),
-                                                                    "east": ("#head", [0, 0, 1, 7]), "west": ("#head", [0, 0, 1, 7]),
-                                                                    "up": ("#head", [0, 0, 7, 1]), "down": ("#head", [0, 0, 7, 1])})
-        lever = element([10.5, 2.5, 7.5], [11.5, 10, 8.5], all_faces("#lever", (0, 0, 1, 8)))
-        lever["rotation"] = {"origin": [11, 3, 8], "axis": "x", "angle": 45 if thrown else -45}
-        grip = element([10.5, 2, 6.5], [12, 4, 9.5], all_faces("#head", (0, 0, 3, 2)))
-        elements = [
-            element([4, 0, 4], [12, 2, 12], all_faces("#metal", (0, 0, 8, 8))),
-            element([5, 2, 5], [11, 3, 11], all_faces("#head", (0, 0, 6, 6))),
-            element([7, 3, 7], [9, 12, 9], all_faces("#metal", (0, 0, 2, 9))),
-            target_box,
-            grip,
-            lever,
-        ]
-        model = {"parent": "block/block", "ambientocclusion": False, "textures": tex, "elements": elements}
-        with open(f"{ASSETS}/models/block/{name}.json", "w") as out:
-            json.dump(model, out, indent=2)
+    for thrown in (False, True):
+        for way in ("throws", "straight"):
+            for lit in (False, True):
+                name = f"switch_stand_{'thrown' if thrown else 'normal'}_{way}{'_lit' if lit else ''}"
+                plate = "#yellow" if thrown else "#green"
+                tex = {"particle": "reikotrains:block/signal_metal", "metal": "reikotrains:block/signal_metal",
+                       "head": "reikotrains:block/signal_head", "lever": "reikotrains:block/switch_lever",
+                       "green": "reikotrains:block/switch_target_green", "yellow": "reikotrains:block/switch_target_yellow",
+                       "marker": f"reikotrains:block/switch_marker_{way}{'_on' if lit else ''}"}
+                if thrown:
+                    target_box = element([7.5, 12, 4.5], [8.5, 19, 11.5], {"east": (plate, [0, 0, 16, 16]), "west": (plate, [0, 0, 16, 16]),
+                                                                            "north": ("#head", [0, 0, 1, 7]), "south": ("#head", [0, 0, 1, 7]),
+                                                                            "up": ("#head", [0, 0, 1, 7]), "down": ("#head", [0, 0, 1, 7])})
+                else:
+                    target_box = element([4.5, 12, 7.5], [11.5, 19, 8.5], {"north": (plate, [0, 0, 16, 16]), "south": (plate, [0, 0, 16, 16]),
+                                                                            "east": ("#head", [0, 0, 1, 7]), "west": ("#head", [0, 0, 1, 7]),
+                                                                            "up": ("#head", [0, 0, 7, 1]), "down": ("#head", [0, 0, 7, 1])})
+                lever = element([10.5, 2.5, 7.5], [11.5, 10, 8.5], all_faces("#lever", (0, 0, 1, 8)))
+                lever["rotation"] = {"origin": [11, 3, 8], "axis": "x", "angle": 45 if thrown else -45}
+                grip = element([10.5, 2, 6.5], [12, 4, 9.5], all_faces("#head", (0, 0, 3, 2)))
+                # The marker: a box round the post, its window on all four sides; lit, it glows.
+                box = {"from": [5.5, 4.5, 5.5], "to": [10.5, 9.5, 10.5], "faces": {}}
+                for f in ("north", "south", "east", "west"):
+                    box["faces"][f] = {"texture": "#marker", "uv": [0, 0, 16, 16]}
+                    if lit:
+                        box["faces"][f]["neoforge_data"] = {"block_light": 15, "sky_light": 15}
+                for f in ("up", "down"):
+                    box["faces"][f] = {"texture": "#head", "uv": [0, 0, 5, 5]}
+                elements = [
+                    element([4, 0, 4], [12, 2, 12], all_faces("#metal", (0, 0, 8, 8))),
+                    element([5, 2, 5], [11, 3, 11], all_faces("#head", (0, 0, 6, 6))),
+                    element([7, 3, 7], [9, 12, 9], all_faces("#metal", (0, 0, 2, 9))),
+                    box,
+                    target_box,
+                    grip,
+                    lever,
+                ]
+                model = {"parent": "block/block", "ambientocclusion": False, "textures": tex, "elements": elements}
+                with open(f"{ASSETS}/models/block/{name}.json", "w") as out:
+                    json.dump(model, out, indent=2)
     variants = {}
     for facing, y in (("north", 0), ("east", 90), ("south", 180), ("west", 270)):
         for thrown in ("false", "true"):
             for powered in ("false", "true"):
-                v = {"model": f"reikotrains:block/switch_stand_{'thrown' if thrown == 'true' else 'normal'}"}
-                if y:
-                    v["y"] = y
-                variants[f"facing={facing},powered={powered},thrown={thrown}"] = v
+                for straight in ("false", "true"):
+                    model = (f"reikotrains:block/switch_stand_{'thrown' if thrown == 'true' else 'normal'}"
+                             f"_{'straight' if straight == 'true' else 'throws'}{'_lit' if powered == 'true' else ''}")
+                    v = {"model": model}
+                    if y:
+                        v["y"] = y
+                    variants[f"facing={facing},powered={powered},redstone_straight={straight},thrown={thrown}"] = v
     with open(f"{ASSETS}/blockstates/switch_stand.json", "w") as out:
         json.dump({"variants": variants}, out, indent=2)
+    for old in ("switch_stand_normal", "switch_stand_thrown"):
+        path = f"{ASSETS}/models/block/{old}.json"
+        if os.path.exists(path):
+            os.remove(path)
 
 
 def loader_textures():
