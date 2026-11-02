@@ -54,6 +54,8 @@ public final class ReikoTrains {
         ICapabilityProvider<Entity, Direction, IItemHandler> wagonSided = (entity, side) -> entity instanceof Container container ? new InvWrapper(container) : null;
         event.registerEntity(Capabilities.ItemHandler.ENTITY, ModEntities.FREIGHT_WAGON.get(), wagon);
         event.registerEntity(Capabilities.ItemHandler.ENTITY_AUTOMATION, ModEntities.FREIGHT_WAGON.get(), wagonSided);
+        event.registerEntity(Capabilities.ItemHandler.ENTITY, ModEntities.TENDER.get(), wagon);
+        event.registerEntity(Capabilities.ItemHandler.ENTITY_AUTOMATION, ModEntities.TENDER.get(), wagonSided);
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.WAGON_LOADER.get(), (loader, side) -> loader.port());
     }
 

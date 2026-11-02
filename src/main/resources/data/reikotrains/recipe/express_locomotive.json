@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "L": {
+      "item": "reikotrains:steam_locomotive"
+    },
+    "G": {
+      "item": "minecraft:gold_ingot"
+    }
+  },
+  "pattern": [
+    "CGC",
+    "ILI",
+    "III"
+  ],
+  "result": {
+    "count": 1,
+    "id": "reikotrains:express_locomotive"
+  }
+}

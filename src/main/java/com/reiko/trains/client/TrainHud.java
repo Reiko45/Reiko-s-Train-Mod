@@ -109,7 +109,7 @@ public final class TrainHud implements LayeredDraw.Layer {
             int fill = Math.max(1, barW * fuel / 100);
             graphics.fill(barX, barY, barX + fill, barY + 6, fuel <= 15 ? 0xFFE0482E : 0xFFF0A030);
         } else if (!locomotive.isSteaming() && (minecraft.player.tickCount / 10) % 2 == 0) {
-            Component out = Component.translatable("hud.reikotrains.no_fire");
+            Component out = Component.translatable(fuel < 0 ? "hud.reikotrains.no_tender" : "hud.reikotrains.no_fire");
             graphics.drawString(font, out, barX + (barW - font.width(out)) / 2, barY - 1, 0xFFFF5040, false);
         }
     }

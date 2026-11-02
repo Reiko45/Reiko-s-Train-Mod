@@ -7,7 +7,9 @@ import com.reiko.trains.registry.ModDataComponents;
 import com.reiko.trains.registry.ModEntities;
 import com.reiko.trains.registry.ModItems;
 import com.reiko.trains.track.TrackAxis;
+import com.reiko.trains.train.ExpressLocomotive;
 import com.reiko.trains.train.FreightWagon;
+import com.reiko.trains.train.Tender;
 import com.reiko.trains.train.PassengerCoach;
 import com.reiko.trains.train.SteamLocomotive;
 import com.reiko.trains.train.TrainCarEntity;
@@ -191,6 +193,18 @@ public final class DevShowcase {
                 }
             }
         }
+        // A second line to the north, with an express: engine, tender and two coaches, and a station to run to
+        TestTracks.line(level, new BlockPos(-20, Y, -24), TrackAxis.X, 110);
+        ExpressLocomotive express = TestTracks.car(level, ModEntities.EXPRESS_LOCOMOTIVE.get(), new BlockPos(30, Y, -24), EAST);
+        Tender tender = TestTracks.car(level, ModEntities.TENDER.get(), new BlockPos(22, Y, -24), EAST);
+        PassengerCoach first = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(15, Y, -24), EAST);
+        PassengerCoach second = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(8, Y, -24), EAST);
+        Trains.couple(express, tender);
+        Trains.couple(tender, first);
+        Trains.couple(first, second);
+        tender.setFuel(Tender.FUEL_CAPACITY * 0.8);
+        TestTracks.station(level, new BlockPos(85, Y, -27), new BlockPos(85, Y, -24), "Express Halt", 10);
+
         SteamLocomotive a = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(22, Y, 14), EAST);
         PassengerCoach aCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(15, Y, 14), EAST);
         SteamLocomotive b = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(30, Y, 38), new Vec3(-1, 0, 0));
@@ -306,6 +320,21 @@ public final class DevShowcase {
         });
         at(975, mc -> shot(mc, "15_taking_the_branch"));
         at(1010, mc -> shot(mc, "16_taking_the_branch_later"));
-        at(1020, Minecraft::stop);
+        // The express: from the side and the front, then away on a timetable
+        at(1012, mc -> look(mc, 29.0, Y + 1.6, -15.5, 180.0F, 6.0F));
+        at(1050, mc -> shot(mc, "17_express"));
+        at(1052, mc -> look(mc, 41.0, Y + 1.2, -19.5, 117.0F, 8.0F));
+        at(1090, mc -> shot(mc, "18_express_front"));
+        at(1092, mc -> server(mc, player -> {
+            ServerLevel level = player.serverLevel();
+            ExpressLocomotive express = level.getEntitiesOfClass(ExpressLocomotive.class, new AABB(20, Y - 2, -28, 40, Y + 4, -20)).getFirst();
+            if (level.getBlockEntity(new BlockPos(85, Y, -27)) instanceof StationBlockEntity halt) {
+                express.autopilot().start(List.of(TestTracks.stop(halt)));
+            }
+        }));
+        at(1094, mc -> look(mc, 54.0, Y + 1.5, -18.0, 115.0F, 6.0F));
+        at(1150, mc -> shot(mc, "19_express_running"));
+        at(1190, mc -> shot(mc, "20_express_running_later"));
+        at(1200, Minecraft::stop);
     }
 }

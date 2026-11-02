@@ -75,6 +75,11 @@ public class FreightWagon extends TrainCarEntity implements Container {
         return 2.2F;
     }
 
+    @Override
+    public int renderLoad() {
+        return getLoad();
+    }
+
     /** 0 when empty; otherwise 1-4 crates, for each quarter (or part of one) of the slots used. */
     public int getLoad() {
         return entityData.get(DATA_LOAD);

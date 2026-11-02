@@ -144,6 +144,89 @@ def steam_locomotive():
     return parts
 
 
+def express_locomotive():
+    """
+    A 4-6-0 express engine, eight blocks long: four small leading wheels, six big driving wheels, a long boiler with
+    smoke deflectors either side of the smokebox, and a roomy cab. Its coal is in a separate tender.
+    """
+    body = Part("body")
+    b = body.boxes
+    # Frame, running board (above the driving wheels), buffer beams, buffers
+    b.append(box(-58, -19, -5, 58, -4, 5, "frame"))
+    b.append(box(-58, -21, -16, 58, -19, 16, "deck_express"))
+    b.append(box(-60, -24, -16, -58, -10, 16, "beam"))
+    b.append(box(58, -22, -14, 60, -10, 14, "beam"))
+    b += buffers(64)
+    b.append(box(-54, -8, -6, -34, -5, 6, "frame"))  # leading bogie
+    # Cylinders, outside the frame between the bogie and the drivers
+    b += mirrored(-46, -20, 10, -30, -8, 15, "cylinder_express")
+    # Smokebox, boiler and a squared-off firebox
+    b += round_body(-56, -46, -32, 11, "smokebox_express")
+    b += round_body(-46, 12, -32, 10, "boiler_express")
+    b.append(box(12, -42, -12, 26, -21, 12, "firebox_casing"))
+    b.append(box(-54, -50, -3, -48, -43, 3, "chimney"))
+    b.append(box(-55, -52, -4, -47, -50, 4, "chimney_cap_express"))
+    b.append(box(-14, -46, -4, -6, -42, 4, "brass"))
+    b.append(box(-13, -47, -3, -7, -46, 3, "brass"))
+    b.append(box(16, -45, -2, 20, -42, 2, "brass"))
+    b.append(box(24, -47, -0.5, 25, -42, 0.5, "brass"))
+    # Smoke deflectors and lamps
+    b += mirrored(-58, -40, 15, -44, -21, 16, "deflector")
+    b.append(box(-58, -47, -2, -56, -43, 2, "lamp"))
+    b += mirrored(-60, -28, 10, -58, -24, 14, "lamp")
+    # Cab: front plate with two windows beside the firebox, sides open above the waist, roof
+    b.append(box(26, -34, -15, 27, -21, 15, "cab_express"))
+    b.append(box(26, -49, -15, 27, -45, 15, "cab_express"))
+    b.append(box(26, -45, -3, 27, -34, 3, "cab_express"))
+    b += mirrored(26, -45, 14, 27, -34, 15, "cab_express")
+    b += mirrored(27, -32, 14, 46, -21, 15, "cab_express")
+    b += mirrored(27, -49, 14, 30, -32, 15, "cab_express")
+    b += mirrored(43, -49, 14, 46, -32, 15, "cab_express")
+    b.append(box(25, -51, -16, 48, -49, 16, "roof"))
+    b.append(box(25, -52, -12, 48, -51, 12, "roof"))
+    b.append(box(27, -31, -4, 28, -23, 4, "firebox"))
+    b.append(box(40, -24, -13, 44, -21, 13, "bench"))
+
+    parts = [body]
+    parts += wheel_parts("wheel", [-50, -38], 4.5, -4.5, "wheel_small")
+    parts += wheel_parts("driver", [-18, 2, 22], 9, -9, "wheel_express")
+    # Coupling rods, one each side, joining the crank pins of the three drivers
+    for side, z in (("l", -9), ("r", 9)):
+        p = Part(f"rod_{side}", (2, -9, z))
+        p.boxes.append(Box(-20.5, -1, -0.5, 41, 2, 1, "rod"))
+        parts.append(p)
+    return parts
+
+
+def tender():
+    """The express engine's tender: a water tank with a coal space at the front, on six wheels."""
+    body = Part("body")
+    b = body.boxes
+    b.append(box(-40, -15, -5, 40, -4, 5, "frame"))
+    b.append(box(-40, -17, -16, 40, -15, 16, "deck_express"))
+    b.append(box(-42, -18, -14, -40, -10, 14, "beam"))
+    b.append(box(40, -18, -16, 42, -8, 16, "beam"))
+    b += buffers(44)
+    b += mirrored(-36, -12, 9, 36, -9, 10, "frame")
+    for x in (-26, 0, 26):
+        b += mirrored(x - 2, -10, 10, x + 2, -6, 11, "axlebox")
+    # Tank sides, back, coal plate at the front, coal rails, the water tank's top and its filler
+    b += mirrored(-36, -34, 14, 40, -17, 15, "tender_side")
+    b.append(box(39, -34, -14, 40, -17, 14, "tender_side"))
+    b.append(box(-36, -26, -14, -35, -17, 14, "tender_side"))
+    b += mirrored(-36, -37, 14, 30, -34, 15, "frame")
+    b.append(box(10, -35, -14, 39, -34, 14, "tender_top"))
+    b.append(box(30, -37, -2, 34, -35, 2, "brass"))
+    parts = [body]
+    # The coal, in three layers: the tender shows as much as it has
+    for i, (x0, y0, z, x1, y1) in enumerate(((-35, -24, 13, 10, -17), (-35, -30, 13, 10, -24), (-32, -36, 10, 6, -30))):
+        p = Part(f"coal_{i}", (0, 0, 0))
+        p.boxes.append(box(x0, y0, -z, x1, y1, z, "coal"))
+        parts.append(p)
+    parts += wheel_parts("wheel", [-26, 0, 26], 5, -5, "wheel_small")
+    return parts
+
+
 COACH_BAYS = [-30, -10, 10, 30]
 
 
@@ -206,6 +289,7 @@ def bogie():
 # ------------------------------------------------------------------------------------------------------------------
 
 GREEN = (40, 96, 58)
+CRIMSON = (124, 30, 36)
 BLACK = (34, 34, 38)
 RED = (158, 38, 30)
 BRASS = (212, 172, 74)
@@ -469,6 +553,71 @@ def bunker(t):
     return shade(c, 0.78) if t.edge else c
 
 
+def lined(color):
+    """Paintwork with a thin yellow line one pixel in from the edges of its outward faces."""
+    def paint(t):
+        c = jitter(color, (t.x, t.y, t.z, t.face))
+        if t.face in ("north", "south", "east", "west"):
+            ii, jj = t.i, t.j
+            if t.fw > 4 and t.fh > 4 and ((ii in (1, t.fw - 2) and 1 <= jj <= t.fh - 2) or (jj in (1, t.fh - 2) and 1 <= ii <= t.fw - 2)):
+                return LINING
+        return shade(c, 0.78) if t.edge else c
+    return paint
+
+
+def banded(color, bands):
+    """A boiler: paint, with brass bands round it."""
+    def paint(t):
+        c = jitter(color, (t.x, t.y, t.z, t.face))
+        if not t.end and int(math.floor(t.x)) in bands:
+            return jitter(BRASS, (t.x, t.y, t.z))
+        if t.edge and t.end:
+            return shade(c, 0.8)
+        return c
+    return paint
+
+
+def smokebox_door(cy, ring):
+    def paint(t):
+        c = jitter(BLACK, (t.x, t.y, t.z, t.face), 0.08)
+        if t.face == "west":
+            r = math.hypot(t.y - cy, t.z)
+            if ring - 1.1 <= r < ring:
+                return (84, 84, 90)
+            if r < 1.3:
+                return STEEL
+            if abs(t.y - cy) < 0.6 and r < ring - 1.1:
+                return (64, 64, 70)
+        return c
+    return paint
+
+
+def cylinder_at(cy, cz):
+    def paint(t):
+        if t.end:
+            r = math.hypot(t.y - cy, t.z - (cz if t.z > 0 else -cz))
+            if r < 4.6:
+                return shade(STEEL, 0.9 if r > 3.4 else 1.0)
+        return jitter((48, 48, 52), (t.x, t.y, t.z, t.face), 0.06)
+    return paint
+
+
+def cap_at(cx):
+    def paint(t):
+        if t.face == "down" and abs(t.x - cx) < 2.2 and abs(t.z) < 2.2:
+            return (12, 12, 12)
+        return shade(jitter(BLACK, (t.x, t.y, t.z)), 1.1)
+    return paint
+
+
+def deck_with(color):
+    def paint(t):
+        if t.face in ("down", "up"):
+            return jitter((52, 52, 56), (t.x, t.z))
+        return jitter(color, (t.x, t.y, t.z))
+    return paint
+
+
 MATERIALS = {
     "frame": frame,
     "deck": deck,
@@ -500,6 +649,17 @@ MATERIALS = {
     "seat": seat,
     "planks": planks,
     "crate": crate,
+    "deck_express": deck_with(CRIMSON),
+    "cylinder_express": cylinder_at(-14, 12.5),
+    "smokebox_express": smokebox_door(-32, 8.6),
+    "boiler_express": banded(CRIMSON, (-34, -33, -12, -11, 8, 9)),
+    "firebox_casing": lined(CRIMSON),
+    "chimney_cap_express": cap_at(-51),
+    "deflector": plain(BLACK, 0.85),
+    "cab_express": plain(CRIMSON, 0.8),
+    "wheel_express": wheel((44, 44, 48), CRIMSON, BRASS, True, 4.0),
+    "tender_side": lined(CRIMSON),
+    "tender_top": plain((44, 44, 48)),
 }
 
 
@@ -631,6 +791,15 @@ def main():
           "    /** The crates that show how full the wagon is: one to four. */\n"
           '    public static final String[] CARGO = {"cargo_0", "cargo_1", "cargo_2", "cargo_3"};\n')
     build("bogie", "BogieGeometry", bogie(), 128)
+    build("express_locomotive", "ExpressLocomotiveGeometry", express_locomotive(), 512,
+          "    /** The coupling rods: they follow the crank pins, this far (pixels) from the axles. */\n"
+          '    public static final String[] RODS = {"rod_l", "rod_r"};\n'
+          "    public static final float CRANK_RADIUS = 4.0F;\n"
+          "    /** The radius of the driving wheels the rods are pinned to, in pixels. */\n"
+          "    public static final float DRIVER_RADIUS = 9.0F;\n")
+    build("tender", "TenderGeometry", tender(), 512,
+          "    /** The coal, in three layers: as much shows as the tender has. */\n"
+          '    public static final String[] CARGO = {"coal_0", "coal_1", "coal_2"};\n')
 
 
 if __name__ == "__main__":

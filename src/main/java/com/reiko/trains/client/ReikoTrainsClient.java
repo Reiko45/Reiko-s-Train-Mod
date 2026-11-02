@@ -3,6 +3,8 @@ package com.reiko.trains.client;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.reiko.trains.ReikoTrains;
 import com.reiko.trains.client.model.geometry.BogieGeometry;
+import com.reiko.trains.client.model.geometry.ExpressLocomotiveGeometry;
+import com.reiko.trains.client.model.geometry.TenderGeometry;
 import com.reiko.trains.client.model.geometry.FreightWagonGeometry;
 import com.reiko.trains.client.model.geometry.PassengerCoachGeometry;
 import com.reiko.trains.client.model.geometry.SteamLocomotiveGeometry;
@@ -48,6 +50,8 @@ public final class ReikoTrainsClient {
     static final ModelLayerLocation COACH_LAYER = new ModelLayerLocation(ReikoTrains.id("passenger_coach"), "main");
     static final ModelLayerLocation WAGON_LAYER = new ModelLayerLocation(ReikoTrains.id("freight_wagon"), "main");
     static final ModelLayerLocation BOGIE_LAYER = new ModelLayerLocation(ReikoTrains.id("bogie"), "main");
+    static final ModelLayerLocation EXPRESS_LAYER = new ModelLayerLocation(ReikoTrains.id("express_locomotive"), "main");
+    static final ModelLayerLocation TENDER_LAYER = new ModelLayerLocation(ReikoTrains.id("tender"), "main");
 
     /** Ticks until a held throttle key moves another notch. */
     private static int throttleRepeat;
@@ -72,6 +76,8 @@ public final class ReikoTrainsClient {
         event.registerLayerDefinition(COACH_LAYER, PassengerCoachGeometry::create);
         event.registerLayerDefinition(WAGON_LAYER, FreightWagonGeometry::create);
         event.registerLayerDefinition(BOGIE_LAYER, BogieGeometry::create);
+        event.registerLayerDefinition(EXPRESS_LAYER, ExpressLocomotiveGeometry::create);
+        event.registerLayerDefinition(TENDER_LAYER, TenderGeometry::create);
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -81,6 +87,14 @@ public final class ReikoTrainsClient {
                 c -> new TrainModel(c.bakeLayer(LOCOMOTIVE_LAYER), SteamLocomotiveGeometry.WHEELS, SteamLocomotiveGeometry.WHEEL_RADII,
                         SteamLocomotiveGeometry.RODS, SteamLocomotiveGeometry.CRANK_RADIUS, SteamLocomotiveGeometry.DRIVER_RADIUS, new String[0]),
                 null, ReikoTrains.id("textures/entity/steam_locomotive.png")));
+        event.registerEntityRenderer(ModEntities.EXPRESS_LOCOMOTIVE.get(), context -> new TrainCarRenderer<>(context,
+                c -> new TrainModel(c.bakeLayer(EXPRESS_LAYER), ExpressLocomotiveGeometry.WHEELS, ExpressLocomotiveGeometry.WHEEL_RADII,
+                        ExpressLocomotiveGeometry.RODS, ExpressLocomotiveGeometry.CRANK_RADIUS, ExpressLocomotiveGeometry.DRIVER_RADIUS, new String[0]),
+                null, ReikoTrains.id("textures/entity/express_locomotive.png")));
+        event.registerEntityRenderer(ModEntities.TENDER.get(), context -> new TrainCarRenderer<>(context,
+                c -> new TrainModel(c.bakeLayer(TENDER_LAYER), TenderGeometry.WHEELS, TenderGeometry.WHEEL_RADII, new String[0], 0.0F, 1.0F,
+                        TenderGeometry.CARGO),
+                null, ReikoTrains.id("textures/entity/tender.png")));
         event.registerEntityRenderer(ModEntities.PASSENGER_COACH.get(), context -> new TrainCarRenderer<>(context,
                 c -> TrainModel.simple(c.bakeLayer(COACH_LAYER), new String[0], new float[0]),
                 bogie, ReikoTrains.id("textures/entity/passenger_coach.png")));

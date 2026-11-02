@@ -2,6 +2,20 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.6.0
+
+A second locomotive, and trains with more than one.
+
+- Express Locomotive: a crimson 4-6-0, 8 blocks long, with six big driving wheels, smoke deflectors and a deeper
+  whistle. A third faster than the tank engine (58 km/h), nearly twice as strong, and thirstier.
+- Tender: the express burns its coal (128 coal's worth, four times a tank engine's firebox). Fill it by hand, through
+  the engine, with hoppers, or with a wagon loader (fuel only); its coal heap shows how full it is. Without a tender
+  the express won't go, and its gauges say so.
+- Trains can have more than one locomotive, anywhere and facing either way. The one on a timetable, or the one being
+  driven, is in charge; the others work with it and add their pull.
+- Engines on a timetable smoke while they're under way.
+- Six new game tests: 56 in all.
+
 ## 0.5.0
 
 Freight loading.

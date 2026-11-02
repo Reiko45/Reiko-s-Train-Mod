@@ -145,6 +145,11 @@ public abstract class TrainCarEntity extends VehicleEntity {
         return new Seat[0];
     }
 
+    /** How much of a load to draw (a wagon's crates, a tender's coal): 0 for none. */
+    public int renderLoad() {
+        return 0;
+    }
+
     public boolean isLocomotive() {
         return false;
     }

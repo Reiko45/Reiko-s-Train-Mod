@@ -17,6 +17,8 @@ give them a timetable and let them run between the stations on their own.
 - **Steam Locomotive**: a green tank engine, 2 blocks wide, 3 tall and 6 long. It burns coal (or charcoal, logs,
   blocks of coal, blaze rods, lava...), puffs smoke and chuffs, and its driving wheels and coupling rods turn as it
   goes. Seats a driver and a fireman.
+- **Express Locomotive**: a crimson 4-6-0, 8 blocks long, with big driving wheels: a third faster than the tank
+  engine and nearly twice as strong. It burns coal from its **Tender**, which holds four times as much.
 - **Passenger Coach**: 6½ blocks long, eight seats in four rows.
 - **Freight Wagon**: holds 108 stacks (four chests' worth), all on one screen. Hoppers above or below it fill and empty
   it, crates pile up in it as it fills, and a full one is heavier to pull.
@@ -59,6 +61,8 @@ or ramp can cross gaps between them, so bridges are just long curves. Leave thre
 | --- | --- |
 | Train Track (16) | Iron ingots in the four corners, a row of wooden slabs across the middle |
 | Steam Locomotive | Furnace minecart in the middle, copper ingots either side, iron ingots along the bottom and one top right (the chimney) |
+| Express Locomotive | Copper, gold, copper; iron ingot, steam locomotive, iron ingot; three iron ingots |
+| Tender | Iron ingot, cauldron, iron ingot; iron ingot, minecart, iron ingot |
 | Passenger Coach | Glass panes on top; planks, wool, planks; iron ingot, minecart, iron ingot |
 | Freight Wagon | Planks around a chest (top middle open); iron ingot, minecart, iron ingot |
 | Coupler | Iron ingot, chain, iron ingot (a column) |
@@ -76,10 +80,11 @@ Everything's also in the **Reiko's Trains** creative tab.
    both its bogies.
 2. Take the **Coupler**, click one car, then the car next to it on the same line (up to 5 blocks between their
    buffers). The second car's train is drawn up until the buffers meet. Cars couple at either end, facing either way,
-   and the locomotive can be anywhere in the train: it pulls or pushes.
+   and the locomotives can be anywhere in the train: they pull or push.
 3. To uncouple a car, **sneak-click** it with the coupler.
 
-A train has one locomotive and up to 16 cars (configurable).
+A train can have up to 16 cars (configurable), and as many locomotives among them as you like (see
+[More than one locomotive](#more-than-one-locomotive)).
 
 ### Driving
 
@@ -97,13 +102,38 @@ empty hand to climb into the cab.
 
 The gauges, bottom right, show the next signal (and how far), the next switch (which way it's set, and how far), the
 next station, the throttle notch (R2, R1, N, 1-4),
-the speed, which way you're steering, the brake and the firebox. Top speed is 43 km/h; a heavy train takes longer to get going, and slows (or stalls) going uphill.
+the speed, which way you're steering, the brake and the firebox (or tender). Top speed is 43 km/h for the tank engine
+and 58 km/h for the express; a heavy train takes longer to get going, and slows (or stalls) going uphill.
 Cars roll downhill on their own. At the end of the line a train stops dead. If the track under a car is broken, the
 car comes off and drops as an item. With nobody at the controls the handbrake holds the train, and the fire only
 burns while someone's driving. A moving train keeps the chunks around it loaded, so it doesn't stop at the edge of
 the loaded world, and it nudges people and animals off the line.
 
 ![From the cab](docs/screenshots/cab.jpg)
+
+### The express and its tender
+
+The **Express Locomotive** is the big engine: 8 blocks long, with six 1⅛-block driving wheels. It goes a third
+faster than the tank engine (58 km/h), pulls nearly twice as hard, and burns coal faster. It carries no coal itself:
+couple a **Tender** to it (at either end, usually behind the cab) and it burns the tender's. A tender holds 128 coal's
+worth, four times a tank engine's firebox, and the coal heap in it goes down as it's used.
+
+- Click the engine or the tender with fuel to fill the tender. Click the tender empty-handed to see how full it is.
+- Hoppers and wagon loaders fill tenders too, with fuel only: a train on a timetable can take on coal at a station
+  with a loader (the tender takes fuel first; anything else goes on into the wagons).
+- Without a tender the express won't go, and its gauges say NO TENDER.
+
+![The express](docs/screenshots/express.jpg)
+
+![The express under way](docs/screenshots/express_front.jpg)
+
+### More than one locomotive
+
+A train can have several locomotives, anywhere in it and facing either way: double-head a heavy train, or put a
+banking engine at the back to push. One is in charge: the one running a timetable, or else the one someone's driving
+(the first one, if several are). The others work with it, notched up the same (turned round, if they face the other
+way), and every engine with steam adds its pull, each up to its own top speed. They each burn their own fuel. Their
+fires stay lit while the engine in charge is driven, so nobody has to ride in them.
 
 ![The freight wagon](docs/screenshots/wagon.jpg)
 
@@ -230,14 +260,16 @@ The **game tests** (`src/main/java/com/reiko/trains/gametest`) build real track 
 joining up, the curve rules (radius, steepness, direction) and taking curves apart, cars sitting on their bogies,
 steaming off, running out of fuel, the brake and handbrake, buffer stops, reversing and pushing, going round a loop of
 curves without coming apart, steering at a junction, rolling down and climbing a ramp, coupling (nose to nose, either
-end, one locomotive per train), saving, derailing when the track goes, the 108-slot wagon with a hopper, fuel and
+end), saving, derailing when the track goes, the 108-slot wagon with a hopper, fuel and
 recipes. `SignalGameTests` covers signals (red with a train ahead, green when it's gone, redstone, comparators),
 drivers stopping at red, stations' redstone, the timetable item, a timetabled train shuttling between two stations,
 waiting at a signal, taking a branch to reach its station, handing over to a driver, and two timetabled trains
 sharing a signalled loop without ever meeting. `SwitchGameTests` covers switch stands finding their junction,
 clicking and redstone (holding it thrown or straight on), three-way junctions, drivers going the way the switch is set whatever they steer, throwing a
 switch under a train without splitting it, and timetabled trains setting switches their way or obeying a held one.
-`LoaderGameTests` covers loading and unloading a wagon, filling every wagon in a train, redstone, the comparator,
+`LocomotiveGameTests` covers the express needing its tender (and shovelling coal into it), its speed, two engines
+pulling together (one at the back facing back), a double-headed train on a timetable, an express on a timetable, and
+a wagon loader topping up a tender with fuel only. `LoaderGameTests` covers loading and unloading a wagon, filling every wagon in a train, redstone, the comparator,
 hoppers going through the loader, moving trains being left alone, and a timetabled train waiting until it's loaded.
 
 `./gradlew runClient -Pshowcase -PwindowSize=1280x720` builds a test railway, runs trains round it and saves
@@ -280,7 +312,7 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
 
 ## Ideas for later
 
-- More locomotives (a diesel?), tenders, more wagons
+- More locomotives (a diesel?), more wagons
 - A departures board
 
 ## License

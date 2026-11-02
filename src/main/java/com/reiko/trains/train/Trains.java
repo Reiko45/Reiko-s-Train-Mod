@@ -180,12 +180,17 @@ public final class Trains {
         }
         int[] signs = signs(cars);
         Drive drive = Drive.NONE;
-        for (int i = 0; i < cars.size(); i++) {
-            if (cars.get(i) instanceof SteamLocomotive loco) {
-                drive = loco.plan(cars, signs, i, head.speed);
+        int leaderIndex = leaderIndex(cars);
+        SteamLocomotive leader = leaderIndex < 0 ? null : (SteamLocomotive) cars.get(leaderIndex);
+        if (leader != null) {
+            drive = leader.plan(cars, signs, leaderIndex, head.speed);
+            for (int i = 0; i < cars.size(); i++) {
+                if (cars.get(i) instanceof SteamLocomotive loco && loco != leader) {
+                    loco.help(leader, signs[i] * signs[leaderIndex]);
+                }
             }
         }
-        head.speed = nextSpeed(head.speed, cars, signs, drive);
+        head.speed = nextSpeed(head.speed, cars, signs, drive, leaderIndex);
         for (int i = 0; i < cars.size(); i++) {
             if (cars.get(i) instanceof SteamLocomotive loco) {
                 loco.reportSpeed(head.speed * signs[i]);
@@ -203,6 +208,37 @@ public final class Trains {
         }
     }
 
+    /**
+     * Which of a train's locomotives is in charge (the others work with it): the one running a timetable, or else the
+     * first one with a driver, or else the first one. -1 if the train hasn't got a locomotive.
+     */
+    static int leaderIndex(List<TrainCarEntity> cars) {
+        int driven = -1;
+        int first = -1;
+        for (int i = 0; i < cars.size(); i++) {
+            if (cars.get(i) instanceof SteamLocomotive loco) {
+                if (loco.autopilot().isOn()) {
+                    return i;
+                }
+                if (driven < 0 && loco.driver() != null) {
+                    driven = i;
+                }
+                if (first < 0) {
+                    first = i;
+                }
+            }
+        }
+        return driven >= 0 ? driven : first;
+    }
+
+    /** The locomotive in charge of this car's train (see {@link #leaderIndex}), or null if it hasn't got one. */
+    @Nullable
+    public static SteamLocomotive leaderOf(TrainCarEntity car) {
+        List<TrainCarEntity> cars = train(car);
+        int index = leaderIndex(cars);
+        return index < 0 ? null : (SteamLocomotive) cars.get(index);
+    }
+
     private static boolean hasDriver(List<TrainCarEntity> cars) {
         for (TrainCarEntity car : cars) {
             if (car instanceof SteamLocomotive loco && loco.isDriven()) {
@@ -213,32 +249,43 @@ public final class Trains {
     }
 
     /**
-     * The train's speed next tick: the locomotive's pull (on the throttle, or on a timetable aiming for the drive's
-     * target), gravity, friction and brakes, then held to the drive's limit (to stop for a red signal or station).
+     * The train's speed next tick: its locomotives' pull (on the throttle of the one in charge, car
+     * {@code leaderIndex}, or on a timetable aiming for the drive's target), gravity, friction and brakes, then held to
+     * the drive's limit (to stop for a red signal or station). Every locomotive with steam pulls, each up to its own
+     * top speed.
      */
-    static double nextSpeed(double speed, List<TrainCarEntity> cars, int[] signs, Drive drive) {
+    static double nextSpeed(double speed, List<TrainCarEntity> cars, int[] signs, Drive drive, int leaderIndex) {
         double mass = 0;
         double gravity = 0;
-        SteamLocomotive loco = null;
-        int locoSign = 1;
         for (int i = 0; i < cars.size(); i++) {
             TrainCarEntity car = cars.get(i);
             mass += car.mass();
             gravity -= GRAVITY * car.mass() * car.slope() * signs[i];
-            if (car instanceof SteamLocomotive l) {
-                loco = l;
-                locoSign = signs[i];
-            }
         }
+        SteamLocomotive loco = leaderIndex < 0 ? null : (SteamLocomotive) cars.get(leaderIndex);
         double accel = gravity / mass;
         int dir = drive.direction();
         if (drive.automatic() && loco != null) {
             double wanted = dir * drive.target();
-            if (loco.hasSteam() && (wanted - speed) * dir > 0) {
-                accel += dir * Math.min(loco.pull(mass), Math.abs(wanted - speed) + 0.002);
+            if ((wanted - speed) * dir > 0) {
+                double pull = 0;
+                for (TrainCarEntity car : cars) {
+                    if (car instanceof SteamLocomotive engine && engine.hasSteam() && Math.abs(speed) < engine.maxSpeed()) {
+                        pull += engine.pull(mass);
+                    }
+                }
+                accel += dir * Math.min(pull, Math.abs(wanted - speed) + 0.002);
             }
         } else if (loco != null) {
-            accel += loco.traction(speed * locoSign, mass) * locoSign;
+            double pull = 0;
+            for (int i = 0; i < cars.size(); i++) {
+                if (cars.get(i) instanceof SteamLocomotive engine) {
+                    pull += engine.traction(speed * signs[i], mass) * signs[i];
+                }
+            }
+            // Together they work up to the throttle's speed, and no further.
+            double gap = loco.throttleTarget() * signs[leaderIndex] - speed;
+            accel += pull * gap > 0 ? Math.signum(pull) * Math.min(Math.abs(pull), Math.abs(gap) + 0.002) : 0;
         }
         double next = speed + accel;
         double resistance = ROLLING_RESISTANCE + Math.abs(next) * DRAG;
@@ -273,7 +320,8 @@ public final class Trains {
         double leadDelta = distance * signs[leadIndex];
         boolean leadIsFront = leadDelta > 0;
         TrackPos probe = (leadIsFront ? leadCar.front : leadCar.rear).copy();
-        int steer = steering(cars);
+        int leaderIndex = leaderIndex(cars);
+        int steer = leaderIndex < 0 ? 0 : ((SteamLocomotive) cars.get(leaderIndex)).getSteer();
         TrackPos.Chooser leaderChooser = (node, side, options, heading) -> {
             EdgeRef chosen = chooser != null ? chooser.choose(node, side, options, heading)
                     : TrackSide.wayOn(level, node, side, options, heading, steer);
@@ -316,15 +364,6 @@ public final class Trains {
         return node * 2 + (side > 0 ? 1 : 0);
     }
 
-    private static int steering(List<TrainCarEntity> cars) {
-        for (TrainCarEntity car : cars) {
-            if (car instanceof SteamLocomotive loco) {
-                return loco.getSteer();
-            }
-        }
-        return 0;
-    }
-
     /** Keeps the chunks around a moving train loaded, so it doesn't stop dead at the edge of the loaded world. */
     private static void keepLoaded(List<TrainCarEntity> cars) {
         if (!(cars.getFirst().level() instanceof ServerLevel level)) {
@@ -352,7 +391,6 @@ public final class Trains {
         TOO_FAR("too_far"),
         NOT_ON_TRACK("not_on_track"),
         NOT_AN_END("not_an_end"),
-        TWO_LOCOMOTIVES("two_locomotives"),
         TOO_LONG("too_long"),
         MOVING("moving");
 
@@ -374,8 +412,8 @@ public final class Trains {
 
     /**
      * Couples two cars standing on the same line of track, the ends of two trains (or two lone cars). The second
-     * car's train is drawn up until the buffers meet. A train can have one locomotive, anywhere in it: it pulls or
-     * pushes.
+     * car's train is drawn up until the buffers meet. A train's locomotives can be anywhere in it: they pull or push,
+     * one in charge and the others working with it.
      */
     public static CoupleResult couple(TrainCarEntity first, TrainCarEntity second) {
         if (first == second) {
@@ -392,9 +430,6 @@ public final class Trains {
         List<TrainCarEntity> trainB = train(second);
         if (trainA.contains(second)) {
             return CoupleResult.SAME_TRAIN;
-        }
-        if (trainA.stream().anyMatch(TrainCarEntity::isLocomotive) && trainB.stream().anyMatch(TrainCarEntity::isLocomotive)) {
-            return CoupleResult.TWO_LOCOMOTIVES;
         }
         if (trainA.size() + trainB.size() > TrainsConfig.MAX_TRAIN_LENGTH.getAsInt()) {
             return CoupleResult.TOO_LONG;

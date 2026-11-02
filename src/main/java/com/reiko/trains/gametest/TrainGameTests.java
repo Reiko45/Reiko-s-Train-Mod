@@ -404,7 +404,6 @@ public final class TrainGameTests {
         ServerLevel level = helper.getLevel();
         SteamLocomotive first = car(helper, ModEntities.STEAM_LOCOMOTIVE.get(), onLine(helper, 6), EAST);
         SteamLocomotive second = car(helper, ModEntities.STEAM_LOCOMOTIVE.get(), onLine(helper, 16), EAST);
-        helper.assertTrue(Trains.couple(first, second) == Trains.CoupleResult.TWO_LOCOMOTIVES, "two locomotives shouldn't couple");
 
         // Two wagons nose to nose couple, and the second is drawn up to the first.
         FreightWagon a = car(helper, ModEntities.FREIGHT_WAGON.get(), onLine(helper, 22), EAST);
@@ -536,7 +535,8 @@ public final class TrainGameTests {
 
     @GameTest(template = LINE)
     public static void recipesAndFuelLoad(GameTestHelper helper) {
-        for (String name : List.of("track", "steam_locomotive", "passenger_coach", "freight_wagon", "coupler")) {
+        for (String name : List.of("track", "steam_locomotive", "express_locomotive", "tender", "passenger_coach", "freight_wagon", "coupler",
+                "signal", "station", "timetable", "switch_stand", "wagon_loader")) {
             helper.assertTrue(helper.getLevel().getRecipeManager().byKey(ReikoTrains.id(name)).isPresent(), "no recipe for " + name);
         }
         helper.assertTrue(new ItemStack(Items.COAL).is(SteamLocomotive.FUEL), "coal should be locomotive fuel");

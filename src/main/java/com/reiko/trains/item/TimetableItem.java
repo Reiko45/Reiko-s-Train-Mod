@@ -64,20 +64,29 @@ public class TimetableItem extends Item {
         if (player.level().isClientSide) {
             return InteractionResult.SUCCESS;
         }
-        SteamLocomotive loco = null;
+        // The locomotive clicked, or else the train's first: it runs the timetable, and any others work with it.
+        List<SteamLocomotive> locos = new ArrayList<>();
         for (TrainCarEntity c : Trains.train(car)) {
             if (c instanceof SteamLocomotive l) {
-                loco = l;
+                locos.add(l);
             }
         }
-        if (loco == null) {
+        if (locos.isEmpty()) {
             player.displayClientMessage(Component.translatable("message.reikotrains.timetable.no_locomotive").withStyle(ChatFormatting.RED), true);
             return InteractionResult.CONSUME;
         }
+        SteamLocomotive loco = car instanceof SteamLocomotive clicked ? clicked : locos.getFirst();
         if (player.isSecondaryUseActive()) {
-            loco.autopilot().stop();
+            for (SteamLocomotive l : locos) {
+                l.autopilot().stop();
+            }
             player.displayClientMessage(Component.translatable("message.reikotrains.timetable.stopped"), true);
             return InteractionResult.CONSUME;
+        }
+        for (SteamLocomotive l : locos) {
+            if (l != loco) {
+                l.autopilot().stop();
+            }
         }
         List<Timetable.Stop> stops = stops(stack);
         if (stops.isEmpty()) {

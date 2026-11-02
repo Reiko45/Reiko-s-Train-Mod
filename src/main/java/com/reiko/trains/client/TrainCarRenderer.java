@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.reiko.trains.ReikoTrains;
-import com.reiko.trains.train.FreightWagon;
 import com.reiko.trains.train.TrainCarEntity;
 import java.util.function.Function;
 import javax.annotation.Nullable;
@@ -52,7 +51,7 @@ public class TrainCarRenderer<T extends TrainCarEntity> extends EntityRenderer<T
             poseStack.mulPose(Axis.XP.rotationDegrees(Mth.sin(hurt) * hurt * damage / 40.0F * car.getHurtDir()));
         }
         float rolled = car.rolled(partialTick);
-        int load = car instanceof FreightWagon wagon ? wagon.getLoad() : 0;
+        int load = car.renderLoad();
 
         poseStack.pushPose();
         poseStack.scale(-1.0F, -1.0F, 1.0F);

@@ -36,7 +36,7 @@ import net.minecraft.world.phys.Vec3;
  * at a time, through neutral into reverse), the brake on jump, steering at junctions on left and right, and the
  * whistle on its own key. It pulls (or pushes) the cars coupled to it, more slowly the heavier the train.
  */
-public class SteamLocomotive extends TrainCarEntity {
+public class SteamLocomotive extends TrainCarEntity implements FuelStore {
     public static final TagKey<Item> FUEL = TagKey.create(Registries.ITEM, ReikoTrains.id("locomotive_fuel"));
     public static final int MIN_THROTTLE = -2;
     public static final int MAX_THROTTLE = 4;
@@ -66,6 +66,12 @@ public class SteamLocomotive extends TrainCarEntity {
 
     private double fuel;
     private final Autopilot autopilot = new Autopilot(this);
+    /** When it's one of several locomotives in a train and another is in charge: that one, and until when (game time). */
+    @Nullable
+    private SteamLocomotive helping;
+    private long helpingUntil;
+    /** Helping: the notch it works at, the one in charge's turned round if it faces the other way (so not limited to R2). */
+    private int assist;
     private int whistleCooldown;
     private int noFuelWarning;
     // client
@@ -154,6 +160,7 @@ public class SteamLocomotive extends TrainCarEntity {
         entityData.set(DATA_STEER, Mth.clamp(steer, -1, 1));
     }
 
+    /** How full its firebox (or tender) is, 0-100; -1 for an engine with no tender. */
     public int getFuelPercent() {
         return entityData.get(DATA_FUEL);
     }
@@ -166,9 +173,72 @@ public class SteamLocomotive extends TrainCarEntity {
         return fuel;
     }
 
+    @Override
+    public double fuel() {
+        return fuel;
+    }
+
+    @Override
+    public double fuelCapacity() {
+        return FUEL_CAPACITY;
+    }
+
+    /** Fills (or empties) its own firebox; for an engine with a tender, see {@link #fuelStore()}. */
+    @Override
     public void setFuel(double ticks) {
         fuel = Mth.clamp(ticks, 0.0, FUEL_CAPACITY);
-        entityData.set(DATA_FUEL, fuel <= 0 ? 0 : Mth.clamp(Mth.ceil(fuel / FUEL_CAPACITY * 100.0), 1, 100));
+        showFuel();
+    }
+
+    /** Where its fuel comes from: its own firebox, for a tank engine. Null if it hasn't got any (no tender). */
+    @Nullable
+    public FuelStore fuelStore() {
+        return this;
+    }
+
+    private void showFuel() {
+        FuelStore store = fuelStore();
+        int percent = store == null ? -1 : store.fuelPercent();
+        if (entityData.get(DATA_FUEL) != percent) {
+            entityData.set(DATA_FUEL, percent);
+        }
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------
+    // What sort of engine it is
+
+    /** Its top speed, as a share of the server's {@code maxSpeed}. */
+    protected double speedFactor() {
+        return 1.0;
+    }
+
+    /** How hard it pulls, compared with the tank engine. */
+    protected double strength() {
+        return 1.0;
+    }
+
+    /** How fast it burns fuel, compared with the tank engine. */
+    protected double appetite() {
+        return 1.0;
+    }
+
+    /** Its top speed at full throttle, in blocks per tick. */
+    public double maxSpeed() {
+        return TrainsConfig.MAX_SPEED.get() * speedFactor();
+    }
+
+    /** The top of its chimney: blocks forward of its middle, and up. */
+    protected Vec3 chimneyOffset() {
+        return new Vec3(2.06, 0, 3.05);
+    }
+
+    /** How far it goes between chuffs, in blocks: a quarter turn of its driving wheels. */
+    protected double chuffSpacing() {
+        return 0.69;
+    }
+
+    protected float whistlePitch() {
+        return 1.0F;
     }
 
     /** The player driving, if anyone is: whoever got in first. */
@@ -205,18 +275,23 @@ public class SteamLocomotive extends TrainCarEntity {
     public void whistle() {
         if (whistleCooldown <= 0) {
             whistleCooldown = 30;
-            Vec3 at = point(-0.7, 0, 2.6);
-            level().playSound(null, at.x, at.y, at.z, ModSounds.STEAM_WHISTLE.get(), SoundSource.NEUTRAL, 5.0F, 1.0F);
+            Vec3 chimney = chimneyOffset();
+            Vec3 at = point(chimney.x - 2.7, 0, chimney.z - 0.45);
+            level().playSound(null, at.x, at.y, at.z, ModSounds.STEAM_WHISTLE.get(), SoundSource.NEUTRAL, 5.0F, whistlePitch());
         }
     }
 
     boolean hasSteam() {
-        return fuel > 0 || !TrainsConfig.NEEDS_FUEL.getAsBoolean();
+        if (!TrainsConfig.NEEDS_FUEL.getAsBoolean()) {
+            return true;
+        }
+        FuelStore store = fuelStore();
+        return store != null && store.fuel() > 0;
     }
 
     /** How hard it can pull a train this heavy, in blocks per tick per tick. */
     double pull(double trainMass) {
-        return TrainsConfig.ACCELERATION.get() * REFERENCE_MASS / trainMass;
+        return TrainsConfig.ACCELERATION.get() * REFERENCE_MASS * strength() / trainMass;
     }
 
     /** Held in place: the brake's on, or nobody's driving (the handbrake). */
@@ -224,9 +299,51 @@ public class SteamLocomotive extends TrainCarEntity {
         return isBraking() || !isDriven();
     }
 
-    /** Whether someone's at the controls, or it's running a timetable. */
+    /**
+     * Whether it's being driven: someone's at its controls, it's running a timetable, or it's helping another
+     * locomotive in the same train that is.
+     */
     public boolean isDriven() {
+        return isInCharge() || (helping != null && !helping.isRemoved() && level().getGameTime() <= helpingUntil && helping.isInCharge());
+    }
+
+    /** Whether it's driven itself: someone's at its controls, or it's running a timetable. */
+    public boolean isInCharge() {
         return driver() != null || autopilot.isOn();
+    }
+
+    /**
+     * Called by the train each tick when another of its locomotives is in charge: this one works with it, its throttle
+     * and brake set the same ({@code facing} is +1 if it faces the same way as that one, -1 if not).
+     */
+    void help(SteamLocomotive leader, int facing) {
+        helping = leader;
+        helpingUntil = level().getGameTime() + 2;
+        if (autopilot.isOn()) {
+            autopilot.stop();
+        }
+        assist = leader.getThrottle() * facing;
+        int shown = Mth.clamp(assist, MIN_THROTTLE, MAX_THROTTLE);
+        if (getThrottle() != shown) {
+            setThrottle(shown);
+        }
+        if (isBraking() != leader.isBraking()) {
+            setBraking(leader.isBraking());
+        }
+        if (getSteer() != 0) {
+            setSteer(0);
+        }
+    }
+
+    /** The notch it's working at: its throttle's, or when it's helping another engine, that one's (turned round to suit). */
+    public int workingThrottle() {
+        return helping() != null ? assist : getThrottle();
+    }
+
+    /** The locomotive it's helping, if another in its train is in charge. */
+    @Nullable
+    public SteamLocomotive helping() {
+        return helping != null && level().getGameTime() <= helpingUntil ? helping : null;
     }
 
     public Autopilot autopilot() {
@@ -342,16 +459,21 @@ public class SteamLocomotive extends TrainCarEntity {
      * and then holds it.
      */
     double traction(double speed, double trainMass) {
-        int throttle = getThrottle();
+        int throttle = workingThrottle();
         if (throttle == 0 || isHeld() || !hasSteam()) {
             return 0;
         }
-        double target = TrainsConfig.MAX_SPEED.get() * throttle / MAX_THROTTLE;
-        double pull = TrainsConfig.ACCELERATION.get() * REFERENCE_MASS / trainMass;
+        double target = throttleTarget();
+        double pull = pull(trainMass);
         if (target > 0) {
             return speed < target ? Math.min(pull, target - speed + 0.002) : 0;
         }
         return speed > target ? -Math.min(pull, speed - target + 0.002) : 0;
+    }
+
+    /** The speed its throttle notch works up to, forwards for it (negative in reverse). */
+    double throttleTarget() {
+        return maxSpeed() * workingThrottle() / MAX_THROTTLE;
     }
 
     // ----------------------------------------------------------------------------------------------------------------
@@ -377,19 +499,26 @@ public class SteamLocomotive extends TrainCarEntity {
             }
         } else if (driver != null && getThrottle() != 0 && !hasSteam() && --noFuelWarning <= 0) {
             noFuelWarning = 60;
-            driver.displayClientMessage(Component.translatable("message.reikotrains.no_fuel"), true);
+            driver.displayClientMessage(Component.translatable(noFuelMessage()), true);
         }
         boolean lit = hasSteam() && isDriven();
         if (entityData.get(DATA_STEAM) != lit) {
             entityData.set(DATA_STEAM, lit);
         }
-        if (lit && fuel > 0 && TrainsConfig.NEEDS_FUEL.getAsBoolean()) {
-            double rate = 0.1 + 0.35 * Math.abs(getThrottle()) / (double) MAX_THROTTLE;
-            setFuel(fuel - rate * TrainsConfig.FUEL_USE.get());
+        FuelStore store = fuelStore();
+        if (lit && store != null && store.fuel() > 0 && TrainsConfig.NEEDS_FUEL.getAsBoolean()) {
+            double rate = 0.1 + 0.35 * Math.abs(workingThrottle()) / (double) MAX_THROTTLE;
+            store.setFuel(store.fuel() - rate * appetite() * TrainsConfig.FUEL_USE.get());
         }
+        showFuel();
         if (whistleCooldown > 0) {
             whistleCooldown--;
         }
+    }
+
+    /** What the driver's told when they open the throttle with no fire. */
+    protected String noFuelMessage() {
+        return "message.reikotrains.no_fuel";
     }
 
     /** A point on the locomotive: blocks forward of its middle, to the right, and up from the rails. */
@@ -404,15 +533,17 @@ public class SteamLocomotive extends TrainCarEntity {
         if (!isSteaming()) {
             return;
         }
-        Vec3 chimney = point(2.06, 0, 3.05);
+        Vec3 offset = chimneyOffset();
+        Vec3 chimney = point(offset.x, 0, offset.z);
         double dx = getX() - xo;
         double dz = getZ() - zo;
         double moved = Math.sqrt(dx * dx + dz * dz);
-        int throttle = getThrottle();
+        // On a timetable the throttle isn't notched up: smoke as if half open while it's under way.
+        int throttle = isAutomatic() && moved > 0.02 ? MAX_THROTTLE / 2 : getThrottle();
         if (throttle != 0 || moved > 0.05) {
             chuffDistance += Math.max(moved, throttle != 0 ? 0.03 : 0);
-            // Four chuffs a turn of the driving wheels (about 2.75 blocks round).
-            if (chuffDistance >= 0.69) {
+            // Four chuffs a turn of the driving wheels.
+            if (chuffDistance >= chuffSpacing()) {
                 chuffDistance = 0;
                 float load = Math.abs(throttle) / (float) MAX_THROTTLE;
                 level().playLocalSound(chimney.x, chimney.y, chimney.z, ModSounds.STEAM_CHUFF.get(), SoundSource.NEUTRAL,
@@ -448,21 +579,26 @@ public class SteamLocomotive extends TrainCarEntity {
     }
 
     /** Shovels as much of the stack into the firebox as will fit. */
-    private InteractionResult addFuel(Player player, InteractionHand hand, ItemStack stack) {
+    protected InteractionResult addFuel(Player player, InteractionHand hand, ItemStack stack) {
+        return shovel(player, hand, stack, this, point(-1.0, 0, 1.2), "message.reikotrains.fuel", "message.reikotrains.firebox_full");
+    }
+
+    /** Shovels as much of the stack as will fit into {@code store}, and says how full it is. */
+    static InteractionResult shovel(Player player, InteractionHand hand, ItemStack stack, FuelStore store, Vec3 at, String fullness, String full) {
         int burn = stack.getBurnTime(RecipeType.SMELTING);
         if (burn <= 0) {
             return InteractionResult.PASS;
         }
-        if (level().isClientSide) {
+        if (player.level().isClientSide) {
             return InteractionResult.SUCCESS;
         }
-        int room = (int) ((FUEL_CAPACITY - fuel) / burn);
+        int room = (int) ((store.fuelCapacity() - store.fuel()) / burn);
         int count = Math.min(room, stack.hasCraftingRemainingItem() ? 1 : stack.getCount());
         if (count <= 0) {
-            player.displayClientMessage(Component.translatable("message.reikotrains.firebox_full"), true);
+            player.displayClientMessage(Component.translatable(full), true);
             return InteractionResult.CONSUME;
         }
-        setFuel(fuel + (double) burn * count);
+        store.setFuel(store.fuel() + (double) burn * count);
         if (!player.getAbilities().instabuild) {
             ItemStack remainder = stack.getCraftingRemainingItem();
             stack.shrink(count);
@@ -474,9 +610,8 @@ public class SteamLocomotive extends TrainCarEntity {
                 }
             }
         }
-        Vec3 firebox = point(-1.0, 0, 1.2);
-        level().playSound(null, firebox.x, firebox.y, firebox.z, SoundEvents.FIRECHARGE_USE, SoundSource.NEUTRAL, 0.6F, 0.8F);
-        player.displayClientMessage(Component.translatable("message.reikotrains.fuel", getFuelPercent()), true);
+        player.level().playSound(null, at.x, at.y, at.z, SoundEvents.FIRECHARGE_USE, SoundSource.NEUTRAL, 0.6F, 0.8F);
+        player.displayClientMessage(Component.translatable(fullness, store.fuelPercent()), true);
         return InteractionResult.CONSUME;
     }
 

@@ -28,7 +28,6 @@
   "message.reikotrains.couple.same_train": "Those cars are already in the same train",
   "message.reikotrains.couple.too_far": "Those cars are too far apart: bring them closer",
   "message.reikotrains.couple.not_an_end": "Couple cars at the ends of their trains",
-  "message.reikotrains.couple.two_locomotives": "A train can only have one locomotive",
   "message.reikotrains.couple.too_long": "That would make the train too long",
   "subtitles.reikotrains.steam_whistle": "Locomotive whistles",
   "subtitles.reikotrains.steam_chuff": "Locomotive chuffs",
@@ -103,5 +102,14 @@
   "message.reikotrains.loader.load": "Loading: fills trains' freight wagons from the storage next to it",
   "message.reikotrains.loader.unload": "Unloading: empties trains' freight wagons into the storage next to it",
   "hud.reikotrains.auto.loading": "At %s: loading",
-  "hud.reikotrains.auto.unloading": "At %s: unloading"
+  "hud.reikotrains.auto.unloading": "At %s: unloading",
+  "entity.reikotrains.express_locomotive": "Express Locomotive",
+  "item.reikotrains.express_locomotive": "Express Locomotive",
+  "entity.reikotrains.tender": "Tender",
+  "item.reikotrains.tender": "Tender",
+  "message.reikotrains.no_tender": "This engine burns coal from its tender: couple one to it",
+  "message.reikotrains.no_fuel_tender": "The fire's out: put coal in the tender",
+  "message.reikotrains.tender_fuel": "Tender %s%% full",
+  "message.reikotrains.tender_full": "The tender is full",
+  "hud.reikotrains.no_tender": "NO TENDER"
 }

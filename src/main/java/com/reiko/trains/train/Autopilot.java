@@ -196,7 +196,7 @@ public final class Autopilot {
         double stopAt = Math.min(look.signalStop, Math.min(look.targetFound ? look.targetDistance : Double.POSITIVE_INFINITY,
                 look.endOfLine ? look.endDistance - 0.05 : Double.POSITIVE_INFINITY));
         double limit = Drive.stoppingSpeed(stopAt);
-        double target = Math.min(TrainsConfig.MAX_SPEED.get(), limit);
+        double target = Math.min(loco.maxSpeed(), limit);
         boolean stopped = Math.abs(speed) < 0.002;
         waitingAtSignal = look.signalStop != Double.POSITIVE_INFINITY && look.signalStop <= look.targetDistance;
         if (look.targetFound && Math.abs(look.targetDistance) < 0.6 && stopped && !waitingAtSignal) {

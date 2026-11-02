@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "K": {
+      "item": "minecraft:cauldron"
+    },
+    "M": {
+      "item": "minecraft:minecart"
+    }
+  },
+  "pattern": [
+    "IKI",
+    "IMI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "reikotrains:tender"
+  }
+}

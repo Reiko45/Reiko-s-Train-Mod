@@ -5,6 +5,7 @@ import com.reiko.trains.registry.ModBlockEntities;
 import com.reiko.trains.track.TrackEdge;
 import com.reiko.trains.track.TrackGraph;
 import com.reiko.trains.train.FreightWagon;
+import com.reiko.trains.train.Tender;
 import com.reiko.trains.train.TrainCarEntity;
 import com.reiko.trains.train.Trains;
 import java.util.ArrayList;
@@ -121,22 +122,32 @@ public class WagonLoaderBlockEntity extends BlockEntity {
         }
         List<TrainCarEntity> train = loader.standingTrain();
         List<FreightWagon> wagons = new ArrayList<>();
+        List<IItemHandler> tenders = new ArrayList<>();
         for (TrainCarEntity car : train) {
             if (car instanceof FreightWagon wagon) {
                 wagons.add(wagon);
+            } else if (car instanceof Tender tender) {
+                tenders.add(new InvWrapper(tender));
             }
         }
         loader.wagons = wagons;
         if (loader.serving != null && !train.contains(loader.serving)) {
             loader.serving = null; // that train's gone
         }
-        if (!wagons.isEmpty() && !level.hasNeighborSignal(pos)) {
+        if ((!wagons.isEmpty() || !tenders.isEmpty()) && !level.hasNeighborSignal(pos)) {
             int budget = Math.max(1, Mth.ceil(TrainsConfig.LOADER_SPEED.get() * PERIOD / 20.0));
             List<IItemHandler> storage = loader.storage();
-            List<IItemHandler> wagonHandlers = handlers(wagons);
-            int moved = loader.mode() == LoaderMode.LOAD ? move(storage, wagonHandlers, budget) : move(wagonHandlers, storage, budget);
+            int moved;
+            if (loader.mode() == LoaderMode.LOAD) {
+                // Tenders take fuel first (only fuel: their chutes take nothing else), then the wagons fill.
+                List<IItemHandler> targets = new ArrayList<>(tenders);
+                targets.addAll(handlers(wagons));
+                moved = move(storage, targets, budget);
+            } else {
+                moved = move(handlers(wagons), storage, budget);
+            }
             if (moved > 0) {
-                loader.moved(wagons.getFirst());
+                loader.moved(train.getFirst());
             }
         }
         boolean active = loader.isBusy();

@@ -44,6 +44,10 @@ PALETTE = {
     "p": (236, 230, 210, 255),  # paper
     "P": (170, 60, 50, 255),    # heading
     "y": (240, 200, 70, 255),   # clock face
+    "m": (124, 30, 36, 255),    # crimson
+    "M": (86, 20, 26, 255),     # dark crimson
+    "a": (60, 60, 66, 255),     # cab roof
+    "e": (226, 196, 92, 255),   # lining
 }
 
 ICONS = {
@@ -64,6 +68,42 @@ ICONS = {
         "..wrrwwrrwwrrw..",
         ".wwrrwwrrwwrrw..",
         "...ww..ww..ww...",
+    ],
+    "express_locomotive": [
+        "................",
+        "..KK............",
+        "..kk.....aaaaaa.",
+        "..kk..bb.mllmlm.",
+        "kkkkmmmmmmllmlm.",
+        "kkkkmmmmmmmmmmm.",
+        "kkkkmmmmbmmmmmm.",
+        "kkkkmmmmmmmmmmm.",
+        "eeeeeeeeeeeeeee.",
+        "MMMMMMMMMMMMMMM.",
+        ".www.wwww.wwww..",
+        "wsw.wmmmmwmmmmw.",
+        "www.wmsmmwmsmmw.",
+        "....wmmmmwmmmmw.",
+        ".....wwww.wwww..",
+        "................",
+    ],
+    "tender": [
+        "................",
+        "................",
+        "...kkkk.........",
+        "..kkkkkkk.......",
+        "mmmmmmmmmmmmmmmm",
+        "meeeeeeeeeeeeeem",
+        "memmmmmmmmmmmmem",
+        "memmmmmmmmmmmmem",
+        "memmmmmmmmmmmmem",
+        "meeeeeeeeeeeeeem",
+        "MMMMMMMMMMMMMMMM",
+        ".wwww.wwww.wwww.",
+        ".wssw.wssw.wssw.",
+        ".wwww.wwww.wwww.",
+        "................",
+        "................",
     ],
     "passenger_coach": [
         "................",
