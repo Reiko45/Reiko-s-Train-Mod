@@ -120,5 +120,11 @@
   "hud.reikotrains.no_fuel": "NO FUEL",
   "subtitles.reikotrains.diesel_horn": "Diesel horn sounds",
   "subtitles.reikotrains.diesel_engine": "Diesel engine runs",
-  "message.reikotrains.not_diesel": "A diesel runs on diesel: BuildCraft's Dense Fuel or Mixed Heavy Fuels"
+  "message.reikotrains.not_diesel": "A diesel runs on diesel: BuildCraft's Dense Fuel or Mixed Heavy Fuels",
+  "entity.reikotrains.tank_wagon": "Tank Wagon",
+  "item.reikotrains.tank_wagon": "Tank Wagon",
+  "entity.reikotrains.guards_van": "Guard's Van",
+  "item.reikotrains.guards_van": "Guard's Van",
+  "message.reikotrains.tank.empty": "Tank wagon: empty (holds %s buckets)",
+  "message.reikotrains.tank.contents": "Tank wagon: %s of %s buckets of %s"
 }

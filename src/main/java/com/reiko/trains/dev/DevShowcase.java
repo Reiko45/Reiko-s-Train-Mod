@@ -10,6 +10,8 @@ import com.reiko.trains.track.TrackAxis;
 import com.reiko.trains.train.DieselLocomotive;
 import com.reiko.trains.train.ExpressLocomotive;
 import com.reiko.trains.train.FreightWagon;
+import com.reiko.trains.train.GuardsVan;
+import com.reiko.trains.train.TankWagon;
 import com.reiko.trains.train.Tender;
 import com.reiko.trains.train.PassengerCoach;
 import com.reiko.trains.train.Locomotive;
@@ -217,6 +219,13 @@ public final class DevShowcase {
             }
             Trains.couple(Trains.train(last).getLast(), goods);
         }
+        // and on the end, a tank wagon (half full of water) and a guard's van
+        TankWagon tanker = TestTracks.car(level, ModEntities.TANK_WAGON.get(), new BlockPos(4, Y, -36), EAST);
+        tanker.tank().fill(new net.neoforged.neoforge.fluids.FluidStack(net.minecraft.world.level.material.Fluids.WATER, 40_000),
+                net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction.EXECUTE);
+        GuardsVan van = TestTracks.car(level, ModEntities.GUARDS_VAN.get(), new BlockPos(-2, Y, -36), EAST);
+        Trains.couple(tanker, van);
+        Trains.couple(Trains.train(diesel).getLast(), tanker);
         diesel.setFuel(DieselLocomotive.FUEL_CAPACITY * 0.7);
         TestTracks.station(level, new BlockPos(85, Y, -39), new BlockPos(85, Y, -36), "Freight Yard", 10);
 
@@ -351,19 +360,21 @@ public final class DevShowcase {
         at(1150, mc -> shot(mc, "19_express_running"));
         at(1190, mc -> shot(mc, "20_express_running_later"));
         // The diesel: side and front, then away on a timetable with its horn
-        at(1202, mc -> look(mc, 28.0, Y + 1.6, -27.5, 180.0F, 6.0F));
-        at(1240, mc -> shot(mc, "21_diesel"));
-        at(1242, mc -> look(mc, 40.0, Y + 1.4, -31.0, 125.0F, 10.0F));
-        at(1280, mc -> shot(mc, "22_diesel_front"));
-        at(1282, mc -> server(mc, player -> {
+        at(1196, mc -> look(mc, 4.0, Y + 1.6, -28.5, 180.0F, 6.0F));
+        at(1236, mc -> shot(mc, "20b_tank_and_van"));
+        at(1242, mc -> look(mc, 28.0, Y + 1.6, -27.5, 180.0F, 6.0F));
+        at(1280, mc -> shot(mc, "21_diesel"));
+        at(1282, mc -> look(mc, 40.0, Y + 1.4, -31.0, 125.0F, 10.0F));
+        at(1320, mc -> shot(mc, "22_diesel_front"));
+        at(1322, mc -> server(mc, player -> {
             ServerLevel level = player.serverLevel();
             DieselLocomotive diesel = level.getEntitiesOfClass(DieselLocomotive.class, new AABB(20, Y - 2, -40, 40, Y + 4, -32)).getFirst();
             if (level.getBlockEntity(new BlockPos(85, Y, -39)) instanceof StationBlockEntity yard) {
                 diesel.autopilot().start(List.of(TestTracks.stop(yard)));
             }
         }));
-        at(1284, mc -> look(mc, 52.0, Y + 1.5, -30.0, 115.0F, 6.0F));
-        at(1360, mc -> shot(mc, "23_diesel_running"));
-        at(1380, Minecraft::stop);
+        at(1324, mc -> look(mc, 52.0, Y + 1.5, -30.0, 115.0F, 6.0F));
+        at(1400, mc -> shot(mc, "23_diesel_running"));
+        at(1420, Minecraft::stop);
     }
 }

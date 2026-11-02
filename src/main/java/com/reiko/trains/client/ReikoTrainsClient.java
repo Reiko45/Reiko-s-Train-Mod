@@ -6,6 +6,8 @@ import com.reiko.trains.client.model.geometry.BogieGeometry;
 import com.reiko.trains.client.model.geometry.DieselBogieGeometry;
 import com.reiko.trains.client.model.geometry.DieselLocomotiveGeometry;
 import com.reiko.trains.client.model.geometry.ExpressLocomotiveGeometry;
+import com.reiko.trains.client.model.geometry.GuardsVanGeometry;
+import com.reiko.trains.client.model.geometry.TankWagonGeometry;
 import com.reiko.trains.client.model.geometry.TenderGeometry;
 import com.reiko.trains.client.model.geometry.FreightWagonGeometry;
 import com.reiko.trains.client.model.geometry.PassengerCoachGeometry;
@@ -56,6 +58,8 @@ public final class ReikoTrainsClient {
     static final ModelLayerLocation BOGIE_LAYER = new ModelLayerLocation(ReikoTrains.id("bogie"), "main");
     static final ModelLayerLocation EXPRESS_LAYER = new ModelLayerLocation(ReikoTrains.id("express_locomotive"), "main");
     static final ModelLayerLocation TENDER_LAYER = new ModelLayerLocation(ReikoTrains.id("tender"), "main");
+    static final ModelLayerLocation TANK_WAGON_LAYER = new ModelLayerLocation(ReikoTrains.id("tank_wagon"), "main");
+    static final ModelLayerLocation GUARDS_VAN_LAYER = new ModelLayerLocation(ReikoTrains.id("guards_van"), "main");
     static final ModelLayerLocation DIESEL_LAYER = new ModelLayerLocation(ReikoTrains.id("diesel_locomotive"), "main");
     static final ModelLayerLocation DIESEL_BOGIE_LAYER = new ModelLayerLocation(ReikoTrains.id("diesel_bogie"), "main");
 
@@ -86,6 +90,8 @@ public final class ReikoTrainsClient {
         event.registerLayerDefinition(EXPRESS_LAYER, ExpressLocomotiveGeometry::create);
         event.registerLayerDefinition(TENDER_LAYER, TenderGeometry::create);
         event.registerLayerDefinition(DIESEL_LAYER, DieselLocomotiveGeometry::create);
+        event.registerLayerDefinition(TANK_WAGON_LAYER, TankWagonGeometry::create);
+        event.registerLayerDefinition(GUARDS_VAN_LAYER, GuardsVanGeometry::create);
         event.registerLayerDefinition(DIESEL_BOGIE_LAYER, DieselBogieGeometry::create);
     }
 
@@ -108,6 +114,12 @@ public final class ReikoTrainsClient {
                 c -> TrainModel.simple(c.bakeLayer(DIESEL_LAYER), new String[0], new float[0]),
                 c -> TrainModel.simple(c.bakeLayer(DIESEL_BOGIE_LAYER), DieselBogieGeometry.WHEELS, DieselBogieGeometry.WHEEL_RADII),
                 ReikoTrains.id("textures/entity/diesel_locomotive.png"), ReikoTrains.id("textures/entity/diesel_bogie.png")));
+        event.registerEntityRenderer(ModEntities.TANK_WAGON.get(), context -> new TrainCarRenderer<>(context,
+                c -> new TrainModel(c.bakeLayer(TANK_WAGON_LAYER), new String[0], new float[0], new String[0], 0.0F, 1.0F, TankWagonGeometry.LEVEL),
+                bogie, ReikoTrains.id("textures/entity/tank_wagon.png")));
+        event.registerEntityRenderer(ModEntities.GUARDS_VAN.get(), context -> new TrainCarRenderer<>(context,
+                c -> TrainModel.simple(c.bakeLayer(GUARDS_VAN_LAYER), GuardsVanGeometry.WHEELS, GuardsVanGeometry.WHEEL_RADII),
+                null, ReikoTrains.id("textures/entity/guards_van.png")));
         event.registerEntityRenderer(ModEntities.PASSENGER_COACH.get(), context -> new TrainCarRenderer<>(context,
                 c -> TrainModel.simple(c.bakeLayer(COACH_LAYER), new String[0], new float[0]),
                 bogie, ReikoTrains.id("textures/entity/passenger_coach.png")));

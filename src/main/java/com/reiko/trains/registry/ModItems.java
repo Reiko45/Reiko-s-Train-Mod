@@ -25,6 +25,10 @@ public final class ModItems {
             () -> new TrainCarItem(ModEntities.DIESEL_LOCOMOTIVE, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<TrainCarItem> TENDER = ITEMS.register("tender",
             () -> new TrainCarItem(ModEntities.TENDER, new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<TrainCarItem> TANK_WAGON = ITEMS.register("tank_wagon",
+            () -> new TrainCarItem(ModEntities.TANK_WAGON, new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<TrainCarItem> GUARDS_VAN = ITEMS.register("guards_van",
+            () -> new TrainCarItem(ModEntities.GUARDS_VAN, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<TrainCarItem> FREIGHT_WAGON = ITEMS.register("freight_wagon",
             () -> new TrainCarItem(ModEntities.FREIGHT_WAGON, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<CouplerItem> COUPLER = ITEMS.register("coupler",

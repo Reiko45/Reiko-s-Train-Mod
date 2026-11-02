@@ -11,6 +11,7 @@ import com.reiko.trains.registry.ModItems;
 import com.reiko.trains.registry.ModMenus;
 import com.reiko.trains.registry.ModSounds;
 import com.reiko.trains.train.DieselLocomotive;
+import com.reiko.trains.train.TankWagon;
 import javax.annotation.Nullable;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -62,6 +63,7 @@ public final class ReikoTrains {
         event.registerEntity(Capabilities.ItemHandler.ENTITY_AUTOMATION, ModEntities.TENDER.get(), wagonSided);
         // A diesel's tank takes diesel from buckets, pipes and other mods' fluid containers (its hitbox parts too).
         event.registerEntity(Capabilities.FluidHandler.ENTITY, ModEntities.DIESEL_LOCOMOTIVE.get(), ReikoTrains::dieselTank);
+        event.registerEntity(Capabilities.FluidHandler.ENTITY, ModEntities.TANK_WAGON.get(), ReikoTrains::tankWagon);
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.WAGON_LOADER.get(), (loader, side) -> loader.port());
     }
 
@@ -69,6 +71,12 @@ public final class ReikoTrains {
     private static IFluidHandler dieselTank(Entity entity, @Nullable Direction side) {
         Entity car = entity instanceof PartEntity<?> part ? part.getParent() : entity;
         return car instanceof DieselLocomotive diesel ? diesel.tank() : null;
+    }
+
+    @Nullable
+    private static IFluidHandler tankWagon(Entity entity, @Nullable Direction side) {
+        Entity car = entity instanceof PartEntity<?> part ? part.getParent() : entity;
+        return car instanceof TankWagon wagon ? wagon.tank() : null;
     }
 
     public static ResourceLocation id(String path) {

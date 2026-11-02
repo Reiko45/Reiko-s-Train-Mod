@@ -287,6 +287,14 @@ public final class Trains {
             double gap = loco.throttleTarget() * signs[leaderIndex] - speed;
             accel += pull * gap > 0 ? Math.signum(pull) * Math.min(Math.abs(pull), Math.abs(gap) + 0.002) : 0;
         }
+        // A guard's van on the train adds its brake (two at most).
+        int vans = 0;
+        for (TrainCarEntity car : cars) {
+            if (car instanceof GuardsVan) {
+                vans++;
+            }
+        }
+        double brake = BRAKE * (1 + GuardsVan.BRAKE_BONUS * Math.min(vans, 2));
         double next = speed + accel;
         double resistance = ROLLING_RESISTANCE + Math.abs(next) * DRAG;
         next = Math.abs(next) <= resistance ? 0 : next - Math.signum(next) * resistance;
@@ -294,13 +302,14 @@ public final class Trains {
             // Brake down to the speed it's aiming for; standing still, hold it there.
             double over = next * dir - drive.target();
             if (over > 0) {
-                next -= dir * Math.min(over, BRAKE);
+                next -= dir * Math.min(over, brake);
             }
             if (drive.target() <= 0 && Math.abs(next) < 0.05) {
                 next = 0;
             }
-        } else if (loco != null && loco.isHeld()) {
-            next = Math.abs(next) <= BRAKE ? 0 : next - Math.signum(next) * BRAKE;
+        } else if ((loco != null && loco.isHeld()) || (loco == null && vans > 0)) {
+            // The brake's on, or nobody's driving (the handbrake); a train with no engine is held by its van's handbrake.
+            next = Math.abs(next) <= brake ? 0 : next - Math.signum(next) * brake;
         }
         // Never past a red signal (or a stop): slow to what it takes to stop in time.
         if (next * dir > drive.limit()) {

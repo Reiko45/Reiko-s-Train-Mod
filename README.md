@@ -30,6 +30,10 @@ give them a timetable and let them run between the stations on their own.
 - **Passenger Coach**: 6½ blocks long, eight seats in four rows.
 - **Freight Wagon**: holds 108 stacks (four chests' worth), all on one screen. Hoppers above or below it fill and empty
   it, crates pile up in it as it fills, and a full one is heavier to pull.
+- **Tank Wagon**: carries 64 buckets of any fluid: water, lava, oil, BuildCraft's fuels. A gauge on its side shows
+  how full it is.
+- **Guard's Van**: for the back of the train. Two seats and a stove inside, tail lamps, and a brake that makes the
+  whole train stop quicker.
 - **Wagon Loader**: fills the freight wagons of a train standing beside it from the chests next to it, or empties
   them into the chests.
 - **Coupler**: joins cars into trains.
@@ -74,6 +78,8 @@ or ramp can cross gaps between them, so bridges are just long curves. Leave thre
 | Diesel Locomotive | Three iron ingots; iron ingot, blast furnace, iron ingot; copper ingot, minecart, copper ingot |
 | Passenger Coach | Glass panes on top; planks, wool, planks; iron ingot, minecart, iron ingot |
 | Freight Wagon | Planks around a chest (top middle open); iron ingot, minecart, iron ingot |
+| Tank Wagon | Three iron ingots; iron ingot, bucket, iron ingot; iron ingot, minecart, iron ingot |
+| Guard's Van | Planks, lantern, planks; planks, furnace, planks; iron ingot, minecart, iron ingot |
 | Coupler | Iron ingot, chain, iron ingot (a column) |
 | Railway Signal (2) | Redstone lamp, iron ingot, iron ingot (a column) |
 | Switch Stand | Lever, iron ingot, iron ingot (a column) |
@@ -158,6 +164,22 @@ way you're going, and a short hood behind. It rides on two bogies like the coach
 ![The diesel with a freight train](docs/screenshots/diesel.jpg)
 
 ![The diesel from the front](docs/screenshots/diesel_front.jpg)
+
+### Tank wagons and guard's vans
+
+The **Tank Wagon** carries 64 buckets of one fluid at a time. Click it with a full bucket (or any other mod's fluid
+container) to pour it in, or with an empty one to draw some off; click it empty-handed to see what's in it. Pipes
+can fill and empty it too, and a **wagon loader** with fluid tanks next to it fills tank wagons (loading) or empties
+them (unloading), five buckets a second each: so a train can carry BuildCraft's oil or fuel from a refinery to a
+depot by itself. The gauge on its side lights a quarter at a time as it fills; a full one is heavier to pull. If a
+tank wagon's broken up, what's in it is lost.
+
+The **Guard's Van** goes on the back of the train. It seats two (by the stove, which smokes while someone's aboard,
+and by the window), has red tail lamps on its back end, and an open veranda on its front. Its brake works with the
+train's: with a van on, a train's brakes are half as strong again (two vans count, at most), so a heavy train stops
+quicker. And a train left with no engine is held by the van's handbrake, so loose wagons don't roll away.
+
+![A tank wagon and a guard's van on the end of a freight train](docs/screenshots/tank_wagon_and_van.jpg)
 
 ### More than one locomotive
 
@@ -257,16 +279,18 @@ to stop it running. Sneak-click the air with a timetable to clear it.
 
 Put a **Wagon Loader** beside the track (up to three blocks away, and two is best: its chute reaches over to the
 wagons), and storage next to it on any side: chests, barrels, hoppers, or other mods' storage. When a train stands
-still with a car alongside the loader, the loader works on every freight wagon in the train, front to back:
+still with a car alongside the loader, the loader works on every freight wagon and tank wagon in the train, front to
+back:
 
-- **Loading** (green arrow on top, pointing at the track): it fills the wagons from its storage.
-- **Unloading** (orange arrow, pointing away): it empties them into its storage.
+- **Loading** (green arrow on top, pointing at the track): it fills the wagons from its storage, and the tank wagons
+  from fluid tanks next to it.
+- **Unloading** (orange arrow, pointing away): it empties them into its storage and tanks.
 
 Click the loader to switch between the two. Its lamp lights while it's moving goods. It moves ten stacks a second
 (server setting `loaderSpeed`), so a full wagon takes about 11 seconds; two loaders at one train work twice as fast.
 
 - **Redstone** pauses it.
-- A **comparator** beside it reads how full the train's wagons are (0 with no train there).
+- A **comparator** beside it reads how full the train's wagons (and tank wagons) are (0 with no train there).
 - Hoppers and pipes can also go through it: into the train while it's loading, out of it while it's unloading.
 - Loading, it refuels the engines too: a tender takes coal (and the like) from its chests, and a diesel is pumped
   full of diesel from fluid tanks next to it (a BuildCraft tank, say).
@@ -309,7 +333,10 @@ not coal or water, steam engines refusing diesel, BuildCraft's energy values and
 running a timetable with a steam engine helping, a wagon loader pumping it full from a BuildCraft tank), the
 express needing its tender (and shovelling coal into it), its speed, two engines
 pulling together (one at the back facing back), a double-headed train on a timetable, an express on a timetable, and
-a wagon loader topping up a tender with fuel only. `LoaderGameTests` covers loading and unloading a wagon, filling every wagon in a train, redstone, the comparator,
+a wagon loader topping up a tender with fuel only. `WagonGameTests` covers the tank wagon (buckets in and out, one fluid at a time, its gauge and weight, pipes, and a
+wagon loader filling two of them from a BuildCraft tank and emptying them into another) and the guard's van (a train
+with one stopping quicker, its two seats, and its handbrake holding a loose train). `LoaderGameTests` covers loading
+and unloading a wagon, filling every wagon in a train, redstone, the comparator,
 hoppers going through the loader, moving trains being left alone, and a timetabled train waiting until it's loaded.
 
 `./gradlew runClient -Pshowcase -PwindowSize=1280x720` builds a test railway, runs trains round it and saves
@@ -352,8 +379,9 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
 
 ## Ideas for later
 
-- More wagons (a tanker, a guard's van)
 - Item filters for wagon loaders
+- A diesel railcar (a coach that drives itself)
+- A marker on switch stands showing what redstone does to them
 
 ## License
 

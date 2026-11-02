@@ -214,6 +214,14 @@ public abstract class TrainCarEntity extends VehicleEntity {
         return flipped;
     }
 
+    /** Gives the train this car is in a shove: sets it going at {@code speed} blocks per tick, the way this car faces. */
+    public void shove(double speed) {
+        TrainCarEntity head = Trains.head(this);
+        if (head != null) {
+            head.speed = speed * Trains.sign(head, this);
+        }
+    }
+
     /** The speed of the train this car is in, in blocks per tick, positive the way this car faces (server). */
     public double trainSpeed() {
         TrainCarEntity head = Trains.head(this);

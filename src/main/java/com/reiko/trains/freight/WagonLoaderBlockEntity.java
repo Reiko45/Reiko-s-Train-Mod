@@ -6,6 +6,7 @@ import com.reiko.trains.track.TrackEdge;
 import com.reiko.trains.track.TrackGraph;
 import com.reiko.trains.train.DieselLocomotive;
 import com.reiko.trains.train.FreightWagon;
+import com.reiko.trains.train.TankWagon;
 import com.reiko.trains.train.Tender;
 import com.reiko.trains.train.TrainCarEntity;
 import com.reiko.trains.train.Trains;
@@ -129,6 +130,7 @@ public class WagonLoaderBlockEntity extends BlockEntity {
         List<FreightWagon> wagons = new ArrayList<>();
         List<IItemHandler> tenders = new ArrayList<>();
         List<DieselLocomotive> diesels = new ArrayList<>();
+        List<TankWagon> tanks = new ArrayList<>();
         for (TrainCarEntity car : train) {
             if (car instanceof FreightWagon wagon) {
                 wagons.add(wagon);
@@ -136,18 +138,39 @@ public class WagonLoaderBlockEntity extends BlockEntity {
                 tenders.add(new InvWrapper(tender)); // its chute takes only coal and the like
             } else if (car instanceof DieselLocomotive diesel) {
                 diesels.add(diesel);
+            } else if (car instanceof TankWagon tank) {
+                tanks.add(tank);
             }
         }
         loader.wagons = wagons;
         if (loader.serving != null && !train.contains(loader.serving)) {
             loader.serving = null; // that train's gone
         }
-        if (!diesels.isEmpty() && loader.mode() == LoaderMode.LOAD && !level.hasNeighborSignal(pos)) {
-            // Diesels fill up from tanks next to the loader (a BuildCraft tank, say), a few buckets a second.
+        if ((!diesels.isEmpty() || !tanks.isEmpty()) && !level.hasNeighborSignal(pos)) {
+            // Fluids, a few buckets a second for each car: loading, diesels fill up from tanks next to the loader (a
+            // BuildCraft tank, say) and then tank wagons; unloading, tank wagons empty into them.
+            List<IFluidHandler> fluids = loader.fluidStorage();
             int pumped = 0;
-            for (DieselLocomotive diesel : diesels) {
-                for (IFluidHandler source : loader.fluidStorage()) {
-                    pumped += FluidUtil.tryFluidTransfer(diesel.tank(), source, FLUID_PER_PERIOD, true).getAmount();
+            if (loader.mode() == LoaderMode.LOAD) {
+                for (DieselLocomotive diesel : diesels) {
+                    for (IFluidHandler source : fluids) {
+                        pumped += FluidUtil.tryFluidTransfer(diesel.tank(), source, FLUID_PER_PERIOD, true).getAmount();
+                    }
+                }
+                for (TankWagon tank : tanks) {
+                    int room = FLUID_PER_PERIOD;
+                    for (IFluidHandler source : fluids) {
+                        room -= FluidUtil.tryFluidTransfer(tank.tank(), source, room, true).getAmount();
+                    }
+                    pumped += FLUID_PER_PERIOD - room;
+                }
+            } else {
+                for (TankWagon tank : tanks) {
+                    int left = FLUID_PER_PERIOD;
+                    for (IFluidHandler target : fluids) {
+                        left -= FluidUtil.tryFluidTransfer(target, tank.tank(), left, true).getAmount();
+                    }
+                    pumped += FLUID_PER_PERIOD - left;
                 }
             }
             if (pumped > 0) {
@@ -174,7 +197,7 @@ public class WagonLoaderBlockEntity extends BlockEntity {
         if (state.getValue(WagonLoaderBlock.ACTIVE) != active) {
             level.setBlock(pos, state.setValue(WagonLoaderBlock.ACTIVE, active), 3);
         }
-        int signal = wagons.isEmpty() ? 0 : redstone(wagons);
+        int signal = wagons.isEmpty() && tanks.isEmpty() ? 0 : redstone(wagons, tanks);
         if (signal != loader.comparator) {
             loader.comparator = signal;
             level.updateNeighbourForOutputSignal(pos, level.getBlockState(pos).getBlock());
@@ -287,20 +310,27 @@ public class WagonLoaderBlockEntity extends BlockEntity {
         return left;
     }
 
-    /** 0 to 15 for how full the wagons are, the way a comparator reads a chest (1 for anything at all). */
-    private static int redstone(List<FreightWagon> wagons) {
+    /**
+     * 0 to 15 for how full the train's wagons are, the way a comparator reads a chest (1 for anything at all): each
+     * freight wagon and tank wagon counts the same.
+     */
+    private static int redstone(List<FreightWagon> wagons, List<TankWagon> tanks) {
         float fullness = 0;
-        int slots = 0;
         for (FreightWagon wagon : wagons) {
+            float used = 0;
             for (int i = 0; i < wagon.getContainerSize(); i++) {
                 ItemStack stack = wagon.getItem(i);
                 if (!stack.isEmpty()) {
-                    fullness += stack.getCount() / (float) wagon.getMaxStackSize(stack);
+                    used += stack.getCount() / (float) wagon.getMaxStackSize(stack);
                 }
             }
-            slots += wagon.getContainerSize();
+            fullness += used / wagon.getContainerSize();
         }
-        return slots == 0 ? 0 : Mth.lerpDiscrete(fullness / slots, 0, 15);
+        for (TankWagon tank : tanks) {
+            fullness += tank.tank().getFluidAmount() / (float) TankWagon.CAPACITY;
+        }
+        int cars = wagons.size() + tanks.size();
+        return cars == 0 ? 0 : Mth.lerpDiscrete(fullness / cars, 0, 15);
     }
 
     // ----------------------------------------------------------------------------------------------------------------

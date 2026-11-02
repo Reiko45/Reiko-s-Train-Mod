@@ -2,6 +2,19 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.9.0
+
+More wagons.
+
+- Tank Wagon: 64 buckets of any one fluid. Fill and empty it with buckets or any fluid container, by pipe, or with a
+  wagon loader beside fluid tanks (five buckets a second; loading fills it, unloading empties it). A gauge on its side
+  shows how full it is, and a full one is heavier.
+- Guard's Van: a four-wheeled van for the back of the train, with two seats, a stove (it smokes while someone's
+  aboard), a veranda and red tail lamps. A train with a van brakes half as hard again (two vans at most), and a train
+  with no engine is held by the van's handbrake.
+- Wagon loaders' comparators count tank wagons too.
+- Five new game tests: 66 in all.
+
 ## 0.8.0
 
 The diesel runs on BuildCraft's diesel, like the car mod's diesel vehicles.

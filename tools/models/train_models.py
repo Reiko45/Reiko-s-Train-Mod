@@ -331,6 +331,70 @@ def freight_wagon():
     return parts
 
 
+def tank_wagon():
+    """A tank wagon: a silver barrel on saddles, with a filler dome, ladders and a gauge on each side (drawn lit a
+    quarter at a time as it fills: the level_ parts)."""
+    body = Part("body")
+    b = body.boxes
+    b.append(box(-42, -16, -12, 42, -12, 12, "frame"))
+    b += buffers(44)
+    b.append(box(-44, -18, -14, -42, -10, 14, "beam_dark"))
+    b.append(box(42, -18, -14, 44, -10, 14, "beam_dark"))
+    for x in (-28, 20):
+        b.append(box(x, -20, -11, x + 8, -16, 11, "frame"))
+    b += round_body(-38, 38, -30, 12, "tank_barrel")
+    b += round_body(-40, -38, -30, 10, "tank_end", inset=0)
+    b += round_body(38, 40, -30, 10, "tank_end", inset=0)
+    b.append(box(-5, -46, -5, 5, -42, 5, "tank_dome"))
+    b.append(box(-4, -47, -4, 4, -46, 4, "brass"))
+    for z0, z1 in ((12, 13), (-13, -12)):
+        b.append(box(-1, -40, z0, 3, -17, z1, "ladder"))
+    b += mirrored(-30, -37, 12, -4, -32, 13, "gauge_back")
+    parts = [body]
+    for i in range(4):
+        p = Part(f"level_{i}", (0, 0, 0))
+        p.boxes += mirrored(-29 + 6 * i, -36, 13, -24 + 6 * i, -33, 14, "gauge_lit")
+        parts.append(p)
+    return parts
+
+
+def guards_van():
+    """
+    A guard's van on four wheels: a planked body with windows, an open veranda with a railing at the front end, a
+    stove pipe on the roof, and red tail lamps on the back.
+    """
+    body = Part("body")
+    b = body.boxes
+    b.append(box(-36, -14, -12, 36, -10, 12, "frame"))
+    b += buffers(40)
+    b.append(box(-38, -16, -15, 38, -14, 15, "deck"))
+    b.append(box(-40, -18, -14, -38, -10, 14, "beam_dark"))
+    b.append(box(38, -18, -14, 40, -10, 14, "beam_dark"))
+    b += mirrored(-26, -10, 10, -14, -6, 11, "axlebox")
+    b += mirrored(14, -10, 10, 26, -6, 11, "axlebox")
+    # The van: sides with two windows each, a back wall, a front wall with a door onto the veranda
+    b += mirrored(-22, -30, 14, 38, -16, 15, "van_planks")
+    b += mirrored(-22, -44, 14, 38, -40, 15, "van_planks")
+    for x0, x1 in ((-22, -16), (-6, 6), (22, 38)):
+        b += mirrored(x0, -40, 14, x1, -30, 15, "van_planks")
+    b.append(box(37, -44, -14, 38, -16, 14, "van_end"))
+    b.append(box(-22, -44, -14, -21, -16, -4, "van_end"))
+    b.append(box(-22, -44, 4, -21, -16, 14, "van_end"))
+    b.append(box(-22, -44, -4, -21, -38, 4, "van_end"))
+    b.append(box(-24, -46, -16, 40, -44, 16, "roof"))
+    b.append(box(-24, -47, -12, 40, -46, 12, "roof"))
+    b.append(box(-16, -52, 5, -13, -46, 8, "chimney"))
+    b.append(box(-12, -24, -13, -4, -16, -6, "stove"))
+    # The veranda's railing, and the tail lamps
+    b += mirrored(-38, -29, 14, -22, -28, 15, "handrail")
+    b += mirrored(-38, -28, 14, -37, -16, 15, "handrail")
+    b += mirrored(-30, -28, 14, -29, -16, 15, "handrail")
+    b += mirrored(38, -36, 9, 40, -32, 12, "lamp_back")
+    parts = [body]
+    parts += wheel_parts("wheel", [-20, 20], 5, -5, "wheel_small")
+    return parts
+
+
 def bogie():
     frame = Part("frame")
     b = frame.boxes
@@ -743,6 +807,31 @@ def diesel_end(t):
     return jitter((34, 34, 38), (t.x, t.y, t.z))
 
 
+def tank_barrel(t):
+    """A silver barrel with a red band round its middle, and darker weld seams."""
+    c = jitter((178, 182, 188), (t.x, t.y, t.z, t.face), 0.04)
+    if abs(t.y + 30) < 1.6 and t.face in ("north", "south"):
+        return jitter((170, 40, 34), (t.x, t.y, t.z), 0.04)
+    if int(math.floor(t.x)) in (-19, 0, 19):
+        return shade(c, 0.85)
+    return shade(c, 0.88) if t.edge and t.end else c
+
+
+def van_planks(t):
+    """The van's sides: grey-brown vertical planks."""
+    c = jitter((112, 92, 76), (t.x, t.y, t.z, t.face), 0.06)
+    if t.side and int(math.floor(t.x)) % 3 == 0:
+        return shade(c, 0.82)
+    return shade(c, 0.8) if t.edge else c
+
+
+def van_end(t):
+    c = jitter((112, 92, 76), (t.x, t.y, t.z, t.face), 0.06)
+    if t.end and int(math.floor(t.z)) % 3 == 0:
+        return shade(c, 0.82)
+    return shade(c, 0.8) if t.edge else c
+
+
 def fuel_tank(t):
     c = jitter((48, 50, 56), (t.x, t.y, t.z, t.face), 0.05)
     if t.side and t.j == 1:
@@ -804,6 +893,16 @@ MATERIALS = {
     "desk": plain((60, 62, 68)),
     "handrail": plain((226, 226, 220), 0.85),
     "spring": plain((90, 92, 98), 0.7),
+    "tank_barrel": tank_barrel,
+    "tank_end": plain((166, 170, 176), 0.85),
+    "tank_dome": plain((150, 154, 160), 0.8),
+    "ladder": plain((60, 62, 68), 0.8),
+    "gauge_back": plain((30, 30, 34), 0.8),
+    "gauge_lit": plain((250, 190, 60), 0.85),
+    "beam_dark": plain((40, 40, 44), 0.8),
+    "van_planks": van_planks,
+    "van_end": van_end,
+    "stove": plain((40, 40, 44), 0.75),
 }
 
 
@@ -943,6 +1042,10 @@ def main():
           "    public static final float DRIVER_RADIUS = 9.0F;\n")
     build("diesel_locomotive", "DieselLocomotiveGeometry", diesel_locomotive(), 512)
     build("diesel_bogie", "DieselBogieGeometry", diesel_bogie(), 128)
+    build("tank_wagon", "TankWagonGeometry", tank_wagon(), 512,
+          "    /** The gauge's lit quarters, one to four as it fills. */\n"
+          '    public static final String[] LEVEL = {"level_0", "level_1", "level_2", "level_3"};\n')
+    build("guards_van", "GuardsVanGeometry", guards_van(), 512)
     build("tender", "TenderGeometry", tender(), 512,
           "    /** The coal, in three layers: as much shows as the tender has. */\n"
           '    public static final String[] CARGO = {"coal_0", "coal_1", "coal_2"};\n')
