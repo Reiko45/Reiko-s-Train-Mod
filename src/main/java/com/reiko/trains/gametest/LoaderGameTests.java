@@ -356,6 +356,37 @@ public final class LoaderGameTests {
         helper.succeed();
     }
 
+    /** Every way of clicking a filter slot: none of them should hand out the item it shows. */
+    @GameTest(template = LINE, timeoutTicks = 60)
+    public static void filterSlotsNeverHandOutItems(GameTestHelper helper) {
+        line(helper);
+        WagonLoaderBlockEntity loader = loader(helper, 20, LoaderMode.LOAD, false);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        WagonLoaderMenu menu = new WagonLoaderMenu(1, player.getInventory(), loader);
+        loader.filter().setItem(0, new ItemStack(Items.DIAMOND));
+        int hotbar = 9 + 27; // the first hotbar slot, after the filter and the main inventory
+        for (ClickType type : ClickType.values()) {
+            for (int button : new int[]{0, 1}) {
+                menu.setCarried(ItemStack.EMPTY);
+                loader.filter().setItem(0, new ItemStack(Items.DIAMOND));
+                menu.clicked(0, type == ClickType.SWAP ? 0 : button, type, player);
+                helper.assertTrue(!menu.getCarried().is(Items.DIAMOND), type + " on a filter slot shouldn't put a diamond in hand");
+                helper.assertTrue(player.getInventory().countItem(Items.DIAMOND) == 0, type + " on a filter slot shouldn't give a diamond");
+            }
+        }
+        // Shift-clicking a filter slot clears it; shift-clicking the hotbar adds a copy and leaves the stack there.
+        loader.filter().setItem(0, new ItemStack(Items.DIAMOND));
+        menu.quickMoveStack(player, 0);
+        helper.assertTrue(player.getInventory().countItem(Items.DIAMOND) == 0, "shift-clicking a filter slot shouldn't give a diamond");
+        player.getInventory().setItem(0, new ItemStack(Items.EMERALD, 3));
+        menu.quickMoveStack(player, hotbar);
+        helper.assertTrue(player.getInventory().countItem(Items.EMERALD) == 3, "adding emeralds to the filter shouldn't take or make any");
+        // Dropped items: nothing should have been thrown out into the world either.
+        helper.assertTrue(helper.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
+                new net.minecraft.world.phys.AABB(loader.getBlockPos()).inflate(8)).isEmpty(), "nothing should have been dropped");
+        helper.succeed();
+    }
+
     /** All the cars of the train {@code car} is in (for debugging failures). */
     @SuppressWarnings("unused")
     private static String describe(TrainCarEntity car) {

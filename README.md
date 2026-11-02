@@ -359,7 +359,8 @@ a wagon loader topping up a tender with fuel only. `WagonGameTests` covers the t
 wagon loader filling two of them from a BuildCraft tank and emptying them into another) and the guard's van (a train
 with one stopping quicker, its two seats, and its handbrake holding a loose train). `LoaderGameTests` covers loading
 and unloading a wagon, filters (only these, all but these, a bucket picking a fluid, hoppers through the loader,
-engines' fuel unfiltered, and the screen's filter slots and buttons), filling every wagon in a train, redstone, the comparator,
+engines' fuel unfiltered, the screen's filter slots and buttons, and no way of clicking a filter slot handing out an
+item), filling every wagon in a train, redstone, the comparator,
 hoppers going through the loader, moving trains being left alone, and a timetabled train waiting until it's loaded.
 
 `./gradlew runClient -Pshowcase -PwindowSize=1280x720` builds a test railway, runs trains round it and saves
