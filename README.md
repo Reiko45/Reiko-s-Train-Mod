@@ -22,7 +22,7 @@ between the stations on their own.
   it, crates pile up in it as it fills, and a full one is heavier to pull.
 - **Coupler**: joins cars into trains.
 - **Railway Signal**: red while there's a train on the line ahead, green when it's clear. Trains stop for red.
-- **Switch Stand**: sets which way trains go at a junction. Flip it by hand or with redstone.
+- **Switch Stand**: sets which way trains go at a junction. Flip it by hand, or set and hold it with redstone.
 - **Station**: a nameboard beside the track. Trains stop with their front level with it.
 - **Timetable**: a list of stations for a train to run between by itself.
 
@@ -142,15 +142,18 @@ Put a **Switch Stand** beside a junction, within three blocks of the track block
 on that junction goes the way the switch is set, for every train going through it towards the fork:
 
 - **Normal** (green target): the straightest way.
-- **Thrown** (yellow target, lever over): the way that branches off. Where three ways leave the same end of a block,
-  sneak-click the stand to choose whether thrown means the left or the right one.
+- **Thrown** (yellow target, lever over): the way that branches off.
 
-Click the stand to throw it over or put it back. **Redstone** works it like a door: powered, it's thrown, and back
-again when the power goes off; while it's powered it's held there and clicking does nothing. Trains coming the other
-way (out of either branch towards the main line) just run through.
+Click the stand to throw it over or put it back. Where three ways leave the same end of a block, clicks go round them:
+left, right, straight on.
+
+**Redstone** sets the switch and holds it there; clicking does nothing while it's powered, and when the power goes
+off it's let go and goes back to normal. **Sneak-click** the stand to choose what redstone does: throw it (to the
+left or the right branch, at a three-way junction) or hold it straight on. A new stand throws it. Trains coming the
+other way (out of either branch towards the main line) just run through.
 
 Trains on a timetable set an unheld switch for themselves as they come up to it, to the way to their next station.
-A switch held by redstone they have to obey, so redstone can send them round a different way (or into a siding).
+A switch held by redstone they have to obey, so redstone can keep them off a branch, or send them round a different way (or into a siding).
 Drivers' A / D steering only counts at junctions with no switch. Throwing a switch under a train doesn't split it:
 the cars behind follow the engine.
 
@@ -205,7 +208,7 @@ recipes. `SignalGameTests` covers signals (red with a train ahead, green when it
 drivers stopping at red, stations' redstone, the timetable item, a timetabled train shuttling between two stations,
 waiting at a signal, taking a branch to reach its station, handing over to a driver, and two timetabled trains
 sharing a signalled loop without ever meeting. `SwitchGameTests` covers switch stands finding their junction,
-clicking and redstone (and being held), drivers going the way the switch is set whatever they steer, throwing a
+clicking and redstone (holding it thrown or straight on), three-way junctions, drivers going the way the switch is set whatever they steer, throwing a
 switch under a train without splitting it, and timetabled trains setting switches their way or obeying a held one.
 
 `./gradlew runClient -Pshowcase -PwindowSize=1280x720` builds a test railway, runs trains round it and saves

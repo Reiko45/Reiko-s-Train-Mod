@@ -33,10 +33,11 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
  * A switch stand, beside a junction (up to three blocks away). It decides which way trains go there: normally the
- * straightest way, thrown the way that branches off. Click it to throw it over or back, or work it with redstone
- * like a door (powered: thrown). While it's powered, it's locked: timetabled trains, which otherwise set switches
- * their way as they come up to them, have to go the way it's set. Sneak-click picks which way a thrown switch goes
- * at a three-way junction.
+ * straightest way, thrown the way that branches off. Click it to throw it over or back (at a three-way junction, to
+ * go round its three ways). Redstone sets it and holds it there, and lets it go back to normal when the power goes
+ * off; sneak-click picks which way redstone sets it: thrown (to which branch, at a three-way junction) or straight
+ * on. While it's powered it's held: timetabled trains, which otherwise set switches their way as they come up to
+ * them, have to go the way it's set.
  */
 public class SwitchBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public static final com.mojang.serialization.MapCodec<SwitchBlock> CODEC = simpleCodec(SwitchBlock::new);
@@ -72,7 +73,7 @@ public class SwitchBlock extends HorizontalDirectionalBlock implements EntityBlo
             return null;
         }
         boolean powered = level.hasNeighborSignal(context.getClickedPos());
-        return defaultBlockState().setValue(FACING, facing(junction, context.getClickedPos())).setValue(POWERED, powered).setValue(THROWN, powered);
+        return defaultBlockState().setValue(FACING, facing(junction, context.getClickedPos())).setValue(POWERED, powered);
     }
 
     /** The stand's lever moves along the track; it faces the junction it works. */
@@ -88,6 +89,7 @@ public class SwitchBlock extends HorizontalDirectionalBlock implements EntityBlo
             TrackSide.Junction junction = TrackSide.nearestJunction(level, pos);
             if (junction != null) {
                 stand.attach(junction.node(), junction.side());
+                stand.powered(state.getValue(POWERED));
             }
         }
     }
@@ -100,31 +102,37 @@ public class SwitchBlock extends HorizontalDirectionalBlock implements EntityBlo
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
+        boolean threeWay = stand.branchSides().size() > 1;
         if (player.isSecondaryUseActive()) {
-            stand.flipThrownSide();
-            player.displayClientMessage(Component.translatable(stand.thrownSide() < 0 ? "message.reikotrains.switch.thrown_left"
-                    : "message.reikotrains.switch.thrown_right"), true);
+            int way = stand.cycleRedstoneWay();
+            String key = way == 0 ? "straight" : !threeWay ? "thrown" : way < 0 ? "left" : "right";
+            player.displayClientMessage(Component.translatable("message.reikotrains.switch.redstone." + key), true);
+            level.playSound(null, pos, SoundEvents.STONE_BUTTON_CLICK_ON, SoundSource.BLOCKS, 0.4F, 1.2F);
             return InteractionResult.CONSUME;
         }
         if (state.getValue(POWERED)) {
             player.displayClientMessage(Component.translatable("message.reikotrains.switch.locked").withStyle(ChatFormatting.RED), true);
             return InteractionResult.CONSUME;
         }
-        boolean thrown = !state.getValue(THROWN);
-        level.setBlock(pos, state.setValue(THROWN, thrown), 3);
-        level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.6F, thrown ? 0.6F : 0.5F);
+        int way = stand.next(stand.setting());
+        stand.set(way);
+        if (threeWay) {
+            player.displayClientMessage(Component.translatable("message.reikotrains.switch.set." + (way == 0 ? "straight" : way < 0 ? "left" : "right")), true);
+        }
+        level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.6F, way != 0 ? 0.6F : 0.5F);
         level.playSound(null, stand.node(), SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 0.4F, 1.4F);
         return InteractionResult.CONSUME;
     }
 
-    /** Redstone works it like a door: powered, it's thrown; unpowered, it goes back. */
+    /** Redstone sets it its redstone way and holds it there; when the power goes off, it goes back to normal. */
     @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighbor, BlockPos neighborPos, boolean movedByPiston) {
         boolean powered = level.hasNeighborSignal(pos);
-        if (powered != state.getValue(POWERED)) {
-            level.setBlock(pos, state.setValue(POWERED, powered).setValue(THROWN, powered), 3);
-            if (state.getValue(THROWN) != powered) {
-                level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.5F, powered ? 0.6F : 0.5F);
+        if (powered != state.getValue(POWERED) && level.getBlockEntity(pos) instanceof SwitchBlockEntity stand) {
+            int was = stand.setting();
+            stand.powered(powered);
+            if (stand.setting() != was) {
+                level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.5F, stand.isThrown() ? 0.6F : 0.5F);
             }
         }
         super.neighborChanged(state, level, pos, neighbor, neighborPos, movedByPiston);

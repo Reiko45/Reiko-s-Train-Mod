@@ -85,6 +85,7 @@ public final class SwitchGameTests {
         helper.assertTrue(stand.node().equals(west.offset(12, 0, 0)), "it should work the junction, not " + stand.node().toShortString());
         helper.assertTrue(stand.ways().size() == 2, "there should be two ways out of the junction, not " + stand.ways().size());
         helper.assertTrue(stand.thrownSide() == 1, "thrown, it should send trains right, the way the branch goes");
+        helper.assertTrue(stand.redstoneWay() == 1, "to start with, redstone should throw it");
         helper.assertTrue(TrackSide.switchAt(helper.getLevel(), stand.node(), stand.side()) == stand, "trains should find it at the junction");
         helper.assertTrue(TrackSide.nearestJunction(helper.getLevel(), west.offset(30, 0, -2)) == null, "there's no junction near the far end of the line");
         helper.succeed();
@@ -107,6 +108,32 @@ public final class SwitchGameTests {
         helper.assertTrue(thrown(stand), "held by redstone, a click shouldn't move it");
         helper.getLevel().setBlock(power, Blocks.AIR.defaultBlockState(), 3);
         helper.assertTrue(!thrown(stand) && !stand.isLocked(), "with the power off it should go back, and be free");
+        helper.succeed();
+    }
+
+    @GameTest(template = YARD, timeoutTicks = 60)
+    public static void redstoneCanHoldTheSwitchStraight(GameTestHelper helper) {
+        BlockPos west = junction(helper);
+        SwitchBlockEntity stand = stand(helper, west);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setShiftKeyDown(true);
+        click(helper, stand, player);
+        helper.assertTrue(stand.redstoneWay() == 0, "a sneak-click should have redstone hold it straight on instead");
+        helper.assertTrue(!thrown(stand), "and not move it");
+        click(helper, stand, helper.makeMockPlayer(GameType.SURVIVAL));
+        helper.assertTrue(thrown(stand), "a plain click should still throw it");
+        BlockPos power = stand.getBlockPos().north();
+        helper.getLevel().setBlock(power, Blocks.REDSTONE_BLOCK.defaultBlockState(), 3);
+        helper.assertTrue(!thrown(stand) && stand.isLocked(), "powered, it should go straight on and be held there");
+        click(helper, stand, helper.makeMockPlayer(GameType.SURVIVAL));
+        helper.assertTrue(!thrown(stand), "held by redstone, a click shouldn't move it");
+        click(helper, stand, player);
+        helper.assertTrue(stand.redstoneWay() == 1 && thrown(stand) && stand.isLocked(),
+                "a sneak-click while it's powered should change it to thrown, there and then");
+        click(helper, stand, player);
+        helper.assertTrue(!thrown(stand) && stand.isLocked(), "and back to straight on");
+        helper.getLevel().setBlock(power, Blocks.AIR.defaultBlockState(), 3);
+        helper.assertTrue(!thrown(stand) && !stand.isLocked(), "with the power off it should be free, set normally");
         helper.succeed();
     }
 
@@ -207,6 +234,78 @@ public final class SwitchGameTests {
             helper.assertTrue(!thrown(stand), "the train should have set the switch straight on, for the main line");
             helper.assertTrue(loco.autopilot().isDwelling(), "and reached the station");
             helper.assertTrue(Math.abs(loco.getZ() - (west.getZ() + 0.5)) < 0.01, "on the main line");
+        });
+    }
+
+    @GameTest(template = YARD, timeoutTicks = 600)
+    public static void timetabledTrainObeysASwitchHeldStraight(GameTestHelper helper) {
+        BlockPos west = junction(helper);
+        SwitchBlockEntity stand = stand(helper, west);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setShiftKeyDown(true);
+        click(helper, stand, player);
+        helper.getLevel().setBlock(stand.getBlockPos().north(), Blocks.REDSTONE_BLOCK.defaultBlockState(), 3);
+        BlockPos stationTrack = west.offset(12, 0, 0).offset(13, 0, 6).offset(9, 0, 9);
+        StationBlockEntity station = TestTracks.station(helper.getLevel(), stationTrack.offset(2, 0, -2), stationTrack, "Branch", 5);
+        SteamLocomotive loco = TestTracks.car(helper.getLevel(), ModEntities.STEAM_LOCOMOTIVE.get(), west.offset(5, 0, 0), EAST);
+        loco.setFuel(16000);
+        loco.autopilot().start(List.of(TestTracks.stop(station)));
+        helper.succeedWhen(() -> {
+            helper.assertTrue(!thrown(stand) && stand.isLocked(), "the switch should still be held straight on");
+            helper.assertTrue(loco.getX() > west.getX() + 28, "the train should have had to go on past the branch");
+            helper.assertTrue(Math.abs(loco.getZ() - (west.getZ() + 0.5)) < 0.01, "along the main line");
+        });
+    }
+
+    /** The junction, with a second branch curving off north (to the left, going east) from the same block. */
+    private static BlockPos threeWay(GameTestHelper helper) {
+        BlockPos west = junction(helper);
+        BlockPos branchStart = west.offset(12, 0, 0);
+        TrackBuilder.Plan branch = TestTracks.connect(helper.getLevel(), branchStart, branchStart.offset(12, 0, -5));
+        TestTracks.line(helper.getLevel(), branch.end().offset(1, 0, -1), TrackAxis.NE, 4);
+        return west;
+    }
+
+    @GameTest(template = YARD, timeoutTicks = 60)
+    public static void clickingGoesRoundAThreeWayJunction(GameTestHelper helper) {
+        BlockPos west = threeWay(helper);
+        SwitchBlockEntity stand = TestTracks.switchStand(helper.getLevel(), west.offset(10, 0, -3));
+        helper.assertTrue(stand.ways().size() == 3, "there should be three ways out, not " + stand.ways().size());
+        helper.assertTrue(stand.branchSides().equals(List.of(-1, 1)), "branches both left and right, not " + stand.branchSides());
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        int[] expected = {-1, 1, 0, -1};
+        for (int way : expected) {
+            click(helper, stand, player);
+            helper.assertTrue(stand.setting() == way, "clicks should go left, right, straight on: expected " + way + ", got " + stand.setting());
+        }
+        Player sneaking = helper.makeMockPlayer(GameType.SURVIVAL);
+        sneaking.setShiftKeyDown(true);
+        int[] redstone = {1, 0, -1}; // it starts off thrown left
+        for (int way : redstone) {
+            click(helper, stand, sneaking);
+            helper.assertTrue(stand.redstoneWay() == way, "sneak-clicks should go round the ways for redstone: expected " + way
+                    + ", got " + stand.redstoneWay());
+        }
+        stand.set(1);
+        helper.getLevel().setBlock(stand.getBlockPos().north(), Blocks.REDSTONE_BLOCK.defaultBlockState(), 3);
+        helper.assertTrue(stand.setting() == -1 && stand.isLocked(), "powered, it should be thrown left and held there");
+        helper.succeed();
+    }
+
+    @GameTest(template = YARD, timeoutTicks = 300)
+    public static void threeWaySwitchSendsTheTrainLeft(GameTestHelper helper) {
+        BlockPos west = threeWay(helper);
+        SwitchBlockEntity stand = TestTracks.switchStand(helper.getLevel(), west.offset(10, 0, -3));
+        stand.set(-1);
+        SteamLocomotive loco = TestTracks.car(helper.getLevel(), ModEntities.STEAM_LOCOMOTIVE.get(), west.offset(5, 0, 0), EAST);
+        Player driver = board(helper, loco);
+        loco.setFuel(16000);
+        throttle(loco, 2);
+        helper.runAfterDelay(4, () -> helper.assertTrue(loco.pointsTurn() == -1, "the gauges should show the switch set left, not " + loco.pointsTurn()));
+        helper.runAfterDelay(200, () -> {
+            helper.assertTrue(loco.getZ() < west.getZ() - 3, "the train should have gone off north, z went " + (loco.getZ() - west.getZ()));
+            driver.stopRiding();
+            helper.succeed();
         });
     }
 

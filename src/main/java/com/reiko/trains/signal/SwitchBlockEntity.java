@@ -4,6 +4,7 @@ import com.reiko.trains.registry.ModBlockEntities;
 import com.reiko.trains.track.EdgeRef;
 import com.reiko.trains.track.TrackAxis;
 import com.reiko.trains.track.TrackGraph;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import javax.annotation.Nullable;
@@ -16,15 +17,18 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * A switch's workings: the junction it works (a track block, and the side of it the ways divide on) and which way it
- * sends trains. Set normally it sends them the straightest way; thrown, the way that bends furthest off it (to the
- * left or right, at a three-way junction). The thrown state lives in the block state, so the stand shows it.
+ * sends trains. Set normally it sends them the straightest way; thrown, the way that bends off it (to the left or
+ * right, at a three-way junction). The thrown state lives in the block state, so the stand shows it. Redstone holds
+ * it whichever way it's been told to ({@link #redstoneWay()}): thrown, or straight on.
  */
 public class SwitchBlockEntity extends BlockEntity {
     @Nullable
     private BlockPos node;
     private int side = 1;
-    /** Which way a thrown switch bends at a three-way junction: -1 left, +1 right. */
+    /** Which way a thrown switch bends (at a three-way junction, which branch it's thrown to): -1 left, +1 right. */
     private int thrownSide = 1;
+    /** The way redstone power sets and holds it: -1 thrown left, 0 straight on, +1 thrown right. */
+    private int redstoneWay = 1;
     /** The train that last set it, and until when (game time) it keeps it: so two trains don't both work it. */
     @Nullable
     private UUID claimant;
@@ -43,14 +47,96 @@ public class SwitchBlockEntity extends BlockEntity {
         unregister();
         this.node = node.immutable();
         this.side = side;
-        // A thrown switch goes whichever way the junction's branch bends.
-        List<EdgeRef> ways = ways();
-        if (ways.size() >= 2) {
-            EdgeRef straight = TrackGraph.choose(ways, heading(), 0);
-            thrownSide = TrackGraph.choose(ways, heading(), 1) == straight ? -1 : 1;
+        // A thrown switch goes whichever way the junction's branch bends (the left one, if there are two), and to
+        // start with, redstone throws it.
+        List<Integer> sides = branchSides();
+        if (!sides.isEmpty()) {
+            thrownSide = sides.getFirst();
         }
+        redstoneWay = thrownSide;
         setChanged();
         register();
+    }
+
+    /** The sides the junction's branches bend off to: -1 left and/or +1 right (empty if it isn't a junction now). */
+    public List<Integer> branchSides() {
+        List<EdgeRef> ways = ways();
+        if (ways.size() < 2) {
+            return List.of();
+        }
+        Vec3 heading = heading();
+        EdgeRef straight = TrackGraph.choose(ways, heading, 0);
+        List<Integer> sides = new ArrayList<>(2);
+        for (int side = -1; side <= 1; side += 2) {
+            if (!TrackGraph.choose(ways, heading, side).equals(straight)) {
+                sides.add(side);
+            }
+        }
+        return sides;
+    }
+
+    /** Which way it's set: -1 thrown left, 0 straight on, +1 thrown right. */
+    public int setting() {
+        return isThrown() ? thrownSide : 0;
+    }
+
+    /** Sets it: -1 thrown left, 0 straight on, +1 thrown right. */
+    public void set(int way) {
+        if (way != 0 && thrownSide != way) {
+            thrownSide = way;
+            setChanged();
+        }
+        setThrown(way != 0);
+    }
+
+    /**
+     * The next setting after this one, going round the junction's ways: straight on, then each branch in turn (just
+     * the branch, at an ordinary junction; left then right, at a three-way one).
+     */
+    public int next(int way) {
+        List<Integer> ways = new ArrayList<>(3);
+        ways.add(0);
+        ways.addAll(branchSides());
+        if (ways.size() == 1) {
+            ways.add(thrownSide);
+        }
+        int at = ways.indexOf(way);
+        return ways.get(at < 0 ? 0 : (at + 1) % ways.size());
+    }
+
+    /** The way redstone sets it, and holds it there: -1 thrown left, 0 straight on, +1 thrown right. */
+    public int redstoneWay() {
+        return redstoneWay;
+    }
+
+    /** Picks the next way for redstone to set it (and if it's powered now, sets it that way). */
+    public int cycleRedstoneWay() {
+        redstoneWay = next(redstoneWay);
+        setChanged();
+        if (isLocked()) {
+            set(redstoneWay);
+        }
+        return redstoneWay;
+    }
+
+    /**
+     * Redstone power changed: powered, it's set the redstone way and held there; when the power goes off it's let go,
+     * and goes back to normal.
+     */
+    public void powered(boolean powered) {
+        if (level == null) {
+            return;
+        }
+        int way = powered ? redstoneWay : 0;
+        if (way != 0) {
+            thrownSide = way;
+            setChanged();
+        }
+        BlockState state = getBlockState();
+        BlockState next = state.setValue(SwitchBlock.POWERED, powered).setValue(SwitchBlock.THROWN, way != 0);
+        if (next != state) {
+            level.setBlock(worldPosition, next, 3);
+        }
     }
 
     public BlockPos node() {
@@ -78,12 +164,6 @@ public class SwitchBlockEntity extends BlockEntity {
         if (level != null && isThrown() != thrown) {
             level.setBlock(worldPosition, getBlockState().setValue(SwitchBlock.THROWN, thrown), 3);
         }
-    }
-
-    /** For a three-way junction: which way the thrown switch bends. */
-    public void flipThrownSide() {
-        thrownSide = -thrownSide;
-        setChanged();
     }
 
     private Vec3 heading() {
@@ -174,6 +254,7 @@ public class SwitchBlockEntity extends BlockEntity {
             tag.putByte("Side", (byte) side);
         }
         tag.putByte("ThrownSide", (byte) thrownSide);
+        tag.putByte("RedstoneWay", (byte) redstoneWay);
     }
 
     @Override
@@ -184,5 +265,7 @@ public class SwitchBlockEntity extends BlockEntity {
             side = tag.getByte("Side");
         }
         thrownSide = tag.getByte("ThrownSide") < 0 ? -1 : 1;
+        // Switches from 0.4.0 didn't have this: redstone always threw them.
+        redstoneWay = tag.contains("RedstoneWay") ? Integer.signum(tag.getByte("RedstoneWay")) : thrownSide;
     }
 }

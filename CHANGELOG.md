@@ -2,6 +2,14 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.4.1
+
+- Redstone can now hold a switch straight on, as well as thrown: sneak-click the stand to choose which (at a
+  three-way junction: thrown left, thrown right or straight on). Powered, the switch is set that way and held; when
+  the power goes off it goes back to normal. Switches from 0.4.0 keep throwing with redstone.
+- At a three-way junction, clicking the stand goes round its ways: left, right, straight on.
+- Four new game tests: 42 in all.
+
 ## 0.4.0
 
 Switches.

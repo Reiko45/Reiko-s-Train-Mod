@@ -92,6 +92,11 @@
   "block.reikotrains.switch_stand": "Switch Stand",
   "message.reikotrains.switch.no_junction": "A switch stand goes beside a junction, within 3 blocks of where the track divides",
   "message.reikotrains.switch.locked": "Held by redstone",
-  "message.reikotrains.switch.thrown_left": "When thrown: to the left",
-  "message.reikotrains.switch.thrown_right": "When thrown: to the right"
+  "message.reikotrains.switch.redstone.thrown": "Redstone throws it, and holds it there",
+  "message.reikotrains.switch.redstone.left": "Redstone throws it to the left, and holds it there",
+  "message.reikotrains.switch.redstone.right": "Redstone throws it to the right, and holds it there",
+  "message.reikotrains.switch.redstone.straight": "Redstone holds it straight on",
+  "message.reikotrains.switch.set.left": "Set to the left",
+  "message.reikotrains.switch.set.right": "Set to the right",
+  "message.reikotrains.switch.set.straight": "Set straight on"
 }

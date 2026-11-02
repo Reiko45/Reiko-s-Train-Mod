@@ -104,9 +104,10 @@ public final class TestTracks {
         }
         boolean powered = level.hasNeighborSignal(pos);
         level.setBlock(pos, ModBlocks.SWITCH.get().defaultBlockState().setValue(SwitchBlock.FACING, SwitchBlock.facing(junction, pos))
-                .setValue(SwitchBlock.POWERED, powered).setValue(SwitchBlock.THROWN, powered), 3);
+                .setValue(SwitchBlock.POWERED, powered), 3);
         SwitchBlockEntity stand = (SwitchBlockEntity) level.getBlockEntity(pos);
         stand.attach(junction.node(), junction.side());
+        stand.powered(powered);
         return stand;
     }
 
