@@ -2,6 +2,22 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.13.0
+
+The electric locomotive.
+
+- New locomotive: the **Electric Locomotive**, a red box-cab with a cab at each end. It runs on BuildCraft power (MJ)
+  from batteries holding 1,000,000 MJ (about twenty minutes at full power), uses next to nothing standing still, and
+  is the quickest engine: stronger than the diesel and faster than the express. Its motors hum, rising with its speed,
+  and it has its own horn.
+- New block: the **Charging Point**. Put it beside the track; feed it from BuildCraft engines or kinesis pipes (or other
+  mods' cables, as BuildCraft's config allows). It stores 1,000,000 MJ and charges any electric standing beside it at
+  5,000 MJ a tick. Timetabled trains wait while it's charging them. Bars on its back show its store, a lamp on top
+  shows it's charging; redstone pauses it and a comparator reads its store.
+- New server settings `chargingPointCapacityMJ` and `chargingPointRateMJ`.
+- A diesel that runs dry on a timetable now says it's out of fuel (it said the fire was out).
+- Six new game tests: 85 in all.
+
 ## 0.12.0
 
 Level crossings.

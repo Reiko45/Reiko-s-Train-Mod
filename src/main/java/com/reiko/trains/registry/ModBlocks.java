@@ -2,6 +2,7 @@ package com.reiko.trains.registry;
 
 import com.reiko.trains.ReikoTrains;
 import com.reiko.trains.freight.WagonLoaderBlock;
+import com.reiko.trains.power.ChargingPointBlock;
 import com.reiko.trains.signal.CrossingArmBlock;
 import com.reiko.trains.signal.LevelCrossingBlock;
 import com.reiko.trains.signal.SignalBlock;
@@ -31,6 +32,10 @@ public final class ModBlocks {
     public static final DeferredBlock<WagonLoaderBlock> WAGON_LOADER = BLOCKS.register("wagon_loader", () -> new WagonLoaderBlock(BlockBehaviour.Properties.of()
             .strength(2.5F).sound(SoundType.METAL).requiresCorrectToolForDrops()
             .lightLevel(state -> state.getValue(WagonLoaderBlock.ACTIVE) ? 4 : 0)));
+
+    public static final DeferredBlock<ChargingPointBlock> CHARGING_POINT = BLOCKS.register("charging_point", () -> new ChargingPointBlock(
+            BlockBehaviour.Properties.of().strength(2.5F).sound(SoundType.METAL).requiresCorrectToolForDrops().noOcclusion()
+                    .lightLevel(state -> state.getValue(ChargingPointBlock.CHARGING) ? 6 : state.getValue(ChargingPointBlock.LEVEL) > 0 ? 2 : 0)));
 
     public static final DeferredBlock<LevelCrossingBlock> LEVEL_CROSSING = BLOCKS.register("level_crossing", () -> new LevelCrossingBlock(
             BlockBehaviour.Properties.of().strength(1.5F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK)));

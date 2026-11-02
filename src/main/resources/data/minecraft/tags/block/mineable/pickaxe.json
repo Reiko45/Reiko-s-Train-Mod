@@ -6,6 +6,7 @@
     "reikotrains:station",
     "reikotrains:switch_stand",
     "reikotrains:wagon_loader",
-    "reikotrains:level_crossing"
+    "reikotrains:level_crossing",
+    "reikotrains:charging_point"
   ]
 }

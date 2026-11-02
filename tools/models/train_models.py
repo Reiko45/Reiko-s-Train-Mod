@@ -272,6 +272,40 @@ def diesel_locomotive():
     return [body]
 
 
+def electric_locomotive():
+    """
+    A battery-electric locomotive, seven and a half blocks long: a full-width body with a cab at each end (a yellow
+    nose under a wide windscreen), louvred sides, equipment on the roof, battery boxes slung between the bogies and a
+    charging socket on each side. It rides on the diesel's bogies.
+    """
+    body = Part("body")
+    b = body.boxes
+    # Underframe, end beams, buffers, battery boxes
+    b.append(box(-54, -17, -13, 54, -12, 13, "frame"))
+    b.append(box(-58, -22, -15, -56, -10, 15, "diesel_end"))
+    b.append(box(56, -22, -15, 58, -10, 15, "diesel_end"))
+    b += buffers(60)
+    b.append(box(-22, -12, -12, 22, -5, 12, "battery_box"))
+    # The body, with a nose and a windscreen at each end
+    b.append(box(-52, -46, -15, 52, -17, 15, "electric_body"))
+    b.append(box(-56, -36, -14, -52, -17, 14, "electric_nose"))
+    b.append(box(52, -36, -14, 56, -17, 14, "electric_nose"))
+    b.append(box(-54, -44, -14, -52, -36, 14, "electric_screen"))
+    b.append(box(52, -44, -14, 54, -36, 14, "electric_screen"))
+    # Roof: equipment covers either side of a cooling fan, and a horn over each cab
+    b.append(box(-50, -48, -13, 50, -46, 13, "electric_roof"))
+    b.append(box(-34, -51, -9, -12, -48, 9, "roof_box"))
+    b.append(box(12, -51, -9, 34, -48, 9, "roof_box"))
+    b.append(box(-7, -49, -7, 7, -48, 7, "electric_fan"))
+    b.append(box(-48, -50, -2, -44, -48, 2, "horn"))
+    b.append(box(44, -50, -2, 48, -48, 2, "horn"))
+    # A charging socket in the middle of each side, and grab rails by the cab doors
+    b += mirrored(-2, -30, 15, 2, -26, 16, "socket")
+    for x in (-44, -36, 35, 43):
+        b += mirrored(x, -38, 15, x + 1, -22, 16, "handrail")
+    return [body]
+
+
 def diesel_bogie():
     """A two-axle bogie for the diesel: deeper sideframes with a spring pack, bigger wheels."""
     frame = Part("frame")
@@ -807,6 +841,92 @@ def diesel_end(t):
     return jitter((34, 34, 38), (t.x, t.y, t.z))
 
 
+ELECTRIC_RED = (176, 36, 34)
+GLASS = (46, 60, 78)
+
+
+def electric_body(t):
+    """
+    Red, with a grey cant rail along the top, a white stripe low down and a dark skirt; on the sides, a window and a
+    door at each cab and louvred panels in between.
+    """
+    c = jitter(ELECTRIC_RED, (t.x, t.y, t.z, t.face))
+    if t.face in ("down", "up"):
+        return jitter((150, 152, 158), (t.x, t.z), 0.04)
+    if t.y < -44:
+        return jitter((196, 198, 202), (t.x, t.y, t.z, t.face), 0.03)
+    if t.end:
+        return c
+    x = abs(t.x)
+    if abs(t.y + 23.5) < 0.6:
+        return (232, 232, 226)
+    if t.y > -20:
+        return jitter((54, 54, 60), (t.x, t.y, t.z, t.face), 0.05)
+    if 44 <= x < 50 and -42 <= t.y < -36:
+        return shade(GLASS, 1.15) if t.y < -40 else GLASS  # cab side window
+    if x in (37.5, 42.5) or (37 <= x < 43 and abs(t.y + 43.5) < 0.6):
+        return shade(c, 0.6)  # door seams
+    if 38 <= x < 42 and -42 <= t.y < -37:
+        return GLASS  # door window
+    if 6 <= x < 32 and -42 <= t.y < -31:
+        if x in (6.5, 31.5, 18.5) or t.y in (-41.5, -31.5):
+            return shade(c, 0.7)  # louvre panel frames
+        return shade(c, 0.55) if int(math.floor(t.x)) % 2 == 0 else shade(c, 0.85)  # louvres
+    return c
+
+
+def electric_nose(t):
+    """The cab's nose: yellow, with a pair of headlights at the front and tail lamps at the back."""
+    if t.face in ("down", "up"):
+        return jitter((54, 54, 60), (t.x, t.z), 0.05)
+    c = jitter(WARNING_YELLOW, (t.x, t.y, t.z, t.face), 0.04)
+    if t.end and abs(abs(t.z) - 9) < 2.1 and -32 <= t.y < -28:
+        if abs(abs(t.z) - 9) > 1.1 or t.y < -31.5 or t.y > -28.5:
+            return (40, 40, 44)  # lamp rims
+        return (255, 255, 246) if t.face == "west" else (255, 70, 50)
+    return shade(c, 0.85) if t.edge and t.end else c
+
+
+def electric_screen(t):
+    """A wide windscreen with a pillar down the middle."""
+    if not t.end:
+        return jitter((54, 54, 60), (t.x, t.y, t.z), 0.05)
+    if t.edge or abs(t.z) < 0.6:
+        return (34, 34, 38)
+    return shade(GLASS, 1.3) if t.j <= 1 else GLASS
+
+
+def electric_fan(t):
+    if t.face == "down":
+        r = math.hypot(t.x, t.z)
+        if r < 6.5:
+            a = math.degrees(math.atan2(t.z, t.x)) % 45
+            return (30, 30, 34) if (a < 18 or r < 1.5) else (70, 72, 78)
+    return jitter((60, 62, 68), (t.x, t.y, t.z))
+
+
+def roof_box(t):
+    c = jitter((122, 124, 130), (t.x, t.y, t.z, t.face), 0.04)
+    if t.face == "down" and int(math.floor(t.x)) % 3 == 0:
+        return shade(c, 0.75)  # vents along the top
+    return shade(c, 0.8) if t.edge else c
+
+
+def battery_box(t):
+    """Battery boxes under the floor: dark grey, with a yellow and black hazard stripe along the sides."""
+    c = jitter((52, 54, 60), (t.x, t.y, t.z, t.face), 0.05)
+    if t.side and t.j == 1:
+        return WARNING_YELLOW if int(math.floor(t.x)) % 4 < 2 else (30, 30, 32)
+    return shade(c, 0.8) if t.edge else c
+
+
+def socket(t):
+    """The charging socket's cover: orange, with the socket's dark face in the middle."""
+    if t.side and not t.edge:
+        return (30, 30, 34)
+    return jitter((236, 150, 30), (t.x, t.y, t.z), 0.04)
+
+
 def tank_barrel(t):
     """A silver barrel with a red band round its middle, and darker weld seams."""
     c = jitter((178, 182, 188), (t.x, t.y, t.z, t.face), 0.04)
@@ -903,6 +1023,14 @@ MATERIALS = {
     "van_planks": van_planks,
     "van_end": van_end,
     "stove": plain((40, 40, 44), 0.75),
+    "electric_body": electric_body,
+    "electric_nose": electric_nose,
+    "electric_screen": electric_screen,
+    "electric_roof": plain((150, 152, 158), 0.82, 0.04),
+    "electric_fan": electric_fan,
+    "roof_box": roof_box,
+    "battery_box": battery_box,
+    "socket": socket,
 }
 
 
@@ -1042,6 +1170,7 @@ def main():
           "    public static final float DRIVER_RADIUS = 9.0F;\n")
     build("diesel_locomotive", "DieselLocomotiveGeometry", diesel_locomotive(), 512)
     build("diesel_bogie", "DieselBogieGeometry", diesel_bogie(), 128)
+    build("electric_locomotive", "ElectricLocomotiveGeometry", electric_locomotive(), 512)
     build("tank_wagon", "TankWagonGeometry", tank_wagon(), 512,
           "    /** The gauge's lit quarters, one to four as it fills. */\n"
           '    public static final String[] LEVEL = {"level_0", "level_1", "level_2", "level_3"};\n')

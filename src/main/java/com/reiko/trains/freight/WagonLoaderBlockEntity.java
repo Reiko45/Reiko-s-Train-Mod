@@ -2,7 +2,6 @@ package com.reiko.trains.freight;
 
 import com.reiko.trains.config.TrainsConfig;
 import com.reiko.trains.registry.ModBlockEntities;
-import com.reiko.trains.track.TrackEdge;
 import com.reiko.trains.track.TrackGraph;
 import com.reiko.trains.train.DieselLocomotive;
 import com.reiko.trains.train.FreightWagon;
@@ -29,7 +28,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
@@ -293,23 +291,7 @@ public class WagonLoaderBlockEntity extends BlockEntity {
 
     /** The cars of the train standing at its track block: stopped, with a car alongside it. Empty if there's none. */
     private List<TrainCarEntity> standingTrain() {
-        if (!isAttached()) {
-            return List.of();
-        }
-        Vec3 at = TrackEdge.node(node);
-        for (TrainCarEntity car : Trains.loadedCars(level)) {
-            if (!car.isOnTrack() || Math.abs(car.trainSpeed()) > 0.005) {
-                continue;
-            }
-            Vec3 d = at.subtract(car.position());
-            Vec3 f = car.flatForward();
-            double along = Math.abs(d.x * f.x + d.z * f.z);
-            double across = Math.abs(d.x * -f.z + d.z * f.x);
-            if (along <= car.halfLength() + 0.5 && across < 1.5 && Math.abs(d.y) < 2.5) {
-                return Trains.train(car);
-            }
-        }
-        return List.of();
+        return isAttached() ? Trains.standingAt(level, node) : List.of();
     }
 
     /** The storage next to it, on any side (not other loaders: they'd only pass goods back and forth). */

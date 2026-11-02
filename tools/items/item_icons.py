@@ -54,6 +54,12 @@ PALETTE = {
     "f": (196, 160, 40, 255),   # fuel can
     "F": (150, 118, 24, 255),   # fuel can, dark
     "o": (60, 44, 20, 255),     # the fuel
+    "q": (34, 104, 112, 255),   # charger teal
+    "t": (120, 200, 255, 255),  # charger lamp
+    "T": (70, 140, 210, 255),   # charger lamp, dark
+    "E": (176, 36, 34, 255),    # electric red
+    "z": (120, 24, 24, 255),    # electric red, dark
+    "u": (236, 150, 30, 255),   # charging plug
 }
 
 ICONS = {
@@ -110,6 +116,42 @@ ICONS = {
         ".www.w....www.w.",
         "................",
         "................",
+    ],
+    "electric_locomotive": [
+        "................",
+        "................",
+        "....SSSSSSSS....",
+        "..aaaaaaaaaaaa..",
+        ".ElllEEEEEElllE.",
+        ".ElllEEEEEElllE.",
+        ".EEEEEEEEEEEEEE.",
+        ".YEEEzEzEzEEEY..",
+        ".YEEEEEEEEEEEEY.",
+        ".WWWWWWWWWWWWWW.",
+        ".kkkkkkkkkkkkkk.",
+        "SkkkkkkkkkkkkkkS",
+        "..wsw..ff..wsw..",
+        "..www......www..",
+        "................",
+        "................",
+    ],
+    "charging_point": [
+        ".......tt.......",
+        "......KTTK......",
+        "....KKKKKKKK....",
+        "....KqqqqqqK....",
+        "....KqkkkkqK....",
+        "....KqkGGkqK....",
+        "....KqkGGkqK....",
+        "....KqkGGkqK....",
+        "....KqkkkkqK....",
+        "....KqqqqqqK....",
+        "....KqqYYqqK....",
+        "....KqYkYYqK....",
+        "....KqYYYYqK....",
+        "....KqqqqqqK....",
+        "..kkSSSSSSSSu...",
+        "uu..SSSSSSSS....",
     ],
     "tender": [
         "................",

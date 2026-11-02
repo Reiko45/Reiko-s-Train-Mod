@@ -23,6 +23,8 @@ public final class ModItems {
             () -> new TrainCarItem(ModEntities.EXPRESS_LOCOMOTIVE, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<TrainCarItem> DIESEL_LOCOMOTIVE = ITEMS.register("diesel_locomotive",
             () -> new TrainCarItem(ModEntities.DIESEL_LOCOMOTIVE, new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<TrainCarItem> ELECTRIC_LOCOMOTIVE = ITEMS.register("electric_locomotive",
+            () -> new TrainCarItem(ModEntities.ELECTRIC_LOCOMOTIVE, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<TrainCarItem> TENDER = ITEMS.register("tender",
             () -> new TrainCarItem(ModEntities.TENDER, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<TrainCarItem> TANK_WAGON = ITEMS.register("tank_wagon",
@@ -40,6 +42,8 @@ public final class ModItems {
             () -> new BlockItem(ModBlocks.SWITCH.get(), new Item.Properties()));
     public static final DeferredItem<BlockItem> STATION = ITEMS.register("station",
             () -> new BlockItem(ModBlocks.STATION.get(), new Item.Properties()));
+    public static final DeferredItem<BlockItem> CHARGING_POINT = ITEMS.register("charging_point",
+            () -> new BlockItem(ModBlocks.CHARGING_POINT.get(), new Item.Properties()));
     public static final DeferredItem<BlockItem> LEVEL_CROSSING = ITEMS.register("level_crossing",
             () -> new BlockItem(ModBlocks.LEVEL_CROSSING.get(), new Item.Properties()));
     public static final DeferredItem<BlockItem> WAGON_LOADER = ITEMS.register("wagon_loader",

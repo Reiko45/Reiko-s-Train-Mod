@@ -4,6 +4,8 @@ import com.reiko.trains.freight.LoaderMode;
 import com.reiko.trains.freight.WagonLoaderBlock;
 import com.reiko.trains.freight.WagonLoaderBlockEntity;
 import com.reiko.trains.item.TrainCarItem;
+import com.reiko.trains.power.ChargingPointBlock;
+import com.reiko.trains.power.ChargingPointBlockEntity;
 import com.reiko.trains.registry.ModBlocks;
 import com.reiko.trains.signal.LevelCrossingBlock;
 import com.reiko.trains.signal.LevelCrossingBlockEntity;
@@ -141,6 +143,16 @@ public final class TestTracks {
         LevelCrossingBlockEntity crossing = (LevelCrossingBlockEntity) level.getBlockEntity(pos);
         crossing.attach(node);
         return crossing;
+    }
+
+    /** A charging point at {@code pos} for the track block {@code node}, as if a player had put it there. */
+    public static ChargingPointBlockEntity chargingPoint(ServerLevel level, BlockPos pos, BlockPos node) {
+        level.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 2);
+        level.setBlock(pos, ModBlocks.CHARGING_POINT.get().defaultBlockState().setValue(ChargingPointBlock.FACING,
+                WagonLoaderBlock.facing(pos, node, null)), 3);
+        ChargingPointBlockEntity charger = (ChargingPointBlockEntity) level.getBlockEntity(pos);
+        charger.attach(node);
+        return charger;
     }
 
     /** A timetable stop for a station. */

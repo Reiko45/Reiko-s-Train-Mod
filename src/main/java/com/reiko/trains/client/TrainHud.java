@@ -100,10 +100,11 @@ public final class TrainHud implements LayeredDraw.Layer {
 
         // Fuel
         int fuel = locomotive.getFuelPercent();
-        int barX = x + 30;
+        Component label = Component.translatable(locomotive.fuelLabel());
+        int barX = x + Math.max(30, 10 + font.width(label));
         int barY = y + 34;
-        int barW = WIDTH - 34;
-        graphics.drawString(font, Component.translatable("hud.reikotrains.fuel"), x + 5, y + 33, 0xFFD0D0D0, false);
+        int barW = WIDTH - 4 - (barX - x);
+        graphics.drawString(font, label, x + 5, y + 33, 0xFFD0D0D0, false);
         graphics.fill(barX, barY, barX + barW, barY + 6, 0xFF2A2A2E);
         if (fuel > 0) {
             int fill = Math.max(1, barW * fuel / 100);

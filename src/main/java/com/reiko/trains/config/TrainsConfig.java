@@ -35,6 +35,15 @@ public final class TrainsConfig {
             .comment("How many items a wagon loader moves a second. 640 (ten stacks) fills a freight wagon in about 11",
                     "seconds. Two loaders at one train work twice as fast.")
             .defineInRange("loaderSpeed", 640, 1, 100000);
+    public static final ModConfigSpec.LongValue CHARGER_CAPACITY = BUILDER
+            .comment("MJ a charging point stores, from BuildCraft engines and kinesis pipes (or other mods' cables). It",
+                    "charges electric locomotives from that store, so a few engines can keep it topped up between trains.",
+                    "An electric's batteries hold 1,000,000 MJ.")
+            .defineInRange("chargingPointCapacityMJ", 1_000_000L, 1_000L, 1_000_000_000L);
+    public static final ModConfigSpec.IntValue CHARGER_RATE = BUILDER
+            .comment("MJ a tick a charging point puts into each electric locomotive standing at it. 5000 charges a flat",
+                    "electric in ten seconds, if the store has enough.")
+            .defineInRange("chargingPointRateMJ", 5000, 1, 10_000_000);
     public static final ModConfigSpec.IntValue CROSSING_WARNING = BUILDER
             .comment("How many seconds before a train gets to a level crossing its lamps start flashing. The barrier comes",
                     "down three seconds after that, taking two seconds over it.")

@@ -68,6 +68,27 @@ public final class Trains {
         return cars == null ? List.of() : List.copyOf(cars);
     }
 
+    /**
+     * The cars of the train standing at a track block (stopped, with a car alongside it), for things beside the track
+     * that work with it there: wagon loaders, charging points. Empty if there's none.
+     */
+    public static List<TrainCarEntity> standingAt(Level level, net.minecraft.core.BlockPos node) {
+        Vec3 at = TrackEdge.node(node);
+        for (TrainCarEntity car : loadedCars(level)) {
+            if (!car.isOnTrack() || Math.abs(car.trainSpeed()) > 0.005) {
+                continue;
+            }
+            Vec3 d = at.subtract(car.position());
+            Vec3 f = car.flatForward();
+            double along = Math.abs(d.x * f.x + d.z * f.z);
+            double across = Math.abs(d.x * -f.z + d.z * f.x);
+            if (along <= car.halfLength() + 0.5 && across < 1.5 && Math.abs(d.y) < 2.5) {
+                return train(car);
+            }
+        }
+        return List.of();
+    }
+
     // ----------------------------------------------------------------------------------------------------------------
     // Finding the train
 

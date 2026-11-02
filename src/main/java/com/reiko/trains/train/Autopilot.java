@@ -5,6 +5,7 @@ import com.reiko.trains.ReikoTrains;
 import com.reiko.trains.config.TrainsConfig;
 import com.reiko.trains.freight.LoaderMode;
 import com.reiko.trains.freight.WagonLoaderBlockEntity;
+import com.reiko.trains.power.ChargingPointBlockEntity;
 import com.reiko.trains.signal.StationBlockEntity;
 import com.reiko.trains.signal.SwitchBlockEntity;
 import com.reiko.trains.signal.TrackSide;
@@ -101,13 +102,16 @@ public final class Autopilot {
             if (loading != null) {
                 return Component.translatable("hud.reikotrains.auto." + (loading == LoaderMode.LOAD ? "loading" : "unloading"), stop.name());
             }
+            if (charging) {
+                return Component.translatable("hud.reikotrains.auto.charging", stop.name());
+            }
             return Component.translatable("hud.reikotrains.auto.at", stop.name(), (timer + 19) / 20);
         }
         if (waitingAtSignal) {
             return Component.translatable("hud.reikotrains.auto.signal");
         }
         if (!loco.hasPower()) {
-            return Component.translatable("hud.reikotrains.auto.no_fire");
+            return Component.translatable(loco.noPowerStatus());
         }
         return Component.translatable("hud.reikotrains.auto.next", stop.name());
     }
@@ -116,6 +120,8 @@ public final class Autopilot {
     /** While it's standing at a station: what a wagon loader's doing with the train, if anything. */
     @Nullable
     private LoaderMode loading;
+    /** While it's standing at a station: whether a charging point's charging it. */
+    private boolean charging;
 
     /** Picks the way at a junction: the one that leads to the current stop, or heads most towards it. */
     EdgeRef choose(Level level, BlockPos node, int side, List<EdgeRef> options, Vec3 heading, boolean setSwitch) {
@@ -175,12 +181,13 @@ public final class Autopilot {
             return Drive.NONE;
         }
         if (phase == Phase.DWELLING) {
-            // It waits its time at the station, and then for any wagon loaders to finish with it.
+            // It waits its time at the station, and then for any wagon loaders and charging points to finish with it.
             loading = WagonLoaderBlockEntity.busyWith(level, cars);
+            charging = ChargingPointBlockEntity.busyWith(level, cars);
             if (timer > 0) {
                 timer--;
             }
-            if (timer <= 0 && loading == null) {
+            if (timer <= 0 && loading == null && !charging) {
                 depart(cars);
             }
             loco.updateAutoDisplay();

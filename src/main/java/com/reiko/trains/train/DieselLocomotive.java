@@ -139,6 +139,11 @@ public class DieselLocomotive extends Locomotive {
     }
 
     @Override
+    public String noPowerStatus() {
+        return "hud.reikotrains.auto.no_fuel";
+    }
+
+    @Override
     protected String fuelMessage() {
         return "message.reikotrains.diesel_fuel";
     }

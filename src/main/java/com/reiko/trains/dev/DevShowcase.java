@@ -8,6 +8,8 @@ import com.reiko.trains.registry.ModEntities;
 import com.reiko.trains.registry.ModItems;
 import com.reiko.trains.track.TrackAxis;
 import com.reiko.trains.train.DieselLocomotive;
+import com.reiko.trains.train.ElectricLocomotive;
+import com.reiko.trains.power.ChargingPointBlockEntity;
 import com.reiko.trains.train.ExpressLocomotive;
 import com.reiko.trains.train.FreightWagon;
 import com.reiko.trains.train.GuardsVan;
@@ -153,6 +155,8 @@ public final class DevShowcase {
      */
     /** The line with the level crossings on it, along x at this z. */
     private static final int CROSSING_LINE = -48;
+    /** The line with the electric and its charging point, along x at this z. */
+    private static final int ELECTRIC_LINE = -62;
     /** The switch stand for the junction at x = 52. */
     private static final BlockPos SWITCH = new BlockPos(52, Y, -2);
 
@@ -249,6 +253,28 @@ public final class DevShowcase {
         Trains.couple(crosserFirst, crosserSecond);
         Trains.couple(crosser, crosserFirst);
         crosser.setFuel(32000);
+
+        // A fifth line, further north still, with an electric and two coaches standing at a charging point (fed by a
+        // BuildCraft Stirling engine, though its store's filled later, for the pictures), and a station to run to.
+        TestTracks.line(level, new BlockPos(0, Y, ELECTRIC_LINE), TrackAxis.X, 64);
+        TestTracks.chargingPoint(level, new BlockPos(31, Y, ELECTRIC_LINE + 3), new BlockPos(31, Y, ELECTRIC_LINE));
+        BlockPos engine = new BlockPos(30, Y, ELECTRIC_LINE + 3);
+        level.setBlock(engine.below(), Blocks.REDSTONE_BLOCK.defaultBlockState(), 3);
+        net.minecraft.core.registries.BuiltInRegistries.BLOCK.getOptional(net.minecraft.resources.ResourceLocation.parse("buildcraftreborn:engine_stone"))
+                .ifPresent(block -> {
+                    level.setBlock(engine, block.defaultBlockState(), 3);
+                    var fuel = level.getCapability(net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.BLOCK, engine, net.minecraft.core.Direction.UP);
+                    if (fuel != null) {
+                        fuel.insertItem(0, new ItemStack(Items.COAL, 64), false);
+                    }
+                });
+        TestTracks.station(level, new BlockPos(56, Y, ELECTRIC_LINE - 3), new BlockPos(56, Y, ELECTRIC_LINE), "Power Halt", 10);
+        ElectricLocomotive electric = TestTracks.car(level, ModEntities.ELECTRIC_LOCOMOTIVE.get(), new BlockPos(30, Y, ELECTRIC_LINE), EAST);
+        PassengerCoach electricFirst = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(22, Y, ELECTRIC_LINE), EAST);
+        PassengerCoach electricSecond = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(15, Y, ELECTRIC_LINE), EAST);
+        Trains.couple(electricFirst, electricSecond);
+        Trains.couple(electric, electricFirst);
+        electric.setFuel(ElectricLocomotive.BATTERY_CAPACITY * 0.2);
 
         Locomotive a = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(22, Y, 14), EAST);
         PassengerCoach aCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(15, Y, 14), EAST);
@@ -442,6 +468,30 @@ public final class DevShowcase {
         });
         at(1702, mc -> shot(mc, "26_level_crossing_closed"));
         at(1742, mc -> shot(mc, "27_level_crossing_train"));
-        at(1752, Minecraft::stop);
+        // The electric: its charging point's store filled (as engines would), charging it; its front; then away
+        at(1744, mc -> {
+            look(mc, 34.5, Y + 1.4, ELECTRIC_LINE + 7.5, 143.0F, 12.0F);
+            server(mc, player -> {
+                if (player.serverLevel().getBlockEntity(new BlockPos(31, Y, ELECTRIC_LINE + 3)) instanceof ChargingPointBlockEntity charger) {
+                    charger.addMj(600_000);
+                }
+            });
+        });
+        at(1784, mc -> shot(mc, "28_charging_point"));
+        at(1786, mc -> look(mc, 38.5, Y + 0.6, ELECTRIC_LINE - 1.8, 67.0F, 4.0F));
+        at(1826, mc -> shot(mc, "29_electric_front"));
+        at(1828, mc -> {
+            look(mc, 46.0, Y + 1.6, ELECTRIC_LINE + 7.5, 150.0F, 6.0F);
+            server(mc, player -> {
+                ServerLevel level = player.serverLevel();
+                ElectricLocomotive electric = level.getEntitiesOfClass(ElectricLocomotive.class,
+                        new AABB(20, Y - 2, ELECTRIC_LINE - 4, 40, Y + 4, ELECTRIC_LINE + 4)).getFirst();
+                if (level.getBlockEntity(new BlockPos(56, Y, ELECTRIC_LINE - 3)) instanceof StationBlockEntity halt) {
+                    electric.autopilot().start(List.of(TestTracks.stop(halt)));
+                }
+            });
+        });
+        at(1890, mc -> shot(mc, "30_electric_running"));
+        at(1900, Minecraft::stop);
     }
 }

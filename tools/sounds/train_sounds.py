@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 Synthesises the mod's sounds (a three-chime steam whistle, exhaust chuffs, a coupling clank, a diesel's two-tone horn,
-the loop of its engine running and a level crossing's bell) and encodes them as mono Ogg Vorbis (mono, so Minecraft
-plays them from where they happen). Needs numpy and ffmpeg. Run from the repository root, naming the sounds to make
-(all of them, if none are named; Vorbis encoding isn't byte-for-byte repeatable, so remaking one that hasn't changed
-just churns the file):
+the loop of its engine running, a level crossing's bell, and an electric's horn and the loop of its motors) and
+encodes them as mono Ogg Vorbis (mono, so Minecraft plays them from where they happen). Needs numpy and ffmpeg. Run
+from the repository root, naming the sounds to make (all of them, if none are named; Vorbis encoding isn't
+byte-for-byte repeatable, so remaking one that hasn't changed just churns the file):
 
     python3 tools/sounds/train_sounds.py [crossing_bell ...]
 """
@@ -91,8 +91,8 @@ def clank():
     return out
 
 
-def horn():
-    """A two-tone air horn: two reedy notes a minor third apart, with a puff of air at the start."""
+def horn(notes=(311.1, 370.0)):
+    """A two-tone air horn: two reedy notes (a minor third apart, for the diesel), with a puff of air at the start."""
     duration = 1.8
     n = int(duration * RATE)
     t = np.arange(n) / RATE
@@ -100,7 +100,7 @@ def horn():
     out = np.zeros(n)
     # The air comes up to pressure: the pitch sags a little at first.
     rise = 0.97 + 0.03 * (1 - np.exp(-t / 0.05))
-    for freq, level in ((311.1, 1.0), (370.0, 0.9)):
+    for freq, level in zip(notes, (1.0, 0.9)):
         phase = 2 * np.pi * np.cumsum(freq * rise) / RATE
         # a reed: rich in odd and even harmonics, a bit nasal
         tone = sum(np.sin(k * phase) / k ** 0.8 for k in range(1, 9))
@@ -137,6 +137,26 @@ def engine():
     clatter = band(noise, 1500, 5000)
     clatter /= np.max(np.abs(clatter))
     out = growl / np.max(np.abs(growl)) * (0.55 + 0.45 * pulse) + rumble * 0.35 * (0.4 + 0.6 * pulse) + clatter * 0.08 * pulse
+    return out
+
+
+def motor():
+    """
+    An electric's traction motors, made to loop: the low hum of the power electronics and the whine of the motors
+    (played higher the faster it goes), with a little air rushing. Every part repeats exactly over the two seconds.
+    """
+    duration = 2.0
+    n = int(duration * RATE)
+    t = np.arange(n) / RATE
+    rng = np.random.default_rng(17)
+    hum = sum(level * np.sin(2 * np.pi * 100.0 * k * t + rng.uniform(0, 6.28)) for k, level in ((1, 1.0), (2, 0.5), (3, 0.3), (5, 0.15)))
+    whine = np.zeros(n)
+    for freq, level in ((660.0, 1.0), (990.0, 0.5), (1320.0, 0.35), (1984.5, 0.15)):
+        wobble = 1 + 0.002 * np.sin(2 * np.pi * 1.5 * t)  # a slight waver, three times over the loop
+        whine += level * np.sin(2 * np.pi * freq * t * wobble + rng.uniform(0, 6.28))
+    spectrum = np.exp(1j * rng.uniform(0, 2 * np.pi, n // 2 + 1))
+    noise = band(np.fft.irfft(spectrum, n), 300, 3000)
+    out = hum / np.max(np.abs(hum)) * 0.5 + whine / np.max(np.abs(whine)) * 0.45 + noise / np.max(np.abs(noise)) * 0.12
     return out
 
 
@@ -187,6 +207,8 @@ SOUNDS = {
     "diesel_horn": (horn, 0.85),
     "diesel_engine": (engine, 0.7),
     "crossing_bell": (bell, 0.8),
+    "electric_horn": (lambda: horn((440.0, 523.3)), 0.85),
+    "electric_motor": (motor, 0.6),
 }
 
 

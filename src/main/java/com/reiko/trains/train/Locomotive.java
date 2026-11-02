@@ -209,9 +209,19 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
     /** Plays its whistle or horn. */
     protected abstract void soundWhistle();
 
+    /** What the gauges call its fuel. */
+    public String fuelLabel() {
+        return "hud.reikotrains.fuel";
+    }
+
     /** What the gauges say when it has no fuel: NO FIRE, say. */
     public String outOfFuelLabel() {
         return "hud.reikotrains.no_fire";
+    }
+
+    /** What a timetable's display says when it's run out: the fire's out, say. */
+    public String noPowerStatus() {
+        return "hud.reikotrains.auto.no_fire";
     }
 
     /** What the driver's told when they fill it up: how full it is now (with a %s), and that it's full. */

@@ -1,0 +1,154 @@
+{
+  "variants": {
+    "charging=false,facing=north,level=0": {
+      "model": "reikotrains:block/charging_point_0"
+    },
+    "charging=true,facing=north,level=0": {
+      "model": "reikotrains:block/charging_point_0_charging"
+    },
+    "charging=false,facing=north,level=1": {
+      "model": "reikotrains:block/charging_point_1"
+    },
+    "charging=true,facing=north,level=1": {
+      "model": "reikotrains:block/charging_point_1_charging"
+    },
+    "charging=false,facing=north,level=2": {
+      "model": "reikotrains:block/charging_point_2"
+    },
+    "charging=true,facing=north,level=2": {
+      "model": "reikotrains:block/charging_point_2_charging"
+    },
+    "charging=false,facing=north,level=3": {
+      "model": "reikotrains:block/charging_point_3"
+    },
+    "charging=true,facing=north,level=3": {
+      "model": "reikotrains:block/charging_point_3_charging"
+    },
+    "charging=false,facing=north,level=4": {
+      "model": "reikotrains:block/charging_point_4"
+    },
+    "charging=true,facing=north,level=4": {
+      "model": "reikotrains:block/charging_point_4_charging"
+    },
+    "charging=false,facing=east,level=0": {
+      "model": "reikotrains:block/charging_point_0",
+      "y": 90
+    },
+    "charging=true,facing=east,level=0": {
+      "model": "reikotrains:block/charging_point_0_charging",
+      "y": 90
+    },
+    "charging=false,facing=east,level=1": {
+      "model": "reikotrains:block/charging_point_1",
+      "y": 90
+    },
+    "charging=true,facing=east,level=1": {
+      "model": "reikotrains:block/charging_point_1_charging",
+      "y": 90
+    },
+    "charging=false,facing=east,level=2": {
+      "model": "reikotrains:block/charging_point_2",
+      "y": 90
+    },
+    "charging=true,facing=east,level=2": {
+      "model": "reikotrains:block/charging_point_2_charging",
+      "y": 90
+    },
+    "charging=false,facing=east,level=3": {
+      "model": "reikotrains:block/charging_point_3",
+      "y": 90
+    },
+    "charging=true,facing=east,level=3": {
+      "model": "reikotrains:block/charging_point_3_charging",
+      "y": 90
+    },
+    "charging=false,facing=east,level=4": {
+      "model": "reikotrains:block/charging_point_4",
+      "y": 90
+    },
+    "charging=true,facing=east,level=4": {
+      "model": "reikotrains:block/charging_point_4_charging",
+      "y": 90
+    },
+    "charging=false,facing=south,level=0": {
+      "model": "reikotrains:block/charging_point_0",
+      "y": 180
+    },
+    "charging=true,facing=south,level=0": {
+      "model": "reikotrains:block/charging_point_0_charging",
+      "y": 180
+    },
+    "charging=false,facing=south,level=1": {
+      "model": "reikotrains:block/charging_point_1",
+      "y": 180
+    },
+    "charging=true,facing=south,level=1": {
+      "model": "reikotrains:block/charging_point_1_charging",
+      "y": 180
+    },
+    "charging=false,facing=south,level=2": {
+      "model": "reikotrains:block/charging_point_2",
+      "y": 180
+    },
+    "charging=true,facing=south,level=2": {
+      "model": "reikotrains:block/charging_point_2_charging",
+      "y": 180
+    },
+    "charging=false,facing=south,level=3": {
+      "model": "reikotrains:block/charging_point_3",
+      "y": 180
+    },
+    "charging=true,facing=south,level=3": {
+      "model": "reikotrains:block/charging_point_3_charging",
+      "y": 180
+    },
+    "charging=false,facing=south,level=4": {
+      "model": "reikotrains:block/charging_point_4",
+      "y": 180
+    },
+    "charging=true,facing=south,level=4": {
+      "model": "reikotrains:block/charging_point_4_charging",
+      "y": 180
+    },
+    "charging=false,facing=west,level=0": {
+      "model": "reikotrains:block/charging_point_0",
+      "y": 270
+    },
+    "charging=true,facing=west,level=0": {
+      "model": "reikotrains:block/charging_point_0_charging",
+      "y": 270
+    },
+    "charging=false,facing=west,level=1": {
+      "model": "reikotrains:block/charging_point_1",
+      "y": 270
+    },
+    "charging=true,facing=west,level=1": {
+      "model": "reikotrains:block/charging_point_1_charging",
+      "y": 270
+    },
+    "charging=false,facing=west,level=2": {
+      "model": "reikotrains:block/charging_point_2",
+      "y": 270
+    },
+    "charging=true,facing=west,level=2": {
+      "model": "reikotrains:block/charging_point_2_charging",
+      "y": 270
+    },
+    "charging=false,facing=west,level=3": {
+      "model": "reikotrains:block/charging_point_3",
+      "y": 270
+    },
+    "charging=true,facing=west,level=3": {
+      "model": "reikotrains:block/charging_point_3_charging",
+      "y": 270
+    },
+    "charging=false,facing=west,level=4": {
+      "model": "reikotrains:block/charging_point_4",
+      "y": 270
+    },
+    "charging=true,facing=west,level=4": {
+      "model": "reikotrains:block/charging_point_4_charging",
+      "y": 270
+    }
+  }
+}

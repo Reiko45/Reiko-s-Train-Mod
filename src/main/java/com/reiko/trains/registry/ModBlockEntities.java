@@ -2,6 +2,7 @@ package com.reiko.trains.registry;
 
 import com.reiko.trains.ReikoTrains;
 import com.reiko.trains.freight.WagonLoaderBlockEntity;
+import com.reiko.trains.power.ChargingPointBlockEntity;
 import com.reiko.trains.signal.LevelCrossingBlockEntity;
 import com.reiko.trains.signal.SignalBlockEntity;
 import com.reiko.trains.signal.StationBlockEntity;
@@ -33,6 +34,10 @@ public final class ModBlockEntities {
     @SuppressWarnings("DataFlowIssue")
     public static final Supplier<BlockEntityType<WagonLoaderBlockEntity>> WAGON_LOADER = BLOCK_ENTITIES.register("wagon_loader",
             () -> BlockEntityType.Builder.of(WagonLoaderBlockEntity::new, ModBlocks.WAGON_LOADER.get()).build(null));
+
+    @SuppressWarnings("DataFlowIssue")
+    public static final Supplier<BlockEntityType<ChargingPointBlockEntity>> CHARGING_POINT = BLOCK_ENTITIES.register("charging_point",
+            () -> BlockEntityType.Builder.of(ChargingPointBlockEntity::new, ModBlocks.CHARGING_POINT.get()).build(null));
 
     @SuppressWarnings("DataFlowIssue")
     public static final Supplier<BlockEntityType<LevelCrossingBlockEntity>> LEVEL_CROSSING = BLOCK_ENTITIES.register("level_crossing",

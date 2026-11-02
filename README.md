@@ -1,6 +1,6 @@
 # Reiko's Train Mod
 
-Big steam and diesel trains for Minecraft **1.21.1** (NeoForge), on their own track. Lay a railway with curves, ramps and
+Big steam, diesel and electric trains for Minecraft **1.21.1** (NeoForge), on their own track. Lay a railway with curves, ramps and
 junctions, signal it, work its switches by hand or with redstone, name its stations, load and unload freight
 automatically, and either drive the trains yourself (throttle, brake, whistle, a choice of way at every junction) or
 give them a timetable and let them run between the stations on their own.
@@ -13,7 +13,8 @@ give them a timetable and let them run between the stations on their own.
 
 - Minecraft 1.21.1 with NeoForge 21.1.265 or newer
 - [BuildCraft Reborn](https://github.com/Reiko45/BuildCraft-Reborn) 2.1.0 or newer: the diesel locomotive runs on
-  its diesel, the same fuel as the diesel vehicles in [Reiko's Car Mod](https://github.com/Reiko45/Reiko-s-Car-Mod)
+  its diesel, the same fuel as the diesel vehicles in [Reiko's Car Mod](https://github.com/Reiko45/Reiko-s-Car-Mod),
+  and the electric locomotive on its power (MJ)
 
 ## What's in it
 
@@ -27,6 +28,10 @@ give them a timetable and let them run between the stations on their own.
   engine and nearly twice as strong. It burns coal from its **Tender**, which holds four times as much.
 - **Diesel Locomotive**: a blue road-switcher, 7 blocks long, on two bogies. It runs on BuildCraft's diesel (Dense
   Fuel), the same as the car mod's diesel trucks, and pulls harder than either steam engine.
+- **Electric Locomotive**: a red box-cab electric, 7½ blocks long, with a cab at each end. It runs on BuildCraft
+  power (MJ) from its batteries: the fastest and strongest engine, and nearly silent, but it needs charging often.
+- **Charging Point**: charges the batteries of an electric standing beside it, from BuildCraft engines, kinesis pipes
+  or other mods' cables.
 - **Passenger Coach**: 6½ blocks long, eight seats in four rows.
 - **Freight Wagon**: holds 108 stacks (four chests' worth), all on one screen. Hoppers above or below it fill and empty
   it, crates pile up in it as it fills, and a full one is heavier to pull.
@@ -78,6 +83,7 @@ or ramp can cross gaps between them, so bridges are just long curves. Leave thre
 | Express Locomotive | Copper, gold, copper; iron ingot, steam locomotive, iron ingot; three iron ingots |
 | Tender | Iron ingot, cauldron, iron ingot; iron ingot, minecart, iron ingot |
 | Diesel Locomotive | Three iron ingots; iron ingot, blast furnace, iron ingot; copper ingot, minecart, copper ingot |
+| Electric Locomotive | Three iron ingots; copper ingot, block of redstone, copper ingot; iron ingot, minecart, iron ingot |
 | Passenger Coach | Glass panes on top; planks, wool, planks; iron ingot, minecart, iron ingot |
 | Freight Wagon | Planks around a chest (top middle open); iron ingot, minecart, iron ingot |
 | Tank Wagon | Three iron ingots; iron ingot, bucket, iron ingot; iron ingot, minecart, iron ingot |
@@ -89,6 +95,7 @@ or ramp can cross gaps between them, so bridges are just long curves. Leave thre
 | Level Crossing | Redstone lamps in the top corners; red dye, iron ingot, white dye; a bell in the bottom middle |
 | Timetable | Two paper and a clock |
 | Wagon Loader | Iron ingot, hopper, iron ingot; iron ingot, chest, iron ingot |
+| Charging Point | Iron ingot, redstone lamp, iron ingot; copper ingot, block of redstone, copper ingot; three iron ingots |
 
 Everything's also in the **Reiko's Trains** creative tab.
 
@@ -159,14 +166,38 @@ way you're going, and a short hood behind. It rides on two bogies like the coach
   loader** by the track with a BuildCraft tank next to it: a diesel standing there is pumped full, twenty buckets a
   second, and a timetabled train waits until it's done. The diesel won't take coal, and steam engines won't take
   diesel.
-- It pulls harder than either steam engine, so it gets a heavy train going quickest, though the express is faster
-  flat out.
+- It pulls harder than either steam engine, so it gets a heavy train going quicker than they do, though the express
+  is faster flat out.
 - Its engine rumbles, and the note rises as the throttle opens. Its exhaust smokes harder the harder it works, with
   a black cloud when you open up. It sounds a two-tone horn instead of a whistle (the same key).
 
 ![The diesel with a freight train](docs/screenshots/diesel.jpg)
 
 ![The diesel from the front](docs/screenshots/diesel_front.jpg)
+
+### The electric
+
+The **Electric Locomotive** is a box-cab electric: a full-width body with a cab at each end, yellow noses, louvred
+sides, batteries slung between its bogies and a charging socket on each side. You drive it from the front cab.
+
+- It runs on **BuildCraft power** (MJ), stored in its batteries: a million MJ, about twenty minutes at full power.
+  Standing with the throttle shut it uses next to nothing (there's no engine to keep running). When the batteries go
+  flat it stops, and the gauges say **FLAT**.
+- It's charged at a **Charging Point** beside the track (up to three blocks away, like a wagon loader; its cable
+  reaches out towards the track). Feed the charging point from BuildCraft engines or kinesis pipes on any side (or,
+  as BuildCraft's config allows, other mods' energy cables): it stores a million MJ, so a few engines can fill it up
+  between trains. Any electric in a train standing beside it is charged at 5,000 MJ a tick (a flat one in ten seconds,
+  if the store has enough), and a timetabled train waits while it's charging, until its batteries are full or the
+  store runs dry. The bars on the charging point's back show how full its store is, and the lamp on top lights while
+  it's charging; click it to see how much it holds. Redstone pauses it, and a comparator reads its store.
+- It's the quickest engine there is: it pulls harder than the diesel and goes faster than the express (about
+  60 km/h at the default settings).
+- Its motors hum, the whine climbing as it gathers speed; working hard, the odd spark flies from under the bogies. It
+  has its own two-tone horn (the whistle key). It won't take coal or diesel.
+
+![An electric charging: the charging point's bars show its store, and its lamp is lit](docs/screenshots/electric_charging.jpg)
+
+![The electric away with two coaches](docs/screenshots/electric.jpg)
 
 ### Tank wagons and guard's vans
 
@@ -208,6 +239,8 @@ In `serverconfig/reikotrains-server.toml` in each world:
 | `maxTrainLength` | `16` | The most cars in one train |
 | `loaderSpeed` | `640` | How many items a wagon loader moves a second (640 fills a wagon in about 11 seconds) |
 | `fallbackDieselEnergyPerBucket` | `96000` | MJ in a bucket of a diesel fluid BuildCraft has no fuel value for |
+| `chargingPointCapacityMJ` | `1000000` | MJ a charging point stores |
+| `chargingPointRateMJ` | `5000` | MJ a tick a charging point puts into each electric standing at it |
 | `crossingWarningSeconds` | `10` | How long before a train arrives level crossings start warning |
 
 The fuel steam engines take is the item tag `reikotrains:locomotive_fuel`, and the diesel's is the fluid tag
@@ -397,6 +430,10 @@ and unloading a wagon, filters (only these, all but these, a bucket picking a fl
 engines' fuel unfiltered, the screen's filter slots and buttons, and no way of clicking a filter slot handing out an
 item), filling every wagon in a train, redstone, the comparator,
 hoppers going through the loader, moving trains being left alone, and a timetabled train waiting until it's loaded.
+`ElectricGameTests` covers the electric (not taking coal, not going flat, using next to nothing standing and about
+40 MJ a tick flat out, getting away quicker than the diesel) and the charging point (charging a standing electric from
+its store and only as much as fits, its bars, lamp and comparator, taking BuildCraft power and handing back what won't
+fit, leaving moving trains alone, redstone, and a timetabled electric waiting until it's charged).
 
 `./gradlew runClient -Pshowcase -PwindowSize=1280x720` builds a test railway, runs trains round it and saves
 screenshots to `run/screenshots/` (that's where the pictures above come from).
@@ -434,7 +471,9 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
   left behind).
 - **Freight** (`freight/`): a wagon loader finds the train standing at its track block each couple of ticks and moves
   goods between the storage next to it and the train's wagons through NeoForge item handlers. It keeps a list of
-  loaded loaders, so a timetabled train can ask whether any is still busy with it.
+  loaded loaders, so a timetabled train can ask whether any is still busy with it. A charging point (`power/`) works
+  the same way with electrics, taking BuildCraft power in through `MjAPI`'s capabilities into a store kept in
+  micro-MJ, as BuildCraft counts it.
 - **Driving** (`train/Lookahead`, `Autopilot`): every tick a train looks 80 blocks down the line for signals,
   stations and the end of the track, and slows to stop in time for a red signal (or its station). A timetabled train's
   `Autopilot` searches the track for the way to its next station.

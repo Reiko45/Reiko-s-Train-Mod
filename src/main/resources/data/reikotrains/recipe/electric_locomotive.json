@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone_block"
+    },
+    "M": {
+      "item": "minecraft:minecart"
+    }
+  },
+  "pattern": [
+    "III",
+    "CRC",
+    "IMI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "reikotrains:electric_locomotive"
+  }
+}

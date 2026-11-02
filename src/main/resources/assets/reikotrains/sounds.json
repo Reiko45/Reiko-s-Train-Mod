@@ -48,5 +48,23 @@
       }
     ],
     "subtitle": "subtitles.reikotrains.crossing_bell"
+  },
+  "electric_horn": {
+    "sounds": [
+      {
+        "name": "reikotrains:electric_horn",
+        "attenuation_distance": 64
+      }
+    ],
+    "subtitle": "subtitles.reikotrains.electric_horn"
+  },
+  "electric_motor": {
+    "sounds": [
+      {
+        "name": "reikotrains:electric_motor",
+        "attenuation_distance": 20
+      }
+    ],
+    "subtitle": "subtitles.reikotrains.electric_motor"
   }
 }

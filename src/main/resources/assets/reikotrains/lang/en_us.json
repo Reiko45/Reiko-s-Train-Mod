@@ -138,5 +138,19 @@
   "block.reikotrains.level_crossing_arm": "Level Crossing Barrier",
   "message.reikotrains.crossing.no_track": "A level crossing goes beside the track, within 3 blocks of it",
   "message.reikotrains.crossing.length": "Barrier arm: %s blocks long",
-  "subtitles.reikotrains.crossing_bell": "Level crossing bell rings"
+  "subtitles.reikotrains.crossing_bell": "Level crossing bell rings",
+  "item.reikotrains.electric_locomotive": "Electric Locomotive",
+  "entity.reikotrains.electric_locomotive": "Electric Locomotive",
+  "block.reikotrains.charging_point": "Charging Point",
+  "hud.reikotrains.charge": "Charge",
+  "hud.reikotrains.flat": "FLAT",
+  "hud.reikotrains.auto.flat": "The batteries are flat",
+  "hud.reikotrains.auto.no_fuel": "Out of fuel",
+  "hud.reikotrains.auto.charging": "At %s: charging",
+  "message.reikotrains.electric_charge": "Batteries %s%% charged. Charge them at a charging point beside the track",
+  "message.reikotrains.electric_full": "The batteries are full",
+  "message.reikotrains.electric_flat": "The batteries are flat: charge them at a charging point",
+  "message.reikotrains.charger.stored": "Charging point: %s of %s MJ stored",
+  "subtitles.reikotrains.electric_horn": "Electric locomotive horn sounds",
+  "subtitles.reikotrains.electric_motor": "Electric motors hum"
 }

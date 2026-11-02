@@ -5,6 +5,7 @@ import com.reiko.trains.ReikoTrains;
 import com.reiko.trains.client.model.geometry.BogieGeometry;
 import com.reiko.trains.client.model.geometry.DieselBogieGeometry;
 import com.reiko.trains.client.model.geometry.DieselLocomotiveGeometry;
+import com.reiko.trains.client.model.geometry.ElectricLocomotiveGeometry;
 import com.reiko.trains.client.model.geometry.ExpressLocomotiveGeometry;
 import com.reiko.trains.client.model.geometry.GuardsVanGeometry;
 import com.reiko.trains.client.model.geometry.TankWagonGeometry;
@@ -17,6 +18,7 @@ import com.reiko.trains.registry.ModBlockEntities;
 import com.reiko.trains.registry.ModEntities;
 import com.reiko.trains.registry.ModMenus;
 import com.reiko.trains.train.DieselLocomotive;
+import com.reiko.trains.train.ElectricLocomotive;
 import com.reiko.trains.train.Locomotive;
 import java.util.function.Function;
 import net.minecraft.client.KeyMapping;
@@ -62,6 +64,7 @@ public final class ReikoTrainsClient {
     static final ModelLayerLocation GUARDS_VAN_LAYER = new ModelLayerLocation(ReikoTrains.id("guards_van"), "main");
     static final ModelLayerLocation DIESEL_LAYER = new ModelLayerLocation(ReikoTrains.id("diesel_locomotive"), "main");
     static final ModelLayerLocation DIESEL_BOGIE_LAYER = new ModelLayerLocation(ReikoTrains.id("diesel_bogie"), "main");
+    static final ModelLayerLocation ELECTRIC_LAYER = new ModelLayerLocation(ReikoTrains.id("electric_locomotive"), "main");
 
     /** Ticks until a held throttle key moves another notch. */
     private static int throttleRepeat;
@@ -93,6 +96,7 @@ public final class ReikoTrainsClient {
         event.registerLayerDefinition(TANK_WAGON_LAYER, TankWagonGeometry::create);
         event.registerLayerDefinition(GUARDS_VAN_LAYER, GuardsVanGeometry::create);
         event.registerLayerDefinition(DIESEL_BOGIE_LAYER, DieselBogieGeometry::create);
+        event.registerLayerDefinition(ELECTRIC_LAYER, ElectricLocomotiveGeometry::create);
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -114,6 +118,10 @@ public final class ReikoTrainsClient {
                 c -> TrainModel.simple(c.bakeLayer(DIESEL_LAYER), new String[0], new float[0]),
                 c -> TrainModel.simple(c.bakeLayer(DIESEL_BOGIE_LAYER), DieselBogieGeometry.WHEELS, DieselBogieGeometry.WHEEL_RADII),
                 ReikoTrains.id("textures/entity/diesel_locomotive.png"), ReikoTrains.id("textures/entity/diesel_bogie.png")));
+        event.registerEntityRenderer(ModEntities.ELECTRIC_LOCOMOTIVE.get(), context -> new TrainCarRenderer<>(context,
+                c -> TrainModel.simple(c.bakeLayer(ELECTRIC_LAYER), new String[0], new float[0]),
+                c -> TrainModel.simple(c.bakeLayer(DIESEL_BOGIE_LAYER), DieselBogieGeometry.WHEELS, DieselBogieGeometry.WHEEL_RADII),
+                ReikoTrains.id("textures/entity/electric_locomotive.png"), ReikoTrains.id("textures/entity/diesel_bogie.png")));
         event.registerEntityRenderer(ModEntities.TANK_WAGON.get(), context -> new TrainCarRenderer<>(context,
                 c -> new TrainModel(c.bakeLayer(TANK_WAGON_LAYER), new String[0], new float[0], new String[0], 0.0F, 1.0F, TankWagonGeometry.LEVEL),
                 bogie, ReikoTrains.id("textures/entity/tank_wagon.png")));
@@ -144,10 +152,15 @@ public final class ReikoTrainsClient {
         event.register(ModMenus.WAGON_LOADER.get(), WagonLoaderScreen::new);
     }
 
-    /** A diesel arriving in the client's world starts its engine sound (silent while it's shut down). */
+    /**
+     * A diesel arriving in the client's world starts its engine sound, and an electric its motors' hum (each silent
+     * while it's shut down).
+     */
     private static void onEntityJoin(EntityJoinLevelEvent event) {
         if (event.getLevel().isClientSide() && event.getEntity() instanceof DieselLocomotive diesel) {
             Minecraft.getInstance().getSoundManager().play(new DieselEngineSound(diesel));
+        } else if (event.getLevel().isClientSide() && event.getEntity() instanceof ElectricLocomotive electric) {
+            Minecraft.getInstance().getSoundManager().play(new ElectricMotorSound(electric));
         }
     }
 

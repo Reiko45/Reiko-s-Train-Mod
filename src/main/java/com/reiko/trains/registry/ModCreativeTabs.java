@@ -24,11 +24,13 @@ public final class ModCreativeTabs {
                 output.accept(ModItems.EXPRESS_LOCOMOTIVE.get());
                 output.accept(ModItems.TENDER.get());
                 output.accept(ModItems.DIESEL_LOCOMOTIVE.get());
+                output.accept(ModItems.ELECTRIC_LOCOMOTIVE.get());
                 output.accept(ModItems.PASSENGER_COACH.get());
                 output.accept(ModItems.FREIGHT_WAGON.get());
                 output.accept(ModItems.TANK_WAGON.get());
                 output.accept(ModItems.GUARDS_VAN.get());
                 output.accept(ModItems.WAGON_LOADER.get());
+                output.accept(ModItems.CHARGING_POINT.get());
                 output.accept(ModItems.COUPLER.get());
                 output.accept(ModItems.TIMETABLE.get());
             })

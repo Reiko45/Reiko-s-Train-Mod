@@ -593,6 +593,101 @@ def crossing_models():
                                 "axis=z": {"model": "reikotrains:block/level_crossing_arm"}}}, out, indent=2)
 
 
+def charger_textures():
+    teal = (34, 104, 112)
+    solid("charger_body", teal, shade(teal, 0.7))
+    solid("charge_bar_on", (110, 240, 120), noise_amount=0.03)
+    solid("charge_bar_off", (26, 62, 34), noise_amount=0.04)
+    solid("charger_plug", (236, 150, 30), noise_amount=0.04)
+    lamp("charger_lamp_on", (90, 180, 255), True)
+    lamp("charger_lamp_off", (90, 180, 255), False)
+    # The display: a dark window in a lighter bezel, for the bars to sit in.
+    display = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            c = shade((20, 22, 26), 1 + 0.05 * noise("charger_display", x, y))
+            if x in (3, 12) or y in (0, 10):
+                c = shade((150, 156, 160), 1)
+            elif x < 3 or x > 12:
+                c = shade(teal, 1 + 0.05 * noise("charger_display", x, y))
+            display.putpixel((x, y), c)
+    display.save(f"{ASSETS}/textures/block/charger_display.png")
+    # The warning sign low on its back: a yellow triangle, rimmed in black, with a black lightning flash, on the
+    # cabinet's teal (the face shows the 10 x 10 from (3, 5)).
+    art = ["....KK....",
+           "...KYYK...",
+           "...KYKK...",
+           "..KYYKYK..",
+           "..KYKKYK..",
+           ".KYYYKYYK.",
+           ".KYYKYYYK.",
+           "KYYYKYYYYK",
+           "KYYYYYYYYK",
+           "KKKKKKKKKK"]
+    sign = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            c = shade(teal, 1 + 0.05 * noise("charger_sign", x, y))
+            if 3 <= x <= 12 and 5 <= y <= 14:
+                ch = art[y - 5][x - 3]
+                c = (24, 24, 26) if ch == "K" else (236, 196, 40) if ch == "Y" else c
+            sign.putpixel((x, y), c)
+    sign.save(f"{ASSETS}/textures/block/charger_sign.png")
+
+
+def charger_models():
+    """
+    The charging point (it faces north: its cable reaches out towards the track at -z): a cabinet on a plinth, with a
+    lamp on top that lights while it's charging and a cable with an orange plug lying out towards the track. On its
+    back, facing whoever's on the platform side, a warning sign low down and a display above with four bars showing how
+    full its store is.
+    """
+    for bars in range(5):
+        for charging in (False, True):
+            name = f"charging_point_{bars}{'_charging' if charging else ''}"
+            tex = {"particle": "reikotrains:block/charger_body", "body": "reikotrains:block/charger_body",
+                   "sign": "reikotrains:block/charger_sign", "display": "reikotrains:block/charger_display",
+                   "head": "reikotrains:block/signal_head", "metal": "reikotrains:block/signal_metal",
+                   "on": "reikotrains:block/charge_bar_on", "off": "reikotrains:block/charge_bar_off",
+                   "plug": "reikotrains:block/charger_plug",
+                   "lamp": f"reikotrains:block/charger_lamp_{'on' if charging else 'off'}"}
+            lower = all_faces("#body", (3, 5, 13, 15))
+            lower["south"] = ("#sign", [3, 5, 13, 15])
+            upper = all_faces("#body", (3, 0, 13, 11))
+            upper["south"] = ("#display", [2, 0, 14, 11])
+            elements = [
+                element([2, 0, 3], [14, 1, 13], all_faces("#metal", (0, 0, 12, 10))),
+                element([3, 1, 4], [13, 11, 12], lower),
+                element([3, 11, 4], [13, 22, 12], upper),
+                element([2.5, 22, 3.5], [13.5, 23, 12.5], all_faces("#head", (0, 0, 11, 9))),
+                element([7, 23, 7], [9, 25, 9], all_faces("#lamp", (4, 4, 12, 12)), lit="north" if charging else None),
+                element([7.25, 2.5, 0.5], [8.75, 4, 4], all_faces("#head", (0, 0, 2, 4))),
+                element([6.5, 1.75, 0], [9.5, 4.75, 1], all_faces("#plug", (0, 0, 3, 3))),
+            ]
+            if charging:
+                for f in ("south", "east", "west", "up"):
+                    elements[4]["faces"][f]["neoforge_data"] = {"block_light": 15, "sky_light": 15}
+            for i in range(4):
+                lit = i < bars
+                y0 = 12.5 + 2.25 * i
+                faces = {"south": ("#on" if lit else "#off", [0, 0, 6, 1.5]), "up": ("#off", [0, 0, 6, 0.25]),
+                         "down": ("#off", [0, 0, 6, 0.25]), "east": ("#off", [0, 0, 0.25, 1.5]), "west": ("#off", [0, 0, 0.25, 1.5])}
+                elements.append(element([5, y0, 12], [11, y0 + 1.5, 12.25], faces, lit="south" if lit else None))
+            model = {"parent": "block/block", "ambientocclusion": False, "textures": tex, "elements": elements}
+            with open(f"{ASSETS}/models/block/{name}.json", "w") as out:
+                json.dump(model, out, indent=2)
+    variants = {}
+    for facing, y in (("north", 0), ("east", 90), ("south", 180), ("west", 270)):
+        for bars in range(5):
+            for charging in ("false", "true"):
+                v = {"model": f"reikotrains:block/charging_point_{bars}{'_charging' if charging == 'true' else ''}"}
+                if y:
+                    v["y"] = y
+                variants[f"charging={charging},facing={facing},level={bars}"] = v
+    with open(f"{ASSETS}/blockstates/charging_point.json", "w") as out:
+        json.dump({"variants": variants}, out, indent=2)
+
+
 def signals_and_stations():
     signal_textures()
     signal_models()
@@ -603,6 +698,8 @@ def signals_and_stations():
     loader_models()
     crossing_textures()
     crossing_models()
+    charger_textures()
+    charger_models()
 
 
 if __name__ == "__main__":

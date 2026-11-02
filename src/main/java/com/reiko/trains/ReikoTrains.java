@@ -1,5 +1,6 @@
 package com.reiko.trains;
 
+import buildcraftreborn.api.mj.MjAPI;
 import com.mojang.logging.LogUtils;
 import com.reiko.trains.config.TrainsConfig;
 import com.reiko.trains.registry.ModBlockEntities;
@@ -21,6 +22,7 @@ import net.neoforged.neoforge.capabilities.ICapabilityProvider;
 import net.neoforged.neoforge.entity.PartEntity;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
@@ -65,6 +67,16 @@ public final class ReikoTrains {
         event.registerEntity(Capabilities.FluidHandler.ENTITY, ModEntities.DIESEL_LOCOMOTIVE.get(), ReikoTrains::dieselTank);
         event.registerEntity(Capabilities.FluidHandler.ENTITY, ModEntities.TANK_WAGON.get(), ReikoTrains::tankWagon);
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.WAGON_LOADER.get(), (loader, side) -> loader.port());
+        // BuildCraft engines and kinesis pipes (and, as BuildCraft's config allows, other mods' energy) feed a charging
+        // point from any side.
+        for (BlockCapability<?, Direction> capability : java.util.List.<BlockCapability<?, Direction>>of(MjAPI.CAP_CONNECTOR,
+                MjAPI.CAP_RECEIVER, MjAPI.CAP_REDSTONE_RECEIVER, MjAPI.CAP_READABLE, Capabilities.EnergyStorage.BLOCK)) {
+            registerCharger(event, capability);
+        }
+    }
+
+    private static <T> void registerCharger(RegisterCapabilitiesEvent event, BlockCapability<T, Direction> capability) {
+        event.registerBlockEntity(capability, ModBlockEntities.CHARGING_POINT.get(), (charger, side) -> charger.capabilities().getCapability(capability));
     }
 
     @Nullable
