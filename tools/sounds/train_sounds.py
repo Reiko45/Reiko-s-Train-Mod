@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Synthesises the mod's sounds (a three-chime steam whistle, exhaust chuffs and a coupling clank) and encodes them
+Synthesises the mod's sounds (a three-chime steam whistle, exhaust chuffs, a coupling clank, a diesel's two-tone horn
+and the loop of its engine running) and encodes them
 as mono Ogg Vorbis (mono, so Minecraft plays them from where they happen). Needs numpy and ffmpeg. Run from the
 repository root:
 
@@ -88,6 +89,55 @@ def clank():
     return out
 
 
+def horn():
+    """A two-tone air horn: two reedy notes a minor third apart, with a puff of air at the start."""
+    duration = 1.8
+    n = int(duration * RATE)
+    t = np.arange(n) / RATE
+    rng = np.random.default_rng(5)
+    out = np.zeros(n)
+    # The air comes up to pressure: the pitch sags a little at first.
+    rise = 0.97 + 0.03 * (1 - np.exp(-t / 0.05))
+    for freq, level in ((311.1, 1.0), (370.0, 0.9)):
+        phase = 2 * np.pi * np.cumsum(freq * rise) / RATE
+        # a reed: rich in odd and even harmonics, a bit nasal
+        tone = sum(np.sin(k * phase) / k ** 0.8 for k in range(1, 9))
+        out += level * tone
+    out /= np.max(np.abs(out))
+    air = band(rng.standard_normal(n), 600, 4000)
+    air /= np.max(np.abs(air))
+    out = out * 0.9 + air * (0.05 + 0.25 * np.exp(-t / 0.06))
+    out = np.tanh(out * 1.6)  # the horn's bell overdrives a little
+    out *= envelope(n, 0.04, 0.3)
+    return out
+
+
+def engine():
+    """
+    A diesel ticking over, made to loop: firing pulses at 12 a second (an eight-cylinder engine at a fast idle) with
+    the low growl of the exhaust and some mechanical clatter. Every part repeats exactly over the two seconds, so the
+    end runs straight into the start.
+    """
+    duration = 2.0
+    n = int(duration * RATE)
+    t = np.arange(n) / RATE
+    rng = np.random.default_rng(9)
+    fire = 12.0  # pulses a second: 24 in the two seconds, so it loops
+    pulse = (0.5 + 0.5 * np.cos(2 * np.pi * fire * t)) ** 6
+    growl = np.zeros(n)
+    for k, level in ((1, 1.0), (2, 0.6), (3, 0.45), (4, 0.3), (6, 0.2), (8, 0.12)):
+        growl += level * np.sin(2 * np.pi * 36.0 * k * t + rng.uniform(0, 6.28))  # 36 Hz: 72 cycles, loops
+    # Noise that loops: random phases at every frequency of the two-second period.
+    spectrum = np.exp(1j * rng.uniform(0, 2 * np.pi, n // 2 + 1))
+    noise = np.fft.irfft(spectrum, n)
+    rumble = band(noise, 40, 400)
+    rumble /= np.max(np.abs(rumble))
+    clatter = band(noise, 1500, 5000)
+    clatter /= np.max(np.abs(clatter))
+    out = growl / np.max(np.abs(growl)) * (0.55 + 0.45 * pulse) + rumble * 0.35 * (0.4 + 0.6 * pulse) + clatter * 0.08 * pulse
+    return out
+
+
 def write(name, samples, peak=0.85):
     samples = samples / np.max(np.abs(samples)) * peak
     pcm = (samples * 32767).astype(np.int16)
@@ -112,6 +162,8 @@ def main():
     write("chuff2", chuff(23), 0.8)
     write("chuff3", chuff(41), 0.8)
     write("couple", clank(), 0.8)
+    write("diesel_horn", horn(), 0.85)
+    write("diesel_engine", engine(), 0.7)
 
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@ displayURL="https://github.com/Reiko45/Reiko-s-Train-Mod"
 logoFile="logo.png"
 logoBlur=false
 description='''
-Big steam trains on their own track. Lay straight track block by block, and draw curves, ramps and junctions by clicking from one track block to where the line should go. Fire up a two-block-wide tank engine or a big express with its tender, couple coaches and 108-slot freight wagons to them (and more engines, to double-head), and drive: throttle, brake, whistle, and left or right at junctions. Signal the line, set the switches by hand or with redstone, name the stations, load and unload freight automatically, and give trains a timetable to run between them by themselves.
+Big steam and diesel trains on their own track. Lay straight track block by block, and draw curves, ramps and junctions by clicking from one track block to where the line should go. Fire up a two-block-wide tank engine, a big express with its tender, or a diesel, couple coaches and 108-slot freight wagons to them (and more engines, to double-head), and drive: throttle, brake, whistle, and left or right at junctions. Signal the line, set the switches by hand or with redstone, name the stations, load and unload freight automatically, and give trains a timetable to run between them by themselves.
 '''
 
 [[dependencies.${mod_id}]]

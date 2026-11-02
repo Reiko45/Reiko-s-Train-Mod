@@ -21,6 +21,10 @@ public final class ModItems {
             () -> new TrainCarItem(ModEntities.PASSENGER_COACH, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<TrainCarItem> EXPRESS_LOCOMOTIVE = ITEMS.register("express_locomotive",
             () -> new TrainCarItem(ModEntities.EXPRESS_LOCOMOTIVE, new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<TrainCarItem> DIESEL_LOCOMOTIVE = ITEMS.register("diesel_locomotive",
+            () -> new TrainCarItem(ModEntities.DIESEL_LOCOMOTIVE, new Item.Properties().stacksTo(1)));
+    /** A canister of diesel, for the diesel locomotive (it also burns in a furnace). */
+    public static final DeferredItem<Item> DIESEL_FUEL = ITEMS.register("diesel_fuel", () -> new Item(new Item.Properties().stacksTo(16)));
     public static final DeferredItem<TrainCarItem> TENDER = ITEMS.register("tender",
             () -> new TrainCarItem(ModEntities.TENDER, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<TrainCarItem> FREIGHT_WAGON = ITEMS.register("freight_wagon",

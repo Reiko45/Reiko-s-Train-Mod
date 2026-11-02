@@ -2,7 +2,7 @@ package com.reiko.trains.network;
 
 import com.reiko.trains.ReikoTrains;
 import com.reiko.trains.signal.StationBlockEntity;
-import com.reiko.trains.train.SteamLocomotive;
+import com.reiko.trains.train.Locomotive;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -29,7 +29,7 @@ public final class ModNetwork {
     /** Only the driver (the first one aboard) can work the controls. */
     private static void handleControl(TrainControlPayload payload, IPayloadContext context) {
         Player player = context.player();
-        if (player.getVehicle() instanceof SteamLocomotive locomotive && locomotive.driver() == player) {
+        if (player.getVehicle() instanceof Locomotive locomotive && locomotive.driver() == player) {
             locomotive.control(payload.action());
         }
     }

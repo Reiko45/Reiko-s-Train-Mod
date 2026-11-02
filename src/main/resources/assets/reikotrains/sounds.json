@@ -21,5 +21,23 @@
       "reikotrains:couple"
     ],
     "subtitle": "subtitles.reikotrains.couple"
+  },
+  "diesel_horn": {
+    "sounds": [
+      {
+        "name": "reikotrains:diesel_horn",
+        "attenuation_distance": 64
+      }
+    ],
+    "subtitle": "subtitles.reikotrains.diesel_horn"
+  },
+  "diesel_engine": {
+    "sounds": [
+      {
+        "name": "reikotrains:diesel_engine",
+        "attenuation_distance": 24
+      }
+    ],
+    "subtitle": "subtitles.reikotrains.diesel_engine"
   }
 }

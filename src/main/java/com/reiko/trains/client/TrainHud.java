@@ -1,6 +1,6 @@
 package com.reiko.trains.client;
 
-import com.reiko.trains.train.SteamLocomotive;
+import com.reiko.trains.train.Locomotive;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -26,7 +26,7 @@ public final class TrainHud implements LayeredDraw.Layer {
     public void render(GuiGraphics graphics, DeltaTracker deltaTracker) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.options.hideGui || minecraft.player == null
-                || !(minecraft.player.getVehicle() instanceof SteamLocomotive locomotive) || locomotive.driver() != minecraft.player) {
+                || !(minecraft.player.getVehicle() instanceof Locomotive locomotive) || locomotive.driver() != minecraft.player) {
             return;
         }
         Font font = minecraft.font;
@@ -73,7 +73,7 @@ public final class TrainHud implements LayeredDraw.Layer {
             graphics.drawString(font, auto, x + (WIDTH - font.width(auto)) / 2, y + 6, 0xFFFFFFFF, false);
         }
         for (int i = 0; i < NOTCHES.length && !locomotive.isAutomatic(); i++) {
-            int notch = i + SteamLocomotive.MIN_THROTTLE;
+            int notch = i + Locomotive.MIN_THROTTLE;
             int bx = x + 4 + i * (boxW + 1);
             int by = y + 4;
             boolean lit = notch == throttle;
@@ -108,8 +108,8 @@ public final class TrainHud implements LayeredDraw.Layer {
         if (fuel > 0) {
             int fill = Math.max(1, barW * fuel / 100);
             graphics.fill(barX, barY, barX + fill, barY + 6, fuel <= 15 ? 0xFFE0482E : 0xFFF0A030);
-        } else if (!locomotive.isSteaming() && (minecraft.player.tickCount / 10) % 2 == 0) {
-            Component out = Component.translatable(fuel < 0 ? "hud.reikotrains.no_tender" : "hud.reikotrains.no_fire");
+        } else if (!locomotive.isRunning() && (minecraft.player.tickCount / 10) % 2 == 0) {
+            Component out = Component.translatable(fuel < 0 ? "hud.reikotrains.no_tender" : locomotive.outOfFuelLabel());
             graphics.drawString(font, out, barX + (barW - font.width(out)) / 2, barY - 1, 0xFFFF5040, false);
         }
     }

@@ -7,11 +7,12 @@ import com.reiko.trains.registry.ModDataComponents;
 import com.reiko.trains.registry.ModEntities;
 import com.reiko.trains.registry.ModItems;
 import com.reiko.trains.track.TrackAxis;
+import com.reiko.trains.train.DieselLocomotive;
 import com.reiko.trains.train.ExpressLocomotive;
 import com.reiko.trains.train.FreightWagon;
 import com.reiko.trains.train.Tender;
 import com.reiko.trains.train.PassengerCoach;
-import com.reiko.trains.train.SteamLocomotive;
+import com.reiko.trains.train.Locomotive;
 import com.reiko.trains.train.TrainCarEntity;
 import com.reiko.trains.train.Trains;
 import com.reiko.trains.menu.FreightWagonMenu;
@@ -167,7 +168,7 @@ public final class DevShowcase {
         StationBlockEntity north = TestTracks.station(level, new BlockPos(32, Y, 11), new BlockPos(32, Y, 14), "Northgate", 4);
         StationBlockEntity south = TestTracks.station(level, new BlockPos(22, Y, 41), new BlockPos(22, Y, 38), "Southport", 4);
 
-        SteamLocomotive loco = put(level, ModEntities.STEAM_LOCOMOTIVE.get(), 22, 0);
+        Locomotive loco = put(level, ModEntities.STEAM_LOCOMOTIVE.get(), 22, 0);
         PassengerCoach coach = put(level, ModEntities.PASSENGER_COACH.get(), 15, 0);
         PassengerCoach coach2 = put(level, ModEntities.PASSENGER_COACH.get(), 8, 0);
         FreightWagon wagon = put(level, ModEntities.FREIGHT_WAGON.get(), 2, 0);
@@ -205,9 +206,23 @@ public final class DevShowcase {
         tender.setFuel(Tender.FUEL_CAPACITY * 0.8);
         TestTracks.station(level, new BlockPos(85, Y, -27), new BlockPos(85, Y, -24), "Express Halt", 10);
 
-        SteamLocomotive a = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(22, Y, 14), EAST);
+        // A third line further north, with a diesel and three freight wagons, and a station to run to
+        TestTracks.line(level, new BlockPos(-20, Y, -36), TrackAxis.X, 110);
+        DieselLocomotive diesel = TestTracks.car(level, ModEntities.DIESEL_LOCOMOTIVE.get(), new BlockPos(30, Y, -36), EAST);
+        Locomotive last = diesel;
+        for (int i = 0; i < 3; i++) {
+            FreightWagon goods = TestTracks.car(level, ModEntities.FREIGHT_WAGON.get(), new BlockPos(23 - 6 * i, Y, -36), EAST);
+            for (int slot = 0; slot < 40 + 30 * i; slot++) {
+                goods.setItem(slot, new ItemStack(Items.IRON_ORE, 64));
+            }
+            Trains.couple(Trains.train(last).getLast(), goods);
+        }
+        diesel.setFuel(DieselLocomotive.FUEL_CAPACITY * 0.7);
+        TestTracks.station(level, new BlockPos(85, Y, -39), new BlockPos(85, Y, -36), "Freight Yard", 10);
+
+        Locomotive a = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(22, Y, 14), EAST);
         PassengerCoach aCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(15, Y, 14), EAST);
-        SteamLocomotive b = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(30, Y, 38), new Vec3(-1, 0, 0));
+        Locomotive b = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(30, Y, 38), new Vec3(-1, 0, 0));
         PassengerCoach bCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(37, Y, 38), new Vec3(-1, 0, 0));
         Trains.couple(a, aCoach);
         Trains.couple(b, bCoach);
@@ -247,7 +262,7 @@ public final class DevShowcase {
         at(580, mc -> shot(mc, "07_southport"));
         // Into the cab of the main line train
         at(585, mc -> server(mc, player -> {
-            SteamLocomotive loco = find(player.serverLevel(), SteamLocomotive.class, 22.5, 0.5);
+            Locomotive loco = find(player.serverLevel(), Locomotive.class, 22.5, 0.5);
             player.getAbilities().flying = false;
             player.onUpdateAbilities();
             player.teleportTo(player.serverLevel(), loco.getX(), loco.getY(), loco.getZ(), -90.0F, 10.0F);
@@ -261,7 +276,7 @@ public final class DevShowcase {
         });
         at(620, mc -> shot(mc, "08_cab_gauges"));
         at(622, mc -> server(mc, player -> {
-            if (player.getVehicle() instanceof SteamLocomotive loco) {
+            if (player.getVehicle() instanceof Locomotive loco) {
                 loco.control(TrainControlPayload.THROTTLE_UP);
                 loco.control(TrainControlPayload.THROTTLE_UP);
             }
@@ -272,7 +287,7 @@ public final class DevShowcase {
         at(742, mc -> {
             mc.options.setCameraType(CameraType.FIRST_PERSON);
             server(mc, player -> {
-                if (player.getVehicle() instanceof SteamLocomotive loco) {
+                if (player.getVehicle() instanceof Locomotive loco) {
                     loco.control(TrainControlPayload.BRAKE_ON);
                 }
             });
@@ -300,7 +315,7 @@ public final class DevShowcase {
                 stand.setThrown(false);
             }
             StationBlockEntity halt = TestTracks.station(level, new BlockPos(77, Y, 13), new BlockPos(75, Y, 15), "Junction Halt", 10);
-            SteamLocomotive loco = level.getEntitiesOfClass(SteamLocomotive.class, new AABB(-40, Y - 2, -4, 80, Y + 4, 4)).getFirst();
+            Locomotive loco = level.getEntitiesOfClass(Locomotive.class, new AABB(-40, Y - 2, -4, 80, Y + 4, 4)).getFirst();
             player.getAbilities().flying = false;
             player.onUpdateAbilities();
             player.teleportTo(level, loco.getX(), loco.getY(), loco.getZ(), -90.0F, 6.0F);
@@ -335,6 +350,20 @@ public final class DevShowcase {
         at(1094, mc -> look(mc, 54.0, Y + 1.5, -18.0, 115.0F, 6.0F));
         at(1150, mc -> shot(mc, "19_express_running"));
         at(1190, mc -> shot(mc, "20_express_running_later"));
-        at(1200, Minecraft::stop);
+        // The diesel: side and front, then away on a timetable with its horn
+        at(1202, mc -> look(mc, 28.0, Y + 1.6, -27.5, 180.0F, 6.0F));
+        at(1240, mc -> shot(mc, "21_diesel"));
+        at(1242, mc -> look(mc, 40.0, Y + 1.4, -31.0, 125.0F, 10.0F));
+        at(1280, mc -> shot(mc, "22_diesel_front"));
+        at(1282, mc -> server(mc, player -> {
+            ServerLevel level = player.serverLevel();
+            DieselLocomotive diesel = level.getEntitiesOfClass(DieselLocomotive.class, new AABB(20, Y - 2, -40, 40, Y + 4, -32)).getFirst();
+            if (level.getBlockEntity(new BlockPos(85, Y, -39)) instanceof StationBlockEntity yard) {
+                diesel.autopilot().start(List.of(TestTracks.stop(yard)));
+            }
+        }));
+        at(1284, mc -> look(mc, 52.0, Y + 1.5, -30.0, 115.0F, 6.0F));
+        at(1360, mc -> shot(mc, "23_diesel_running"));
+        at(1380, Minecraft::stop);
     }
 }

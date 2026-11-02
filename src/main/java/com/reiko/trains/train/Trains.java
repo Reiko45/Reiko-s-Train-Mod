@@ -181,18 +181,18 @@ public final class Trains {
         int[] signs = signs(cars);
         Drive drive = Drive.NONE;
         int leaderIndex = leaderIndex(cars);
-        SteamLocomotive leader = leaderIndex < 0 ? null : (SteamLocomotive) cars.get(leaderIndex);
+        Locomotive leader = leaderIndex < 0 ? null : (Locomotive) cars.get(leaderIndex);
         if (leader != null) {
             drive = leader.plan(cars, signs, leaderIndex, head.speed);
             for (int i = 0; i < cars.size(); i++) {
-                if (cars.get(i) instanceof SteamLocomotive loco && loco != leader) {
+                if (cars.get(i) instanceof Locomotive loco && loco != leader) {
                     loco.help(leader, signs[i] * signs[leaderIndex]);
                 }
             }
         }
         head.speed = nextSpeed(head.speed, cars, signs, drive, leaderIndex);
         for (int i = 0; i < cars.size(); i++) {
-            if (cars.get(i) instanceof SteamLocomotive loco) {
+            if (cars.get(i) instanceof Locomotive loco) {
                 loco.reportSpeed(head.speed * signs[i]);
             }
         }
@@ -216,7 +216,7 @@ public final class Trains {
         int driven = -1;
         int first = -1;
         for (int i = 0; i < cars.size(); i++) {
-            if (cars.get(i) instanceof SteamLocomotive loco) {
+            if (cars.get(i) instanceof Locomotive loco) {
                 if (loco.autopilot().isOn()) {
                     return i;
                 }
@@ -233,15 +233,15 @@ public final class Trains {
 
     /** The locomotive in charge of this car's train (see {@link #leaderIndex}), or null if it hasn't got one. */
     @Nullable
-    public static SteamLocomotive leaderOf(TrainCarEntity car) {
+    public static Locomotive leaderOf(TrainCarEntity car) {
         List<TrainCarEntity> cars = train(car);
         int index = leaderIndex(cars);
-        return index < 0 ? null : (SteamLocomotive) cars.get(index);
+        return index < 0 ? null : (Locomotive) cars.get(index);
     }
 
     private static boolean hasDriver(List<TrainCarEntity> cars) {
         for (TrainCarEntity car : cars) {
-            if (car instanceof SteamLocomotive loco && loco.isDriven()) {
+            if (car instanceof Locomotive loco && loco.isDriven()) {
                 return true;
             }
         }
@@ -262,7 +262,7 @@ public final class Trains {
             mass += car.mass();
             gravity -= GRAVITY * car.mass() * car.slope() * signs[i];
         }
-        SteamLocomotive loco = leaderIndex < 0 ? null : (SteamLocomotive) cars.get(leaderIndex);
+        Locomotive loco = leaderIndex < 0 ? null : (Locomotive) cars.get(leaderIndex);
         double accel = gravity / mass;
         int dir = drive.direction();
         if (drive.automatic() && loco != null) {
@@ -270,7 +270,7 @@ public final class Trains {
             if ((wanted - speed) * dir > 0) {
                 double pull = 0;
                 for (TrainCarEntity car : cars) {
-                    if (car instanceof SteamLocomotive engine && engine.hasSteam() && Math.abs(speed) < engine.maxSpeed()) {
+                    if (car instanceof Locomotive engine && engine.hasPower() && Math.abs(speed) < engine.maxSpeed()) {
                         pull += engine.pull(mass);
                     }
                 }
@@ -279,7 +279,7 @@ public final class Trains {
         } else if (loco != null) {
             double pull = 0;
             for (int i = 0; i < cars.size(); i++) {
-                if (cars.get(i) instanceof SteamLocomotive engine) {
+                if (cars.get(i) instanceof Locomotive engine) {
                     pull += engine.traction(speed * signs[i], mass) * signs[i];
                 }
             }
@@ -321,7 +321,7 @@ public final class Trains {
         boolean leadIsFront = leadDelta > 0;
         TrackPos probe = (leadIsFront ? leadCar.front : leadCar.rear).copy();
         int leaderIndex = leaderIndex(cars);
-        int steer = leaderIndex < 0 ? 0 : ((SteamLocomotive) cars.get(leaderIndex)).getSteer();
+        int steer = leaderIndex < 0 ? 0 : ((Locomotive) cars.get(leaderIndex)).getSteer();
         TrackPos.Chooser leaderChooser = (node, side, options, heading) -> {
             EdgeRef chosen = chooser != null ? chooser.choose(node, side, options, heading)
                     : TrackSide.wayOn(level, node, side, options, heading, steer);

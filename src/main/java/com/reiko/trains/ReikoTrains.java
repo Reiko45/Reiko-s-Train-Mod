@@ -56,6 +56,8 @@ public final class ReikoTrains {
         event.registerEntity(Capabilities.ItemHandler.ENTITY_AUTOMATION, ModEntities.FREIGHT_WAGON.get(), wagonSided);
         event.registerEntity(Capabilities.ItemHandler.ENTITY, ModEntities.TENDER.get(), wagon);
         event.registerEntity(Capabilities.ItemHandler.ENTITY_AUTOMATION, ModEntities.TENDER.get(), wagonSided);
+        event.registerEntity(Capabilities.ItemHandler.ENTITY, ModEntities.DIESEL_LOCOMOTIVE.get(), wagon);
+        event.registerEntity(Capabilities.ItemHandler.ENTITY_AUTOMATION, ModEntities.DIESEL_LOCOMOTIVE.get(), wagonSided);
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.WAGON_LOADER.get(), (loader, side) -> loader.port());
     }
 

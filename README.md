@@ -1,6 +1,6 @@
 # Reiko's Train Mod
 
-Big steam trains for Minecraft **1.21.1** (NeoForge), on their own track. Lay a railway with curves, ramps and
+Big steam and diesel trains for Minecraft **1.21.1** (NeoForge), on their own track. Lay a railway with curves, ramps and
 junctions, signal it, work its switches by hand or with redstone, name its stations, load and unload freight
 automatically, and either drive the trains yourself (throttle, brake, whistle, a choice of way at every junction) or
 give them a timetable and let them run between the stations on their own.
@@ -19,6 +19,8 @@ give them a timetable and let them run between the stations on their own.
   goes. Seats a driver and a fireman.
 - **Express Locomotive**: a crimson 4-6-0, 8 blocks long, with big driving wheels: a third faster than the tank
   engine and nearly twice as strong. It burns coal from its **Tender**, which holds four times as much.
+- **Diesel Locomotive**: a blue road-switcher, 7 blocks long, on two bogies. It runs on **Diesel Fuel**, pulls
+  harder than either steam engine, and uses less fuel.
 - **Passenger Coach**: 6½ blocks long, eight seats in four rows.
 - **Freight Wagon**: holds 108 stacks (four chests' worth), all on one screen. Hoppers above or below it fill and empty
   it, crates pile up in it as it fills, and a full one is heavier to pull.
@@ -63,6 +65,8 @@ or ramp can cross gaps between them, so bridges are just long curves. Leave thre
 | Steam Locomotive | Furnace minecart in the middle, copper ingots either side, iron ingots along the bottom and one top right (the chimney) |
 | Express Locomotive | Copper, gold, copper; iron ingot, steam locomotive, iron ingot; three iron ingots |
 | Tender | Iron ingot, cauldron, iron ingot; iron ingot, minecart, iron ingot |
+| Diesel Locomotive | Three iron ingots; iron ingot, blast furnace, iron ingot; copper ingot, minecart, copper ingot |
+| Diesel Fuel | An iron nugget and four coal or charcoal (shapeless) |
 | Passenger Coach | Glass panes on top; planks, wool, planks; iron ingot, minecart, iron ingot |
 | Freight Wagon | Planks around a chest (top middle open); iron ingot, minecart, iron ingot |
 | Coupler | Iron ingot, chain, iron ingot (a column) |
@@ -97,13 +101,13 @@ empty hand to climb into the cab.
 | Back (S) | Throttle down a notch, through neutral into reverse |
 | Jump (Space) | Brake, while held |
 | Left / right (A / D) | Hold to take the left or right way at the next junction (otherwise it goes straight on). Junctions with a switch stand go the way the switch is set |
-| H | Whistle (rebind under Controls, *Reiko's Trains*) |
+| H | Whistle, or the diesel's horn (rebind under Controls, *Reiko's Trains*) |
 | Sneak | Get out |
 
 The gauges, bottom right, show the next signal (and how far), the next switch (which way it's set, and how far), the
 next station, the throttle notch (R2, R1, N, 1-4),
-the speed, which way you're steering, the brake and the firebox (or tender). Top speed is 43 km/h for the tank engine
-and 58 km/h for the express; a heavy train takes longer to get going, and slows (or stalls) going uphill.
+the speed, which way you're steering, the brake and the firebox (or tender, or fuel tank). Top speed is 43 km/h for the
+tank engine, 52 km/h for the diesel and 58 km/h for the express; a heavy train takes longer to get going, and slows (or stalls) going uphill.
 Cars roll downhill on their own. At the end of the line a train stops dead. If the track under a car is broken, the
 car comes off and drops as an item. With nobody at the controls the handbrake holds the train, and the fire only
 burns while someone's driving. A moving train keeps the chunks around it loaded, so it doesn't stop at the edge of
@@ -126,6 +130,24 @@ worth, four times a tank engine's firebox, and the coal heap in it goes down as 
 ![The express](docs/screenshots/express.jpg)
 
 ![The express under way](docs/screenshots/express_front.jpg)
+
+### The diesel
+
+The **Diesel Locomotive** is a road-switcher: a long hood in front of a high cab, so you can see over it whichever
+way you're going, and a short hood behind. It rides on two bogies like the coaches.
+
+- It runs on **Diesel Fuel**, not coal: canisters made from an iron nugget and four coal or charcoal. Its tank holds
+  ten. Click it with canisters to fill it; hoppers and wagon loaders can fill it too (they give it diesel only).
+  Steam engines won't take diesel, and the diesel won't take coal. A canister also burns in a furnace.
+- It pulls harder than either steam engine, so it gets a heavy train going quickest, though the express is faster
+  flat out. It's frugal: a canister goes further than the four coal it's made from would in a steam engine, and it
+  burns little standing still.
+- Its engine rumbles, and the note rises as the throttle opens. Its exhaust smokes harder the harder it works, with
+  a black cloud when you open up. It sounds a two-tone horn instead of a whistle (the same key).
+
+![The diesel with a freight train](docs/screenshots/diesel.jpg)
+
+![The diesel from the front](docs/screenshots/diesel_front.jpg)
 
 ### More than one locomotive
 
@@ -151,7 +173,8 @@ In `serverconfig/reikotrains-server.toml` in each world:
 | `maxTrainLength` | `16` | The most cars in one train |
 | `loaderSpeed` | `640` | How many items a wagon loader moves a second (640 fills a wagon in about 11 seconds) |
 
-The fuel a locomotive takes is the item tag `reikotrains:locomotive_fuel`, so a datapack can change it.
+The fuel steam engines take is the item tag `reikotrains:locomotive_fuel`, and the diesel's is
+`reikotrains:diesel_fuel`, so a datapack can change them (a fuel needs a furnace burn time too).
 
 ## Signals
 
@@ -267,7 +290,9 @@ waiting at a signal, taking a branch to reach its station, handing over to a dri
 sharing a signalled loop without ever meeting. `SwitchGameTests` covers switch stands finding their junction,
 clicking and redstone (holding it thrown or straight on), three-way junctions, drivers going the way the switch is set whatever they steer, throwing a
 switch under a train without splitting it, and timetabled trains setting switches their way or obeying a held one.
-`LocomotiveGameTests` covers the express needing its tender (and shovelling coal into it), its speed, two engines
+`LocomotiveGameTests` covers the diesel (diesel fuel only, steam engines refusing it, pulling harder on less fuel,
+running a timetable with a steam engine helping, a wagon loader refuelling it, the fuel's recipe and burn time), the
+express needing its tender (and shovelling coal into it), its speed, two engines
 pulling together (one at the back facing back), a double-headed train on a timetable, an express on a timetable, and
 a wagon loader topping up a tender with fuel only. `LoaderGameTests` covers loading and unloading a wagon, filling every wagon in a train, redstone, the comparator,
 hoppers going through the loader, moving trains being left alone, and a timetabled train waiting until it's loaded.
@@ -312,8 +337,8 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
 
 ## Ideas for later
 
-- More locomotives (a diesel?), more wagons
-- A departures board
+- More wagons (a tanker, a guard's van)
+- Item filters for wagon loaders
 
 ## License
 

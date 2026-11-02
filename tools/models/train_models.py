@@ -227,6 +227,65 @@ def tender():
     return parts
 
 
+def diesel_locomotive():
+    """
+    A diesel road-switcher, seven blocks long: a long hood in front, a high cab with windows all round, a short hood
+    behind, a walkway with handrails along both sides, and the fuel tank slung between the bogies (drawn separately).
+    """
+    body = Part("body")
+    b = body.boxes
+    # Underframe, walkway, end beams, buffers, fuel tank
+    b.append(box(-54, -17, -13, 54, -12, 13, "frame"))
+    b.append(box(-56, -19, -16, 56, -17, 16, "walkway"))
+    b.append(box(-58, -22, -16, -56, -10, 16, "diesel_end"))
+    b.append(box(56, -22, -16, 58, -10, 16, "diesel_end"))
+    b += buffers(62)
+    b.append(box(-22, -12, -12, 22, -5, 12, "fuel_tank"))
+    # Long hood, with exhaust stacks and the radiator fan; short hood behind the cab
+    b.append(box(-54, -36, -11, 8, -19, 11, "hood"))
+    b.append(box(-18, -39, -2, -14, -36, 2, "exhaust"))
+    b.append(box(-5, -39, -2, -1, -36, 2, "exhaust"))
+    b.append(box(-48, -37, -8, -32, -36, 8, "fan"))
+    b.append(box(34, -36, -11, 54, -19, 11, "hood"))
+    # Headlights, front and back
+    b.append(box(-55, -33, -3, -54, -29, 3, "lamp"))
+    b.append(box(54, -33, -3, 55, -29, 3, "lamp_back"))
+    # Cab: walls with windows (open, so the crew can see out), roof, horn, control desk
+    for x0 in (8, 33):
+        b.append(box(x0, -38, -15, x0 + 1, -19, 15, "cab_diesel"))
+        b.append(box(x0, -52, -15, x0 + 1, -47, 15, "cab_diesel"))
+        for z0, z1 in ((-15, -13), (-3, 3), (13, 15)):
+            b.append(box(x0, -47, z0, x0 + 1, -38, z1, "cab_diesel"))
+    b += mirrored(9, -36, 14, 33, -19, 15, "cab_diesel")
+    b += mirrored(9, -52, 14, 33, -46, 15, "cab_diesel")
+    for x0, x1 in ((9, 12), (19, 22), (30, 33)):
+        b += mirrored(x0, -46, 14, x1, -36, 15, "cab_diesel")
+    b.append(box(7, -54, -16, 35, -52, 16, "roof"))
+    b.append(box(7, -55, -12, 35, -54, 12, "roof"))
+    b.append(box(15, -58, -2, 21, -55, 2, "horn"))
+    b.append(box(9, -27, -13, 13, -19, 13, "desk"))
+    # Handrails along the walkways, on stanchions
+    b += mirrored(-54, -31, 15, 8, -30, 16, "handrail")
+    b += mirrored(34, -31, 15, 54, -30, 16, "handrail")
+    for x in (-53, -38, -23, -8, 6, 35, 52):
+        b += mirrored(x, -30, 15, x + 1, -19, 16, "handrail")
+    return [body]
+
+
+def diesel_bogie():
+    """A two-axle bogie for the diesel: deeper sideframes with a spring pack, bigger wheels."""
+    frame = Part("frame")
+    b = frame.boxes
+    b += mirrored(-16, -11, 8, 16, -5, 10, "frame")
+    b.append(box(-3, -13, -10, 3, -9, 10, "frame"))
+    b += mirrored(-14, -10, 10, -8, -4, 11, "axlebox")
+    b += mirrored(8, -10, 10, 14, -4, 11, "axlebox")
+    b += mirrored(-4, -10, 10, 4, -6, 11, "spring")
+    parts = [frame]
+    parts += wheel_parts("wheel", [-11, 11], 5, -5, "wheel_small")
+    return parts
+
+
 COACH_BAYS = [-30, -10, 10, 30]
 
 
@@ -290,6 +349,8 @@ def bogie():
 
 GREEN = (40, 96, 58)
 CRIMSON = (124, 30, 36)
+DIESEL_BLUE = (36, 70, 122)
+WARNING_YELLOW = (232, 190, 40)
 BLACK = (34, 34, 38)
 RED = (158, 38, 30)
 BRASS = (212, 172, 74)
@@ -618,6 +679,77 @@ def deck_with(color):
     return paint
 
 
+def hood(t):
+    """The hoods: blue, with door panels and louvres along the sides and yellow warning panels on the ends."""
+    if t.end:
+        c = jitter(WARNING_YELLOW, (t.x, t.y, t.z, t.face), 0.04)
+        return shade(c, 0.8) if t.edge else c
+    c = jitter(DIESEL_BLUE, (t.x, t.y, t.z, t.face))
+    if t.side:
+        x = int(math.floor(t.x))
+        if (x + 54) % 10 == 0:
+            return shade(c, 0.7)  # door seams
+        if t.j in (3, 5, 7) and (x + 54) % 10 not in (0, 1, 9):
+            return shade(c, 0.55)  # louvres
+        if t.j == t.fh - 4:
+            return (220, 220, 214)  # a white stripe low down
+    if t.face == "down" and abs(t.z) < 9.5 and int(math.floor(t.x)) % 2 == 0:
+        return shade(c, 0.85)  # roof panels
+    return shade(c, 0.8) if t.edge else c
+
+
+def cab_diesel(t):
+    c = jitter(DIESEL_BLUE, (t.x, t.y, t.z, t.face))
+    if t.end and t.y > -38 and abs(t.z) < 14:
+        return jitter(WARNING_YELLOW, (t.x, t.y, t.z), 0.04)  # yellow on the cab's front and back below the windows
+    if t.side and abs(t.y + 22.5) < 0.6:
+        return (220, 220, 214)
+    return shade(c, 0.8) if t.edge else c
+
+
+def fan(t):
+    if t.face == "down":
+        r = math.hypot(t.x + 40, t.z)
+        if r < 7.5:
+            a = math.degrees(math.atan2(t.z, t.x + 40)) % 45
+            return (30, 30, 34) if (a < 18 or r < 1.5) else (70, 72, 78)
+    return jitter((60, 62, 68), (t.x, t.y, t.z))
+
+
+def exhaust(t):
+    if t.face == "down" and abs(t.z) < 1.2 and abs(t.x - (t.box.x + 2)) < 1.2:
+        return (10, 10, 10)
+    return jitter((40, 40, 44), (t.x, t.y, t.z), 0.08)
+
+
+def lamp_back(t):
+    if t.face == "east" and not t.edge:
+        return (255, 90, 70)  # a red tail lamp
+    return jitter(BLACK, (t.x, t.y, t.z))
+
+
+def walkway(t):
+    if t.face in ("down", "up"):
+        c = jitter((70, 72, 78), (t.x, t.z), 0.06)
+        return shade(c, 0.85) if (int(math.floor(t.x)) + int(math.floor(t.z))) % 3 == 0 else c  # tread plate
+    return jitter((34, 34, 38), (t.x, t.y, t.z))
+
+
+def diesel_end(t):
+    """The end beams: yellow and black chevrons on the outer face."""
+    if t.end:
+        stripe = int(math.floor((t.y + t.z + 64) / 3)) % 2
+        return WARNING_YELLOW if stripe else (30, 30, 32)
+    return jitter((34, 34, 38), (t.x, t.y, t.z))
+
+
+def fuel_tank(t):
+    c = jitter((48, 50, 56), (t.x, t.y, t.z, t.face), 0.05)
+    if t.side and t.j == 1:
+        return shade(c, 1.25)
+    return shade(c, 0.8) if t.edge else c
+
+
 MATERIALS = {
     "frame": frame,
     "deck": deck,
@@ -660,6 +792,18 @@ MATERIALS = {
     "wheel_express": wheel((44, 44, 48), CRIMSON, BRASS, True, 4.0),
     "tender_side": lined(CRIMSON),
     "tender_top": plain((44, 44, 48)),
+    "hood": hood,
+    "cab_diesel": cab_diesel,
+    "fan": fan,
+    "exhaust": exhaust,
+    "lamp_back": lamp_back,
+    "walkway": walkway,
+    "diesel_end": diesel_end,
+    "fuel_tank": fuel_tank,
+    "horn": plain((150, 152, 158), 0.75),
+    "desk": plain((60, 62, 68)),
+    "handrail": plain((226, 226, 220), 0.85),
+    "spring": plain((90, 92, 98), 0.7),
 }
 
 
@@ -797,6 +941,8 @@ def main():
           "    public static final float CRANK_RADIUS = 4.0F;\n"
           "    /** The radius of the driving wheels the rods are pinned to, in pixels. */\n"
           "    public static final float DRIVER_RADIUS = 9.0F;\n")
+    build("diesel_locomotive", "DieselLocomotiveGeometry", diesel_locomotive(), 512)
+    build("diesel_bogie", "DieselBogieGeometry", diesel_bogie(), 128)
     build("tender", "TenderGeometry", tender(), 512,
           "    /** The coal, in three layers: as much shows as the tender has. */\n"
           '    public static final String[] CARGO = {"coal_0", "coal_1", "coal_2"};\n')

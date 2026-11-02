@@ -1,6 +1,7 @@
 package com.reiko.trains.registry;
 
 import com.reiko.trains.ReikoTrains;
+import com.reiko.trains.train.DieselLocomotive;
 import com.reiko.trains.train.ExpressLocomotive;
 import com.reiko.trains.train.FreightWagon;
 import com.reiko.trains.train.PassengerCoach;
@@ -22,6 +23,8 @@ public final class ModEntities {
             EntityType.Builder.<PassengerCoach>of(PassengerCoach::new, MobCategory.MISC));
     public static final Supplier<EntityType<ExpressLocomotive>> EXPRESS_LOCOMOTIVE = register("express_locomotive",
             EntityType.Builder.<ExpressLocomotive>of(ExpressLocomotive::new, MobCategory.MISC));
+    public static final Supplier<EntityType<DieselLocomotive>> DIESEL_LOCOMOTIVE = register("diesel_locomotive",
+            EntityType.Builder.<DieselLocomotive>of(DieselLocomotive::new, MobCategory.MISC));
     public static final Supplier<EntityType<Tender>> TENDER = register("tender",
             EntityType.Builder.<Tender>of(Tender::new, MobCategory.MISC));
     public static final Supplier<EntityType<FreightWagon>> FREIGHT_WAGON = register("freight_wagon",

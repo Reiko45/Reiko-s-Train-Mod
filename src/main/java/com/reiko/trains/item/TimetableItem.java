@@ -2,7 +2,7 @@ package com.reiko.trains.item;
 
 import com.reiko.trains.registry.ModDataComponents;
 import com.reiko.trains.signal.StationBlockEntity;
-import com.reiko.trains.train.SteamLocomotive;
+import com.reiko.trains.train.Locomotive;
 import com.reiko.trains.train.Timetable;
 import com.reiko.trains.train.TrainCarEntity;
 import com.reiko.trains.train.Trains;
@@ -65,9 +65,9 @@ public class TimetableItem extends Item {
             return InteractionResult.SUCCESS;
         }
         // The locomotive clicked, or else the train's first: it runs the timetable, and any others work with it.
-        List<SteamLocomotive> locos = new ArrayList<>();
+        List<Locomotive> locos = new ArrayList<>();
         for (TrainCarEntity c : Trains.train(car)) {
-            if (c instanceof SteamLocomotive l) {
+            if (c instanceof Locomotive l) {
                 locos.add(l);
             }
         }
@@ -75,15 +75,15 @@ public class TimetableItem extends Item {
             player.displayClientMessage(Component.translatable("message.reikotrains.timetable.no_locomotive").withStyle(ChatFormatting.RED), true);
             return InteractionResult.CONSUME;
         }
-        SteamLocomotive loco = car instanceof SteamLocomotive clicked ? clicked : locos.getFirst();
+        Locomotive loco = car instanceof Locomotive clicked ? clicked : locos.getFirst();
         if (player.isSecondaryUseActive()) {
-            for (SteamLocomotive l : locos) {
+            for (Locomotive l : locos) {
                 l.autopilot().stop();
             }
             player.displayClientMessage(Component.translatable("message.reikotrains.timetable.stopped"), true);
             return InteractionResult.CONSUME;
         }
-        for (SteamLocomotive l : locos) {
+        for (Locomotive l : locos) {
             if (l != loco) {
                 l.autopilot().stop();
             }

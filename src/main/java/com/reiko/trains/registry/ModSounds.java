@@ -12,6 +12,8 @@ public final class ModSounds {
     public static final Supplier<SoundEvent> STEAM_WHISTLE = register("steam_whistle");
     public static final Supplier<SoundEvent> STEAM_CHUFF = register("steam_chuff");
     public static final Supplier<SoundEvent> COUPLE = register("couple");
+    public static final Supplier<SoundEvent> DIESEL_HORN = register("diesel_horn");
+    public static final Supplier<SoundEvent> DIESEL_ENGINE = register("diesel_engine");
 
     private ModSounds() {
     }

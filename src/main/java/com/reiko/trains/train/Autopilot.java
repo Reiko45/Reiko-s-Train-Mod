@@ -41,7 +41,7 @@ public final class Autopilot {
         OFF, RUNNING, DWELLING
     }
 
-    private final SteamLocomotive loco;
+    private final Locomotive loco;
     private final List<Timetable.Stop> stops = new ArrayList<>();
     private int index;
     private Phase phase = Phase.OFF;
@@ -54,7 +54,7 @@ public final class Autopilot {
     private int stuck;
     private int searchCooldown;
 
-    Autopilot(SteamLocomotive loco) {
+    Autopilot(Locomotive loco) {
         this.loco = loco;
     }
 
@@ -106,7 +106,7 @@ public final class Autopilot {
         if (waitingAtSignal) {
             return Component.translatable("hud.reikotrains.auto.signal");
         }
-        if (!loco.hasSteam()) {
+        if (!loco.hasPower()) {
             return Component.translatable("hud.reikotrains.auto.no_fire");
         }
         return Component.translatable("hud.reikotrains.auto.next", stop.name());

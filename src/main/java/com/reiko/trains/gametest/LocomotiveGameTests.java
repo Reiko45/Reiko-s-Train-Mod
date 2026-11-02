@@ -7,7 +7,10 @@ import com.reiko.trains.network.TrainControlPayload;
 import com.reiko.trains.registry.ModEntities;
 import com.reiko.trains.signal.StationBlockEntity;
 import com.reiko.trains.track.TrackAxis;
+import com.reiko.trains.registry.ModItems;
+import com.reiko.trains.train.DieselLocomotive;
 import com.reiko.trains.train.ExpressLocomotive;
+import com.reiko.trains.train.Locomotive;
 import com.reiko.trains.train.PassengerCoach;
 import com.reiko.trains.train.SteamLocomotive;
 import com.reiko.trains.train.Tender;
@@ -51,14 +54,14 @@ public final class LocomotiveGameTests {
         return helper.absolutePos(new BlockPos(x, 1, z));
     }
 
-    private static Player board(GameTestHelper helper, SteamLocomotive loco) {
+    private static Player board(GameTestHelper helper, Locomotive loco) {
         Player driver = helper.makeMockPlayer(GameType.SURVIVAL);
         driver.moveTo(loco.position());
         driver.startRiding(loco);
         return driver;
     }
 
-    private static void throttle(SteamLocomotive loco, int notches) {
+    private static void throttle(Locomotive loco, int notches) {
         for (int i = 0; i < notches; i++) {
             loco.control(TrainControlPayload.THROTTLE_UP);
         }
@@ -95,7 +98,7 @@ public final class LocomotiveGameTests {
         });
         helper.runAfterDelay(120, () -> {
             helper.assertTrue(loco.getX() > startX + 3, "with its tender it should go");
-            helper.assertTrue(loco.getFuelPercent() > 0 && loco.isSteaming(), "on the tender's coal");
+            helper.assertTrue(loco.getFuelPercent() > 0 && loco.isRunning(), "on the tender's coal");
             driver.stopRiding();
             helper.succeed();
         });
@@ -186,12 +189,116 @@ public final class LocomotiveGameTests {
         tender[0].setFuel(16000);
         loco.autopilot().start(List.of(TestTracks.stop(station)));
         boolean[] steamed = {false};
-        helper.onEachTick(() -> steamed[0] |= loco.isSteaming() && Math.abs(loco.trainSpeed()) > 0.1);
+        helper.onEachTick(() -> steamed[0] |= loco.isRunning() && Math.abs(loco.trainSpeed()) > 0.1);
         helper.succeedWhen(() -> {
             helper.assertTrue(loco.autopilot().isDwelling(), "the express should have reached the station");
             helper.assertTrue(steamed[0], "under steam");
             helper.assertTrue(tender[0].fuel() < 16000, "burning the tender's coal");
         });
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------
+    // The diesel
+
+    @GameTest(template = LINE, timeoutTicks = 200)
+    public static void dieselRunsOnDieselFuelOnly(GameTestHelper helper) {
+        line(helper, 4);
+        DieselLocomotive diesel = TestTracks.car(helper.getLevel(), ModEntities.DIESEL_LOCOMOTIVE.get(), at(helper, 20, 4), EAST);
+        Player fireman = helper.makeMockPlayer(GameType.SURVIVAL);
+        fireman.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.COAL, 16));
+        diesel.interact(fireman, InteractionHand.MAIN_HAND);
+        helper.assertTrue(diesel.fuel() == 0 && fireman.getMainHandItem().getCount() == 16, "a diesel shouldn't take coal");
+        fireman.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.DIESEL_FUEL.get(), 16));
+        diesel.interact(fireman, InteractionHand.MAIN_HAND);
+        helper.assertTrue(diesel.fuel() == DieselLocomotive.FUEL_CAPACITY, "ten canisters should fill its tank, has " + diesel.fuel());
+        helper.assertTrue(fireman.getMainHandItem().getCount() == 6, "leaving six, not " + fireman.getMainHandItem().getCount());
+        SteamLocomotive tank = TestTracks.car(helper.getLevel(), ModEntities.STEAM_LOCOMOTIVE.get(), at(helper, 40, 4), EAST);
+        tank.interact(fireman, InteractionHand.MAIN_HAND);
+        helper.assertTrue(tank.fuel() == 0 && fireman.getMainHandItem().getCount() == 6, "a steam engine shouldn't take diesel");
+        Player driver = board(helper, diesel);
+        throttle(diesel, 4);
+        double startX = diesel.getX();
+        helper.runAfterDelay(80, () -> {
+            helper.assertTrue(diesel.isRunning() && diesel.getX() > startX + 2, "it should be running, and off");
+            helper.assertTrue(diesel.fuel() < DieselLocomotive.FUEL_CAPACITY, "burning its diesel");
+            driver.stopRiding();
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 300)
+    public static void dieselOutpullsTheTankEngineOnLessFuel(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        TestTracks.floor(level, helper.absolutePos(new BlockPos(0, 1, 0)), 64, 9);
+        TestTracks.line(level, at(helper, 0, 1), TrackAxis.X, 64);
+        TestTracks.line(level, at(helper, 0, 7), TrackAxis.X, 64);
+        SteamLocomotive tank = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), at(helper, 26, 1), EAST);
+        DieselLocomotive diesel = TestTracks.car(level, ModEntities.DIESEL_LOCOMOTIVE.get(), at(helper, 26, 7), EAST);
+        for (int i = 0; i < 3; i++) {
+            Trains.couple(Trains.train(tank).getLast(), TestTracks.car(level, ModEntities.FREIGHT_WAGON.get(), at(helper, 20 - 6 * i, 1), EAST));
+            Trains.couple(Trains.train(diesel).getLast(), TestTracks.car(level, ModEntities.FREIGHT_WAGON.get(), at(helper, 19 - 6 * i, 7), EAST));
+        }
+        tank.setFuel(16000);
+        diesel.setFuel(16000);
+        Player a = board(helper, tank);
+        Player b = board(helper, diesel);
+        throttle(tank, 4);
+        throttle(diesel, 4);
+        helper.runAfterDelay(80, () -> {
+            helper.assertTrue(Math.abs(diesel.trainSpeed()) > Math.abs(tank.trainSpeed()) * 1.3,
+                    "with three wagons on, the diesel should pick up speed quicker: " + diesel.trainSpeed() + " against " + tank.trainSpeed());
+            helper.assertTrue(16000 - diesel.fuel() < 16000 - tank.fuel(), "and use less fuel doing it");
+            a.stopRiding();
+            b.stopRiding();
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 800)
+    public static void dieselRunsATimetableAndHelpsASteamEngine(GameTestHelper helper) {
+        line(helper, 4);
+        StationBlockEntity station = TestTracks.station(helper.getLevel(), helper.absolutePos(new BlockPos(56, 1, 7)), at(helper, 56, 4), "End", 5);
+        DieselLocomotive diesel = TestTracks.car(helper.getLevel(), ModEntities.DIESEL_LOCOMOTIVE.get(), at(helper, 26, 4), EAST);
+        SteamLocomotive tank = TestTracks.car(helper.getLevel(), ModEntities.STEAM_LOCOMOTIVE.get(), at(helper, 18, 4), EAST);
+        helper.assertTrue(Trains.couple(diesel, tank) == Trains.CoupleResult.COUPLED, "a diesel and a steam engine should couple");
+        diesel.setFuel(16000);
+        tank.setFuel(16000);
+        diesel.autopilot().start(List.of(TestTracks.stop(station)));
+        boolean[] helped = {false};
+        helper.onEachTick(() -> helped[0] |= tank.isSteaming() && tank.helping() == diesel);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(diesel.autopilot().isDwelling(), "the diesel should have taken the train to the station");
+            helper.assertTrue(helped[0], "with the steam engine working with it");
+        });
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 200)
+    public static void loaderRefuelsADiesel(GameTestHelper helper) {
+        line(helper, 4);
+        DieselLocomotive diesel = TestTracks.car(helper.getLevel(), ModEntities.DIESEL_LOCOMOTIVE.get(), at(helper, 30, 4), EAST);
+        WagonLoaderBlockEntity loader = TestTracks.wagonLoader(helper.getLevel(), helper.absolutePos(new BlockPos(30, 1, 6)), at(helper, 30, 4), LoaderMode.LOAD);
+        BlockPos chestPos = loader.getBlockPos().east();
+        helper.getLevel().setBlock(chestPos, Blocks.CHEST.defaultBlockState(), 3);
+        ChestBlockEntity chest = (ChestBlockEntity) helper.getLevel().getBlockEntity(chestPos);
+        chest.setItem(0, new ItemStack(Items.COAL, 64));
+        chest.setItem(1, new ItemStack(ModItems.DIESEL_FUEL.get(), 16));
+        helper.succeedWhen(() -> {
+            helper.assertTrue(diesel.fuel() == DieselLocomotive.FUEL_CAPACITY, "the loader should have filled the diesel's tank, has " + diesel.fuel());
+            helper.assertTrue(chest.getItem(0).getCount() == 64, "and left the coal");
+            helper.assertTrue(chest.getItem(1).getCount() + diesel.getItem(0).getCount() == 6, "with six canisters to spare");
+        });
+    }
+
+    @GameTest(template = LINE)
+    public static void dieselFuelRecipeAndFurnace(GameTestHelper helper) {
+        for (String name : List.of("diesel_locomotive", "diesel_fuel")) {
+            helper.assertTrue(helper.getLevel().getRecipeManager().byKey(ReikoTrains.id(name)).isPresent(), "no recipe for " + name);
+        }
+        ItemStack can = new ItemStack(ModItems.DIESEL_FUEL.get());
+        helper.assertTrue(can.is(DieselLocomotive.DIESEL_FUEL), "diesel fuel should be in the diesel_fuel tag");
+        helper.assertTrue(!can.is(Locomotive.FUEL), "and not steam engines' fuel");
+        helper.assertTrue(can.getBurnTime(net.minecraft.world.item.crafting.RecipeType.SMELTING) == 9600, "a canister should burn for 9600 ticks");
+        helper.succeed();
     }
 
     @GameTest(template = LINE, timeoutTicks = 200)

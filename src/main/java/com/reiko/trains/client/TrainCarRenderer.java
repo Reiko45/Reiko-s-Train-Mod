@@ -20,19 +20,27 @@ import net.minecraft.util.Mth;
  * cars that have them, the two bogies under it, each turned to follow the track under it.
  */
 public class TrainCarRenderer<T extends TrainCarEntity> extends EntityRenderer<T> {
-    private static final ResourceLocation BOGIE_TEXTURE = ReikoTrains.id("textures/entity/bogie.png");
+    public static final ResourceLocation BOGIE_TEXTURE = ReikoTrains.id("textures/entity/bogie.png");
 
     private final TrainModel body;
     @Nullable
     private final TrainModel bogie;
     private final ResourceLocation texture;
+    private final ResourceLocation bogieTexture;
 
     public TrainCarRenderer(EntityRendererProvider.Context context, Function<EntityRendererProvider.Context, TrainModel> body,
                             @Nullable Function<EntityRendererProvider.Context, TrainModel> bogie, ResourceLocation texture) {
+        this(context, body, bogie, texture, BOGIE_TEXTURE);
+    }
+
+    public TrainCarRenderer(EntityRendererProvider.Context context, Function<EntityRendererProvider.Context, TrainModel> body,
+                            @Nullable Function<EntityRendererProvider.Context, TrainModel> bogie, ResourceLocation texture,
+                            ResourceLocation bogieTexture) {
         super(context);
         this.body = body.apply(context);
         this.bogie = bogie == null ? null : bogie.apply(context);
         this.texture = texture;
+        this.bogieTexture = bogieTexture;
         this.shadowRadius = 1.6F;
     }
 
@@ -61,7 +69,7 @@ public class TrainCarRenderer<T extends TrainCarEntity> extends EntityRenderer<T
         poseStack.popPose();
 
         if (bogie != null) {
-            VertexConsumer bogies = buffers.getBuffer(RenderType.entityCutoutNoCull(BOGIE_TEXTURE));
+            VertexConsumer bogies = buffers.getBuffer(RenderType.entityCutoutNoCull(bogieTexture));
             renderBogie(poseStack, bogies, light, (float) car.bogieOffset(), car.frontBogieYaw(), rolled);
             renderBogie(poseStack, bogies, light, (float) -car.bogieOffset(), car.rearBogieYaw(), rolled);
         }

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "B": {
+      "item": "minecraft:blast_furnace"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "M": {
+      "item": "minecraft:minecart"
+    }
+  },
+  "pattern": [
+    "III",
+    "IBI",
+    "CMC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "reikotrains:diesel_locomotive"
+  }
+}

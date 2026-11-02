@@ -8,14 +8,12 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
-import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 
 /**
@@ -30,8 +28,8 @@ public class Tender extends TrainCarEntity implements FuelStore, Container {
     private static final EntityDataAccessor<Integer> DATA_COAL = SynchedEntityData.defineId(Tender.class, EntityDataSerializers.INT);
 
     private double fuel;
-    /** Fuel tipped in (by a hopper, say) that there isn't room for yet. */
-    private ItemStack chute = ItemStack.EMPTY;
+    /** Where hoppers and loaders tip coal in. */
+    private final FuelChute chute = new FuelChute(this, stack -> stack.is(Locomotive.FUEL));
 
     public Tender(EntityType<? extends Tender> type, Level level) {
         super(type, level);
@@ -101,43 +99,19 @@ public class Tender extends TrainCarEntity implements FuelStore, Container {
         }
     }
 
-    /** Tips what's in the chute into the tender, as much as there's room for. */
-    private void tipChute() {
-        if (chute.isEmpty() || !chute.is(SteamLocomotive.FUEL)) {
-            return;
-        }
-        int burn = chute.getBurnTime(RecipeType.SMELTING);
-        if (burn <= 0) {
-            return;
-        }
-        int count = Math.min((int) ((FUEL_CAPACITY - fuel) / burn), chute.getCount());
-        if (chute.hasCraftingRemainingItem()) {
-            count = Math.min(count, 1);
-        }
-        if (count <= 0) {
-            return;
-        }
-        setFuel(fuel + (double) burn * count);
-        ItemStack remainder = chute.getCraftingRemainingItem();
-        chute.shrink(count);
-        if (chute.isEmpty() && !remainder.isEmpty()) {
-            chute = remainder; // a lava bucket leaves its bucket, for a hopper underneath to take
-        }
-    }
-
     @Override
     public void tick() {
         super.tick();
         if (!level().isClientSide && !chute.isEmpty() && tickCount % 10 == 0) {
-            tipChute();
+            chute.tip();
         }
     }
 
     @Override
     protected InteractionResult interactCar(Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (stack.is(SteamLocomotive.FUEL)) {
-            return SteamLocomotive.shovel(player, hand, stack, this, position().add(0, 1.5, 0), "message.reikotrains.tender_fuel",
+        if (stack.is(Locomotive.FUEL)) {
+            return Locomotive.shovel(player, hand, stack, this, position().add(0, 1.5, 0), "message.reikotrains.tender_fuel",
                     "message.reikotrains.tender_full");
         }
         if (!level().isClientSide) {
@@ -148,9 +122,8 @@ public class Tender extends TrainCarEntity implements FuelStore, Container {
 
     @Override
     public void destroy(Item dropItem) {
-        if (!level().isClientSide && !chute.isEmpty()) {
-            Containers.dropItemStack(level(), getX(), getY() + 1, getZ(), chute);
-            chute = ItemStack.EMPTY;
+        if (!level().isClientSide) {
+            chute.drop(this);
         }
         super.destroy(dropItem);
     }
@@ -164,16 +137,14 @@ public class Tender extends TrainCarEntity implements FuelStore, Container {
     protected void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putDouble("Fuel", fuel);
-        if (!chute.isEmpty()) {
-            tag.put("Chute", chute.save(registryAccess()));
-        }
+        chute.save(tag, registryAccess());
     }
 
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         setFuel(tag.getDouble("Fuel"));
-        chute = tag.contains("Chute") ? ItemStack.parse(registryAccess(), tag.getCompound("Chute")).orElse(ItemStack.EMPTY) : ItemStack.EMPTY;
+        chute.load(tag, registryAccess());
     }
 
     // ----------------------------------------------------------------------------------------------------------------
@@ -191,38 +162,34 @@ public class Tender extends TrainCarEntity implements FuelStore, Container {
 
     @Override
     public ItemStack getItem(int slot) {
-        return slot == 0 ? chute : ItemStack.EMPTY;
+        return slot == 0 ? chute.get() : ItemStack.EMPTY;
     }
 
     @Override
     public ItemStack removeItem(int slot, int amount) {
-        return slot == 0 && !chute.isEmpty() ? chute.split(amount) : ItemStack.EMPTY;
+        return slot == 0 ? chute.take(amount) : ItemStack.EMPTY;
     }
 
     @Override
     public ItemStack removeItemNoUpdate(int slot) {
-        ItemStack taken = chute;
-        chute = ItemStack.EMPTY;
-        return slot == 0 ? taken : ItemStack.EMPTY;
+        return slot == 0 ? chute.takeAll() : ItemStack.EMPTY;
     }
 
     @Override
     public void setItem(int slot, ItemStack stack) {
         if (slot == 0) {
-            chute = stack;
-            tipChute();
+            chute.set(stack);
         }
     }
 
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
-        return stack.is(SteamLocomotive.FUEL) && stack.getBurnTime(RecipeType.SMELTING) > 0;
+        return chute.accepts(stack);
     }
 
-    /** Hoppers can't take the coal back out, only what's left of it (empty buckets). */
     @Override
     public boolean canTakeItem(Container target, int slot, ItemStack stack) {
-        return !stack.is(SteamLocomotive.FUEL);
+        return chute.canTake(stack);
     }
 
     @Override
@@ -236,6 +203,6 @@ public class Tender extends TrainCarEntity implements FuelStore, Container {
 
     @Override
     public void clearContent() {
-        chute = ItemStack.EMPTY;
+        chute.clear();
     }
 }

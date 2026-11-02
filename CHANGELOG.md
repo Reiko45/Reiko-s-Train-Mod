@@ -2,6 +2,20 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.7.0
+
+The diesel.
+
+- Diesel Locomotive: a blue road-switcher with yellow warning ends, 7 blocks long on two bogies, with a high cab to
+  see over its long hood. It pulls harder than either steam engine (52 km/h flat out) and uses less fuel, especially
+  standing still. Two-tone horn, an engine that rumbles louder and higher as the throttle opens, and exhaust that
+  smokes harder as it works.
+- Diesel Fuel: canisters (an iron nugget and four coal or charcoal) for the diesel's tank, which holds ten. Steam
+  engines won't take it and the diesel won't take coal. Hoppers and wagon loaders refuel diesels; a canister also
+  burns in a furnace.
+- Under the hood: steam and diesel locomotives now share a `Locomotive` base class.
+- Five new game tests: 61 in all.
+
 ## 0.6.0
 
 A second locomotive, and trains with more than one.

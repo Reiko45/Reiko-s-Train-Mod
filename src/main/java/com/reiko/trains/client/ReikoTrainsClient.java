@@ -3,6 +3,8 @@ package com.reiko.trains.client;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.reiko.trains.ReikoTrains;
 import com.reiko.trains.client.model.geometry.BogieGeometry;
+import com.reiko.trains.client.model.geometry.DieselBogieGeometry;
+import com.reiko.trains.client.model.geometry.DieselLocomotiveGeometry;
 import com.reiko.trains.client.model.geometry.ExpressLocomotiveGeometry;
 import com.reiko.trains.client.model.geometry.TenderGeometry;
 import com.reiko.trains.client.model.geometry.FreightWagonGeometry;
@@ -12,7 +14,8 @@ import com.reiko.trains.network.TrainControlPayload;
 import com.reiko.trains.registry.ModBlockEntities;
 import com.reiko.trains.registry.ModEntities;
 import com.reiko.trains.registry.ModMenus;
-import com.reiko.trains.train.SteamLocomotive;
+import com.reiko.trains.train.DieselLocomotive;
+import com.reiko.trains.train.Locomotive;
 import java.util.function.Function;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -33,6 +36,7 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
@@ -52,6 +56,8 @@ public final class ReikoTrainsClient {
     static final ModelLayerLocation BOGIE_LAYER = new ModelLayerLocation(ReikoTrains.id("bogie"), "main");
     static final ModelLayerLocation EXPRESS_LAYER = new ModelLayerLocation(ReikoTrains.id("express_locomotive"), "main");
     static final ModelLayerLocation TENDER_LAYER = new ModelLayerLocation(ReikoTrains.id("tender"), "main");
+    static final ModelLayerLocation DIESEL_LAYER = new ModelLayerLocation(ReikoTrains.id("diesel_locomotive"), "main");
+    static final ModelLayerLocation DIESEL_BOGIE_LAYER = new ModelLayerLocation(ReikoTrains.id("diesel_bogie"), "main");
 
     /** Ticks until a held throttle key moves another notch. */
     private static int throttleRepeat;
@@ -68,6 +74,7 @@ public final class ReikoTrainsClient {
         modBus.addListener(ReikoTrainsClient::registerHud);
         modBus.addListener(ReikoTrainsClient::registerScreens);
         NeoForge.EVENT_BUS.addListener(ReikoTrainsClient::onClientTick);
+        NeoForge.EVENT_BUS.addListener(ReikoTrainsClient::onEntityJoin);
         NeoForge.EVENT_BUS.addListener(TrackPreview::render);
     }
 
@@ -78,6 +85,8 @@ public final class ReikoTrainsClient {
         event.registerLayerDefinition(BOGIE_LAYER, BogieGeometry::create);
         event.registerLayerDefinition(EXPRESS_LAYER, ExpressLocomotiveGeometry::create);
         event.registerLayerDefinition(TENDER_LAYER, TenderGeometry::create);
+        event.registerLayerDefinition(DIESEL_LAYER, DieselLocomotiveGeometry::create);
+        event.registerLayerDefinition(DIESEL_BOGIE_LAYER, DieselBogieGeometry::create);
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -95,6 +104,10 @@ public final class ReikoTrainsClient {
                 c -> new TrainModel(c.bakeLayer(TENDER_LAYER), TenderGeometry.WHEELS, TenderGeometry.WHEEL_RADII, new String[0], 0.0F, 1.0F,
                         TenderGeometry.CARGO),
                 null, ReikoTrains.id("textures/entity/tender.png")));
+        event.registerEntityRenderer(ModEntities.DIESEL_LOCOMOTIVE.get(), context -> new TrainCarRenderer<>(context,
+                c -> TrainModel.simple(c.bakeLayer(DIESEL_LAYER), new String[0], new float[0]),
+                c -> TrainModel.simple(c.bakeLayer(DIESEL_BOGIE_LAYER), DieselBogieGeometry.WHEELS, DieselBogieGeometry.WHEEL_RADII),
+                ReikoTrains.id("textures/entity/diesel_locomotive.png"), ReikoTrains.id("textures/entity/diesel_bogie.png")));
         event.registerEntityRenderer(ModEntities.PASSENGER_COACH.get(), context -> new TrainCarRenderer<>(context,
                 c -> TrainModel.simple(c.bakeLayer(COACH_LAYER), new String[0], new float[0]),
                 bogie, ReikoTrains.id("textures/entity/passenger_coach.png")));
@@ -117,6 +130,13 @@ public final class ReikoTrainsClient {
         event.register(ModMenus.FREIGHT_WAGON.get(), FreightWagonScreen::new);
     }
 
+    /** A diesel arriving in the client's world starts its engine sound (silent while it's shut down). */
+    private static void onEntityJoin(EntityJoinLevelEvent event) {
+        if (event.getLevel().isClientSide() && event.getEntity() instanceof DieselLocomotive diesel) {
+            Minecraft.getInstance().getSoundManager().play(new DieselEngineSound(diesel));
+        }
+    }
+
     private static void onClientTick(ClientTickEvent.Post event) {
         TrackPreview.tick();
         drive();
@@ -126,7 +146,7 @@ public final class ReikoTrainsClient {
     private static void drive() {
         Minecraft minecraft = Minecraft.getInstance();
         LocalPlayer player = minecraft.player;
-        boolean driving = player != null && player.getVehicle() instanceof SteamLocomotive locomotive && locomotive.driver() == player;
+        boolean driving = player != null && player.getVehicle() instanceof Locomotive locomotive && locomotive.driver() == player;
         if (!driving) {
             wasDriving = false;
             wasUp = wasDown = wasBraking = false;

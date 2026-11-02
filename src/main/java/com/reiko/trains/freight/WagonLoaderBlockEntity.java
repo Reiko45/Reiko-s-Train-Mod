@@ -4,6 +4,7 @@ import com.reiko.trains.config.TrainsConfig;
 import com.reiko.trains.registry.ModBlockEntities;
 import com.reiko.trains.track.TrackEdge;
 import com.reiko.trains.track.TrackGraph;
+import com.reiko.trains.train.DieselLocomotive;
 import com.reiko.trains.train.FreightWagon;
 import com.reiko.trains.train.Tender;
 import com.reiko.trains.train.TrainCarEntity;
@@ -126,8 +127,8 @@ public class WagonLoaderBlockEntity extends BlockEntity {
         for (TrainCarEntity car : train) {
             if (car instanceof FreightWagon wagon) {
                 wagons.add(wagon);
-            } else if (car instanceof Tender tender) {
-                tenders.add(new InvWrapper(tender));
+            } else if (car instanceof Tender || car instanceof DieselLocomotive) {
+                tenders.add(new InvWrapper((net.minecraft.world.Container) car)); // their fuel chutes take only their fuel
             }
         }
         loader.wagons = wagons;
@@ -139,7 +140,7 @@ public class WagonLoaderBlockEntity extends BlockEntity {
             List<IItemHandler> storage = loader.storage();
             int moved;
             if (loader.mode() == LoaderMode.LOAD) {
-                // Tenders take fuel first (only fuel: their chutes take nothing else), then the wagons fill.
+                // Tenders and diesels take their fuel first (their chutes take nothing else), then the wagons fill.
                 List<IItemHandler> targets = new ArrayList<>(tenders);
                 targets.addAll(handlers(wagons));
                 moved = move(storage, targets, budget);

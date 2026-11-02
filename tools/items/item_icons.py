@@ -48,6 +48,12 @@ PALETTE = {
     "M": (86, 20, 26, 255),     # dark crimson
     "a": (60, 60, 66, 255),     # cab roof
     "e": (226, 196, 92, 255),   # lining
+    "d": (36, 70, 122, 255),    # diesel blue
+    "D": (24, 48, 88, 255),     # dark diesel blue
+    "Y": (232, 190, 40, 255),   # warning yellow
+    "f": (196, 160, 40, 255),   # fuel can
+    "F": (150, 118, 24, 255),   # fuel can, dark
+    "o": (60, 44, 20, 255),     # the fuel
 }
 
 ICONS = {
@@ -85,6 +91,42 @@ ICONS = {
         "www.wmsmmwmsmmw.",
         "....wmmmmwmmmmw.",
         ".....wwww.wwww..",
+        "................",
+    ],
+    "diesel_locomotive": [
+        "................",
+        "................",
+        "................",
+        "...........aaaa.",
+        "....kk.kk..dlld.",
+        "...........dlld.",
+        "YddddddddddddddY",
+        "YddDdDdDddddddddY"[:16],
+        "YddddddddddddddY",
+        "YwwwwwwwwwwwwwwY",
+        "kkkkkkkkkkkkkkkk",
+        ".kkkkk....kkkkk.",
+        ".wsw.w....wsw.w.",
+        ".www.w....www.w.",
+        "................",
+        "................",
+    ],
+    "diesel_fuel": [
+        "................",
+        ".......KK.......",
+        "...KKKKssK......",
+        "..KfffffKK......",
+        "..KfffffffK.....",
+        "..KfFFFFFfK.....",
+        "..KfFoooFfK.....",
+        "..KfFoooFfK.....",
+        "..KfFoooFfK.....",
+        "..KfFFFFFfK.....",
+        "..KfffffffK.....",
+        "..KfFfFfFfK.....",
+        "..KfffffffK.....",
+        "..KFFFFFFFK.....",
+        "...KKKKKKK......",
         "................",
     ],
     "tender": [
