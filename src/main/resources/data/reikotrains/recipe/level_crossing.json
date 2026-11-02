@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "L": {
+      "item": "minecraft:redstone_lamp"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "R": {
+      "item": "minecraft:red_dye"
+    },
+    "W": {
+      "item": "minecraft:white_dye"
+    },
+    "B": {
+      "item": "minecraft:bell"
+    }
+  },
+  "pattern": [
+    "L L",
+    "RIW",
+    " B "
+  ],
+  "result": {
+    "count": 1,
+    "id": "reikotrains:level_crossing"
+  }
+}

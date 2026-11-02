@@ -5,6 +5,8 @@ import com.reiko.trains.freight.WagonLoaderBlock;
 import com.reiko.trains.freight.WagonLoaderBlockEntity;
 import com.reiko.trains.item.TrainCarItem;
 import com.reiko.trains.registry.ModBlocks;
+import com.reiko.trains.signal.LevelCrossingBlock;
+import com.reiko.trains.signal.LevelCrossingBlockEntity;
 import com.reiko.trains.signal.SignalBlock;
 import com.reiko.trains.signal.SignalBlockEntity;
 import com.reiko.trains.signal.StationBlock;
@@ -122,6 +124,23 @@ public final class TestTracks {
         WagonLoaderBlockEntity loader = (WagonLoaderBlockEntity) level.getBlockEntity(pos);
         loader.attach(node);
         return loader;
+    }
+
+    /**
+     * A level crossing at {@code pos} for the nearest track block, its arm coming down towards {@code facing}, as if a
+     * player had put it there.
+     */
+    public static LevelCrossingBlockEntity levelCrossing(ServerLevel level, BlockPos pos, Direction facing, int length) {
+        level.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 2);
+        BlockPos node = TrackSide.nearestTrack(level, pos);
+        if (node == null) {
+            throw new IllegalStateException("No track near " + pos.toShortString() + " for a level crossing");
+        }
+        level.setBlock(pos, ModBlocks.LEVEL_CROSSING.get().defaultBlockState().setValue(LevelCrossingBlock.FACING, facing)
+                .setValue(LevelCrossingBlock.LENGTH, length), 3);
+        LevelCrossingBlockEntity crossing = (LevelCrossingBlockEntity) level.getBlockEntity(pos);
+        crossing.attach(node);
+        return crossing;
     }
 
     /** A timetable stop for a station. */

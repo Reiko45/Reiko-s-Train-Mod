@@ -39,5 +39,14 @@
       }
     ],
     "subtitle": "subtitles.reikotrains.diesel_engine"
+  },
+  "crossing_bell": {
+    "sounds": [
+      {
+        "name": "reikotrains:crossing_bell",
+        "attenuation_distance": 24
+      }
+    ],
+    "subtitle": "subtitles.reikotrains.crossing_bell"
   }
 }

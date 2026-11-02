@@ -39,6 +39,8 @@ give them a timetable and let them run between the stations on their own.
 - **Coupler**: joins cars into trains.
 - **Railway Signal**: red while there's a train on the line ahead, green when it's clear. Trains stop for red.
 - **Switch Stand**: sets which way trains go at a junction. Flip it by hand, or set and hold it with redstone.
+- **Level Crossing**: where a road crosses the line, lamps that flash, a bell that rings and a barrier arm that comes
+  down across the road while a train goes by. Cars from Reiko's Car Mod can't get through it.
 - **Station**: a nameboard beside the track. Trains stop with their front level with it.
 - **Timetable**: a list of stations for a train to run between by itself.
 
@@ -84,6 +86,7 @@ or ramp can cross gaps between them, so bridges are just long curves. Leave thre
 | Railway Signal (2) | Redstone lamp, iron ingot, iron ingot (a column) |
 | Switch Stand | Lever, iron ingot, iron ingot (a column) |
 | Station | Any sign, iron ingot, iron ingot (a column) |
+| Level Crossing | Redstone lamps in the top corners; red dye, iron ingot, white dye; a bell in the bottom middle |
 | Timetable | Two paper and a clock |
 | Wagon Loader | Iron ingot, hopper, iron ingot; iron ingot, chest, iron ingot |
 
@@ -205,6 +208,7 @@ In `serverconfig/reikotrains-server.toml` in each world:
 | `maxTrainLength` | `16` | The most cars in one train |
 | `loaderSpeed` | `640` | How many items a wagon loader moves a second (640 fills a wagon in about 11 seconds) |
 | `fallbackDieselEnergyPerBucket` | `96000` | MJ in a bucket of a diesel fluid BuildCraft has no fuel value for |
+| `crossingWarningSeconds` | `10` | How long before a train arrives level crossings start warning |
 
 The fuel steam engines take is the item tag `reikotrains:locomotive_fuel`, and the diesel's is the fluid tag
 `reikotrains:diesel` (BuildCraft's Dense Fuel and Mixed Heavy Fuels, and `c:diesel`, `c:biodiesel` and the like, as
@@ -258,6 +262,28 @@ the cars behind follow the engine.
 ![A train on a timetable sets the switch for the branch](docs/screenshots/switch_branch.jpg)
 
 ![The gauges: the switch 3 m ahead is set to the right](docs/screenshots/switch_gauges.png)
+
+## Level crossings
+
+Where a road crosses the line, put a **Level Crossing** at the side of the road, within three blocks of the track,
+from the road: its arm comes down **towards you**, across the road. Click the post to set how far the arm reaches
+(one to eight blocks; it starts at four). Real crossings have one on each side of the line, and often one on each side
+of the road too, their arms meeting in the middle.
+
+When a train is coming, due at the crossing within ten seconds (a server setting), the two red lamps on each face of
+the post start flashing turn about and the bell rings. Three seconds later the arm swings down, taking two seconds
+over it. It stays down while any part of a train is on the crossing (within eight blocks of the track block nearest
+the post), and goes back up when the last train's gone by and no other is coming; the lamps go out once it's up. A
+train heading away doesn't set it off, nor one standing a little way off, waiting.
+
+While the arm is down nothing can drive through it: under the arm there's an unseen barrier a block and a half high,
+taller than the car mod's cars can climb, so they stop and wait. (Put the post on the same level as the road.) Where
+something is standing under the arm as it comes down, it leaves a gap there so nothing's trapped, and fills it in once
+it's moved. The crossing also gives off a **redstone** signal while it's warning, for your own lamps or bells.
+
+![The lamps flash and the arms are down: a train is coming](docs/screenshots/crossing_closed.jpg)
+
+![A train runs over the crossing](docs/screenshots/crossing_train.jpg)
 
 ## Stations and timetables
 
@@ -355,6 +381,10 @@ waiting at a signal, taking a branch to reach its station, handing over to a dri
 sharing a signalled loop without ever meeting. `SwitchGameTests` covers switch stands finding their junction, the marker showing what redstone does,
 clicking and redstone (holding it thrown or straight on), three-way junctions, drivers going the way the switch is set whatever they steer, throwing a
 switch under a train without splitting it, and timetabled trains setting switches their way or obeying a held one.
+`CrossingGameTests` covers level crossings: a train on the crossing setting the lamps going, then the arm and its
+barrier (too tall to drive over) coming down and going up again, the redstone signal, warning ahead of an
+approaching train and opening once it's past, ignoring a train going away, leaving a gap for something under the arm,
+clicking to change the arm's length, and breaking the post taking its barrier with it.
 `LocomotiveGameTests` covers the diesel (filling it with buckets of BuildCraft's Dense Fuel and Mixed Heavy Fuels but
 not coal or water, steam engines refusing diesel, BuildCraft's energy values and the tank size, pulling harder,
 running a timetable with a steam engine helping, a wagon loader pumping it full from a BuildCraft tank), the
@@ -377,9 +407,12 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
 
 - `tools/models/train_models.py`: the train models (locomotive, coach, wagon, bogie). One part list per model makes
   both the Java geometry (`client/model/geometry/`, don't edit those by hand) and the matching texture.
-- `tools/blocks/track_assets.py`: the track's textures and block models, and the wagon's screen.
+- `tools/blocks/track_assets.py`: the track's textures and block models (and the signals', switch stands', level
+  crossings' and wagon loader's), and the screens.
 - `tools/items/item_icons.py`: the item icons and the mod list logo.
-- `tools/sounds/train_sounds.py`: the whistle, the chuffs and the coupling clank, synthesised.
+- `tools/sounds/train_sounds.py`: the whistle, the chuffs, the coupling clank, the diesel's horn and engine, and the
+  level crossing's bell, synthesised. Name the ones to remake (`python3 tools/sounds/train_sounds.py crossing_bell`):
+  Vorbis encoding isn't byte-for-byte repeatable, so remaking the rest just changes their files.
 
 ### How it works
 
@@ -395,7 +428,10 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
 - **Signals, switches and stations** (`signal/`): each is tied to a track block. A signal works out its section (the
   track ahead up to the next signals) and checks it for trains. A switch stand works one side of a junction block.
   `TrackSide` keeps track of which are at which block, so trains look them up as they go: wherever a train chooses
-  its way (driving, looking ahead, or a timetable's route), a switch there decides.
+  its way (driving, looking ahead, or a timetable's route), a switch there decides. A level crossing maps the track
+  either way from its block and works out how far off each train is and whether it's coming; while its arm's down it
+  puts unseen `CrossingArmBlock`s in the road, which go when it goes up (or check for themselves and go if they're
+  left behind).
 - **Freight** (`freight/`): a wagon loader finds the train standing at its track block each couple of ticks and moves
   goods between the storage next to it and the train's wagons through NeoForge item handlers. It keeps a list of
   loaded loaders, so a timetabled train can ask whether any is still busy with it.
@@ -403,8 +439,8 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
   stations and the end of the track, and slows to stop in time for a red signal (or its station). A timetabled train's
   `Autopilot` searches the track for the way to its next station.
 - **Client** (`client/`): `TrainCarRenderer` draws a car and its swinging bogies, `TrackRenderer` draws curves,
-  `TrackPreview` the outline while you lay track, `StationRenderer` the names on the boards, and `TrainHud` the cab
-  gauges.
+  `TrackPreview` the outline while you lay track, `StationRenderer` the names on the boards, `LevelCrossingRenderer`
+  the crossings' arms and flashing lamps, and `TrainHud` the cab gauges.
 
 ## License
 

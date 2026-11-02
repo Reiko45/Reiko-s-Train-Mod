@@ -2,6 +2,19 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.12.0
+
+Level crossings.
+
+- New block: the **Level Crossing**. Put it beside a road where it crosses the line (within three blocks of the
+  track). When a train is coming its two red lamps flash turn about and its bell rings; three seconds later its
+  red-and-white arm swings down across the road, and it goes back up once the train has gone by.
+- While the arm is down, an unseen barrier a block and a half high stops traffic, so cars from Reiko's Car Mod stop
+  and wait. It leaves a gap where something is standing under the arm.
+- Click the post to change the arm's length (one to eight blocks). It gives off a redstone signal while it's warning.
+- New server setting `crossingWarningSeconds` (default 10): how long before a train arrives crossings start warning.
+- Six new game tests: 79 in all.
+
 ## 0.11.0
 
 - Switch stands have a marker on the post showing what redstone does to them: yellow, it throws the switch; green, it

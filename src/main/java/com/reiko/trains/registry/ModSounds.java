@@ -14,6 +14,7 @@ public final class ModSounds {
     public static final Supplier<SoundEvent> COUPLE = register("couple");
     public static final Supplier<SoundEvent> DIESEL_HORN = register("diesel_horn");
     public static final Supplier<SoundEvent> DIESEL_ENGINE = register("diesel_engine");
+    public static final Supplier<SoundEvent> CROSSING_BELL = register("crossing_bell");
 
     private ModSounds() {
     }

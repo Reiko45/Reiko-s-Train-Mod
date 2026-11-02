@@ -538,6 +538,61 @@ def loader_models():
         json.dump({"variants": variants}, out, indent=2)
 
 
+def crossing_textures():
+    solid("crossing_arm_white", (236, 234, 226), noise_amount=0.03)
+    solid("crossing_arm_red", (196, 34, 28), noise_amount=0.04)
+    # The lamp board's face, 14 x 7 in the top left: black, with a white rim.
+    board = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            c = shade((22, 22, 24), 1 + 0.05 * noise("crossing_board", x, y))
+            if x < 14 and y < 7 and (x in (0, 13) or y in (0, 6)):
+                c = shade((236, 234, 226), 1)
+            board.putpixel((x, y), c)
+    board.save(f"{ASSETS}/textures/block/crossing_board.png")
+
+
+def crossing_models():
+    """
+    The level crossing's post (it faces north: the arm comes down towards -z): a base, a pole, the arm's mechanism box
+    on its right, and on top a board with two red lamps on each face, hooded. The arm and the lit lamps are drawn by
+    its renderer, as they move and flash.
+    """
+    tex = {"particle": "reikotrains:block/signal_metal", "metal": "reikotrains:block/signal_metal",
+           "head": "reikotrains:block/signal_head", "board": "reikotrains:block/crossing_board",
+           "lamp": "reikotrains:block/signal_red_off"}
+    board_faces = {"east": ("#board", [0, 0, 14, 7]), "west": ("#board", [0, 0, 14, 7]),
+                   "north": ("#head", [0, 0, 2, 7]), "south": ("#head", [0, 0, 2, 7]),
+                   "up": ("#head", [0, 0, 2, 14]), "down": ("#head", [0, 0, 2, 14])}
+    elements = [
+        element([5, 0, 5], [11, 2, 11], all_faces("#metal", (0, 0, 6, 6))),
+        element([7, 2, 7], [9, 21, 9], all_faces("#metal", (0, 0, 2, 16))),
+        element([9, 10, 5.5], [12, 19, 10.5], all_faces("#head", (0, 0, 5, 9))),
+        element([7, 21, 1], [9, 28, 15], board_faces),
+    ]
+    for z in (4, 12):
+        for x0, x1, face, hood in ((9, 9.25, "east", (9, 11)), (6.75, 7, "west", (5, 7))):
+            elements.append(element([x0, 22, z - 2.5], [x1, 27, z + 2.5], {face: ("#lamp", [0, 0, 16, 16])}))
+            elements.append(element([hood[0], 27, z - 3], [hood[1], 27.5, z + 3], all_faces("#head", (0, 0, 2, 6))))
+    model = {"parent": "block/block", "ambientocclusion": False, "textures": tex, "elements": elements}
+    with open(f"{ASSETS}/models/block/level_crossing.json", "w") as out:
+        json.dump(model, out, indent=2)
+    multipart = []
+    for facing, y in (("north", 0), ("east", 90), ("south", 180), ("west", 270)):
+        apply = {"model": "reikotrains:block/level_crossing"}
+        if y:
+            apply["y"] = y
+        multipart.append({"when": {"facing": facing}, "apply": apply})
+    with open(f"{ASSETS}/blockstates/level_crossing.json", "w") as out:
+        json.dump({"multipart": multipart}, out, indent=2)
+    # The barrier under the lowered arm can't be seen: a model with nothing in it.
+    with open(f"{ASSETS}/models/block/level_crossing_arm.json", "w") as out:
+        json.dump({"textures": {"particle": "reikotrains:block/crossing_arm_white"}}, out, indent=2)
+    with open(f"{ASSETS}/blockstates/level_crossing_arm.json", "w") as out:
+        json.dump({"variants": {"axis=x": {"model": "reikotrains:block/level_crossing_arm"},
+                                "axis=z": {"model": "reikotrains:block/level_crossing_arm"}}}, out, indent=2)
+
+
 def signals_and_stations():
     signal_textures()
     signal_models()
@@ -546,6 +601,8 @@ def signals_and_stations():
     switch_models()
     loader_textures()
     loader_models()
+    crossing_textures()
+    crossing_models()
 
 
 if __name__ == "__main__":

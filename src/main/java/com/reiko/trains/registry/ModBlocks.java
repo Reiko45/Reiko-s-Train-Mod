@@ -2,6 +2,8 @@ package com.reiko.trains.registry;
 
 import com.reiko.trains.ReikoTrains;
 import com.reiko.trains.freight.WagonLoaderBlock;
+import com.reiko.trains.signal.CrossingArmBlock;
+import com.reiko.trains.signal.LevelCrossingBlock;
 import com.reiko.trains.signal.SignalBlock;
 import com.reiko.trains.signal.StationBlock;
 import com.reiko.trains.signal.SwitchBlock;
@@ -29,6 +31,13 @@ public final class ModBlocks {
     public static final DeferredBlock<WagonLoaderBlock> WAGON_LOADER = BLOCKS.register("wagon_loader", () -> new WagonLoaderBlock(BlockBehaviour.Properties.of()
             .strength(2.5F).sound(SoundType.METAL).requiresCorrectToolForDrops()
             .lightLevel(state -> state.getValue(WagonLoaderBlock.ACTIVE) ? 4 : 0)));
+
+    public static final DeferredBlock<LevelCrossingBlock> LEVEL_CROSSING = BLOCKS.register("level_crossing", () -> new LevelCrossingBlock(
+            BlockBehaviour.Properties.of().strength(1.5F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK)));
+    /** The unseen barrier under a lowered level crossing arm. */
+    public static final DeferredBlock<CrossingArmBlock> CROSSING_ARM = BLOCKS.register("level_crossing_arm", () -> new CrossingArmBlock(
+            BlockBehaviour.Properties.of().strength(-1.0F, 3600000.0F).noLootTable().noOcclusion().randomTicks()
+                    .pushReaction(PushReaction.BLOCK).isValidSpawn((state, level, pos, type) -> false)));
 
     private ModBlocks() {
     }

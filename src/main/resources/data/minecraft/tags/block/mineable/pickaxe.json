@@ -5,6 +5,7 @@
     "reikotrains:signal",
     "reikotrains:station",
     "reikotrains:switch_stand",
-    "reikotrains:wagon_loader"
+    "reikotrains:wagon_loader",
+    "reikotrains:level_crossing"
   ]
 }

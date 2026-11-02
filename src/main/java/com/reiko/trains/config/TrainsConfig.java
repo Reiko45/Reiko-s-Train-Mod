@@ -35,6 +35,10 @@ public final class TrainsConfig {
             .comment("How many items a wagon loader moves a second. 640 (ten stacks) fills a freight wagon in about 11",
                     "seconds. Two loaders at one train work twice as fast.")
             .defineInRange("loaderSpeed", 640, 1, 100000);
+    public static final ModConfigSpec.IntValue CROSSING_WARNING = BUILDER
+            .comment("How many seconds before a train gets to a level crossing its lamps start flashing. The barrier comes",
+                    "down three seconds after that, taking two seconds over it.")
+            .defineInRange("crossingWarningSeconds", 10, 6, 30);
 
     public static final ModConfigSpec SPEC = BUILDER.build();
 

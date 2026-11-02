@@ -128,6 +128,7 @@ public final class ReikoTrainsClient {
                 bogie, ReikoTrains.id("textures/entity/freight_wagon.png")));
         event.registerBlockEntityRenderer(ModBlockEntities.TRACK.get(), TrackRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.STATION.get(), StationRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.LEVEL_CROSSING.get(), LevelCrossingRenderer::new);
     }
 
     private static void registerKeys(RegisterKeyMappingsEvent event) {

@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "reikotrains:block/level_crossing_arm"
+    },
+    "axis=z": {
+      "model": "reikotrains:block/level_crossing_arm"
+    }
+  }
+}

@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """
-Synthesises the mod's sounds (a three-chime steam whistle, exhaust chuffs, a coupling clank, a diesel's two-tone horn
-and the loop of its engine running) and encodes them
-as mono Ogg Vorbis (mono, so Minecraft plays them from where they happen). Needs numpy and ffmpeg. Run from the
-repository root:
+Synthesises the mod's sounds (a three-chime steam whistle, exhaust chuffs, a coupling clank, a diesel's two-tone horn,
+the loop of its engine running and a level crossing's bell) and encodes them as mono Ogg Vorbis (mono, so Minecraft
+plays them from where they happen). Needs numpy and ffmpeg. Run from the repository root, naming the sounds to make
+(all of them, if none are named; Vorbis encoding isn't byte-for-byte repeatable, so remaking one that hasn't changed
+just churns the file):
 
-    python3 tools/sounds/train_sounds.py
+    python3 tools/sounds/train_sounds.py [crossing_bell ...]
 """
 import os
 import subprocess
+import sys
 import tempfile
 import wave
 
@@ -138,6 +140,26 @@ def engine():
     return out
 
 
+def bell():
+    """
+    One stroke of a level crossing bell: a hammer striking a small steel gong. A bell's overtones aren't in tune with
+    each other; the high ones die away first, leaving the hum. It's rung twice a second.
+    """
+    duration = 0.5
+    n = int(duration * RATE)
+    t = np.arange(n) / RATE
+    rng = np.random.default_rng(13)
+    out = np.zeros(n)
+    base = 880.0
+    for ratio, level, tau in ((0.5, 0.35, 0.30), (1.0, 1.0, 0.22), (1.19, 0.55, 0.16), (1.51, 0.5, 0.12), (2.0, 0.45, 0.10),
+                              (2.51, 0.3, 0.07), (3.34, 0.2, 0.05)):
+        out += level * np.sin(2 * np.pi * base * ratio * t + rng.uniform(0, 6.28)) * np.exp(-t / tau)
+    strike = band(rng.standard_normal(n), 2000, 9000) * np.exp(-t / 0.004)
+    out = out / np.max(np.abs(out)) + strike / np.max(np.abs(strike)) * 0.35
+    out *= envelope(n, 0.001, 0.08)
+    return out
+
+
 def write(name, samples, peak=0.85):
     samples = samples / np.max(np.abs(samples)) * peak
     pcm = (samples * 32767).astype(np.int16)
@@ -156,15 +178,23 @@ def write(name, samples, peak=0.85):
     print(f"{name}.ogg: {len(samples) / RATE:.2f}s")
 
 
-def main():
-    write("steam_whistle", whistle())
-    write("chuff1", chuff(11), 0.8)
-    write("chuff2", chuff(23), 0.8)
-    write("chuff3", chuff(41), 0.8)
-    write("couple", clank(), 0.8)
-    write("diesel_horn", horn(), 0.85)
-    write("diesel_engine", engine(), 0.7)
+SOUNDS = {
+    "steam_whistle": (whistle, 0.85),
+    "chuff1": (lambda: chuff(11), 0.8),
+    "chuff2": (lambda: chuff(23), 0.8),
+    "chuff3": (lambda: chuff(41), 0.8),
+    "couple": (clank, 0.8),
+    "diesel_horn": (horn, 0.85),
+    "diesel_engine": (engine, 0.7),
+    "crossing_bell": (bell, 0.8),
+}
+
+
+def main(names):
+    for name in names or SOUNDS:
+        make, peak = SOUNDS[name]
+        write(name, make(), peak)
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

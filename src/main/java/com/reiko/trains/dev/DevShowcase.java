@@ -151,6 +151,8 @@ public final class DevShowcase {
      * the south a loop (straights at z = 14 and z = 38, x 12 to 42, radius-12 ends) signalled for trains going round
      * clockwise, with two stations (Northgate, Southport) and two trains running between them on timetables.
      */
+    /** The line with the level crossings on it, along x at this z. */
+    private static final int CROSSING_LINE = -48;
     /** The switch stand for the junction at x = 52. */
     private static final BlockPos SWITCH = new BlockPos(52, Y, -2);
 
@@ -229,6 +231,24 @@ public final class DevShowcase {
         Trains.couple(Trains.train(diesel).getLast(), tanker);
         diesel.setFuel(DieselLocomotive.FUEL_CAPACITY * 0.7);
         TestTracks.station(level, new BlockPos(85, Y, -39), new BlockPos(85, Y, -36), "Freight Yard", 10);
+
+        // A fourth line, furthest north, with a road crossing it at x = 38 to 41 between two level crossings (their arms
+        // over the road three blocks either side of the track), and a train waiting well back to run over it.
+        TestTracks.line(level, new BlockPos(-60, Y, CROSSING_LINE), TrackAxis.X, 150);
+        for (int x = 38; x <= 41; x++) {
+            for (int z = CROSSING_LINE - 10; z <= CROSSING_LINE + 8; z++) {
+                level.setBlock(new BlockPos(x, Y - 1, z), Blocks.GRAY_CONCRETE.defaultBlockState(), 2);
+            }
+        }
+        TestTracks.levelCrossing(level, new BlockPos(42, Y, CROSSING_LINE - 3), net.minecraft.core.Direction.WEST, 4);
+        TestTracks.levelCrossing(level, new BlockPos(37, Y, CROSSING_LINE + 3), net.minecraft.core.Direction.EAST, 4);
+        TestTracks.station(level, new BlockPos(85, Y, CROSSING_LINE - 3), new BlockPos(85, Y, CROSSING_LINE), "Crossing Halt", 10);
+        Locomotive crosser = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(-40, Y, CROSSING_LINE), EAST);
+        PassengerCoach crosserFirst = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(-47, Y, CROSSING_LINE), EAST);
+        PassengerCoach crosserSecond = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(-54, Y, CROSSING_LINE), EAST);
+        Trains.couple(crosserFirst, crosserSecond);
+        Trains.couple(crosser, crosserFirst);
+        crosser.setFuel(32000);
 
         Locomotive a = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(22, Y, 14), EAST);
         PassengerCoach aCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(15, Y, 14), EAST);
@@ -408,6 +428,20 @@ public final class DevShowcase {
             look(mc, 51.0, Y, -4.4, -28.0F, 12.0F);
         });
         at(1500, mc -> shot(mc, "25_switch_held_straight"));
-        at(1510, Minecraft::stop);
+        // The level crossings: a train sets off well back; the lamps flash, the arms come down, and it runs over
+        at(1502, mc -> {
+            look(mc, 35.0, Y + 2.0, CROSSING_LINE + 8.0, -141.0F, 10.0F);
+            server(mc, player -> {
+                ServerLevel level = player.serverLevel();
+                Locomotive crosser = level.getEntitiesOfClass(Locomotive.class,
+                        new AABB(-46, Y - 2, CROSSING_LINE - 4, -34, Y + 4, CROSSING_LINE + 4)).getFirst();
+                if (level.getBlockEntity(new BlockPos(85, Y, CROSSING_LINE - 3)) instanceof StationBlockEntity halt) {
+                    crosser.autopilot().start(List.of(TestTracks.stop(halt)));
+                }
+            });
+        });
+        at(1702, mc -> shot(mc, "26_level_crossing_closed"));
+        at(1742, mc -> shot(mc, "27_level_crossing_train"));
+        at(1752, Minecraft::stop);
     }
 }

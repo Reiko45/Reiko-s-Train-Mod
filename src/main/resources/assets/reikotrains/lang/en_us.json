@@ -133,5 +133,10 @@
   "screen.reikotrains.loader.deny": "All but these",
   "screen.reikotrains.loader.allow.tooltip": "Moves only the items shown (a filled bucket stands for its fluid, for tank wagons). With nothing shown, it moves everything.",
   "screen.reikotrains.loader.deny.tooltip": "Moves everything except the items shown (a filled bucket stands for its fluid, for tank wagons).",
-  "screen.reikotrains.loader.slot": "Click with an item to add it to the filter"
+  "screen.reikotrains.loader.slot": "Click with an item to add it to the filter",
+  "block.reikotrains.level_crossing": "Level Crossing",
+  "block.reikotrains.level_crossing_arm": "Level Crossing Barrier",
+  "message.reikotrains.crossing.no_track": "A level crossing goes beside the track, within 3 blocks of it",
+  "message.reikotrains.crossing.length": "Barrier arm: %s blocks long",
+  "subtitles.reikotrains.crossing_bell": "Level crossing bell rings"
 }
