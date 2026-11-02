@@ -14,7 +14,6 @@ import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -110,20 +109,13 @@ public class FreightWagon extends TrainCarEntity implements Container {
         return InteractionResult.sidedSuccess(level().isClientSide);
     }
 
+    /** However the wagon comes apart (broken, derailed, or an old one turned back into an item), its load spills out. */
     @Override
-    protected void destroy(DamageSource source) {
+    public void destroy(Item dropItem) {
         if (!level().isClientSide) {
             Containers.dropContents(level(), this, this);
         }
-        super.destroy(source);
-    }
-
-    @Override
-    public void derail() {
-        if (!level().isClientSide) {
-            Containers.dropContents(level(), this, this);
-        }
-        super.derail();
+        super.destroy(dropItem);
     }
 
     @Override

@@ -327,15 +327,6 @@ public abstract class TrainCarEntity extends VehicleEntity {
         return (float) Mth.lerp(partialTick, rolledO, rolled);
     }
 
-    /** Client: the car's speed in km/h, from how far it went this tick. */
-    public float clientSpeedKmh() {
-        double dx = getX() - xo;
-        double dy = getY() - yo;
-        double dz = getZ() - zo;
-        double moved = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        return moved > 4.0 ? 0 : (float) (moved * 20 * 3.6);
-    }
-
     @Override
     public void lerpTo(double x, double y, double z, float yRot, float xRot, int steps) {
         lerpX = x;

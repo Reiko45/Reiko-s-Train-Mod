@@ -42,7 +42,7 @@ public class SteamLocomotive extends TrainCarEntity {
     /** The train weight the configured acceleration is for: the locomotive and two coaches. */
     private static final double REFERENCE_MASS = 6.0;
     /** The driver sits on the left of the cab, the fireman on the right. */
-    private static final Seat[] SEATS = {new Seat(-1.44, -0.5, 1.05), new Seat(-1.44, 0.5, 1.05)};
+    private static final Seat[] SEATS = {new Seat(-1.5, -0.5, 1.06), new Seat(-1.5, 0.5, 1.06)};
 
     private static final EntityDataAccessor<Integer> DATA_THROTTLE = SynchedEntityData.defineId(SteamLocomotive.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> DATA_BRAKE = SynchedEntityData.defineId(SteamLocomotive.class, EntityDataSerializers.BOOLEAN);
@@ -51,8 +51,12 @@ public class SteamLocomotive extends TrainCarEntity {
     private static final EntityDataAccessor<Integer> DATA_FUEL = SynchedEntityData.defineId(SteamLocomotive.class, EntityDataSerializers.INT);
     /** Whether the fire's lit: there's fuel (or none is needed) and a driver aboard. */
     private static final EntityDataAccessor<Boolean> DATA_STEAM = SynchedEntityData.defineId(SteamLocomotive.class, EntityDataSerializers.BOOLEAN);
+    /** The train's speed, forwards for the locomotive, in blocks per tick: for the speedometer. */
+    private static final EntityDataAccessor<Float> DATA_SPEED = SynchedEntityData.defineId(SteamLocomotive.class, EntityDataSerializers.FLOAT);
 
     private double fuel;
+    /** Drives itself as if someone were at the controls (for the dev showcase). */
+    private boolean autopilot;
     private int whistleCooldown;
     private int noFuelWarning;
     // client
@@ -71,6 +75,7 @@ public class SteamLocomotive extends TrainCarEntity {
         builder.define(DATA_STEER, 0);
         builder.define(DATA_FUEL, 0);
         builder.define(DATA_STEAM, false);
+        builder.define(DATA_SPEED, 0.0F);
     }
 
     @Override
@@ -189,7 +194,29 @@ public class SteamLocomotive extends TrainCarEntity {
 
     /** Held in place: the brake's on, or nobody's driving (the handbrake). */
     public boolean isHeld() {
-        return isBraking() || driver() == null;
+        return isBraking() || !isDriven();
+    }
+
+    /** Whether someone's at the controls. */
+    public boolean isDriven() {
+        return driver() != null || autopilot;
+    }
+
+    /** Runs the locomotive with nobody aboard, at whatever throttle it's set to (for the dev showcase). */
+    public void setAutopilot(boolean on) {
+        autopilot = on;
+    }
+
+    /** The train's speed in km/h, for the speedometer (either way). */
+    public float speedKmh() {
+        return Math.abs(entityData.get(DATA_SPEED)) * 20 * 3.6F;
+    }
+
+    /** Called by the train each tick: its speed, forwards for the locomotive. */
+    void reportSpeed(double speed) {
+        if (Math.abs(entityData.get(DATA_SPEED) - speed) > 0.002 || (speed == 0 && entityData.get(DATA_SPEED) != 0)) {
+            entityData.set(DATA_SPEED, (float) speed);
+        }
     }
 
     /**
@@ -221,7 +248,7 @@ public class SteamLocomotive extends TrainCarEntity {
             return;
         }
         Player driver = driver();
-        if (driver == null) {
+        if (!isDriven()) {
             if (getThrottle() != 0) {
                 setThrottle(0);
             }
@@ -231,11 +258,11 @@ public class SteamLocomotive extends TrainCarEntity {
             if (getSteer() != 0) {
                 setSteer(0);
             }
-        } else if (getThrottle() != 0 && !hasSteam() && --noFuelWarning <= 0) {
+        } else if (driver != null && getThrottle() != 0 && !hasSteam() && --noFuelWarning <= 0) {
             noFuelWarning = 60;
             driver.displayClientMessage(Component.translatable("message.reikotrains.no_fuel"), true);
         }
-        boolean lit = hasSteam() && driver != null;
+        boolean lit = hasSteam() && isDriven();
         if (entityData.get(DATA_STEAM) != lit) {
             entityData.set(DATA_STEAM, lit);
         }

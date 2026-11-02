@@ -2,6 +2,27 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.2.0
+
+Bigger trains on their own track.
+
+- Train Track: the mod's own railway. Straight track goes down block by block in eight directions and joins up by
+  itself. Curves, ramps, S-bends and long straights (up to 48 blocks) are drawn by clicking a track block and then
+  where the line should go, with a preview of the curve first. A second way out of a block makes a junction. Curves
+  need a radius of 5 or more and cost a piece of track per block, refunded when they're broken.
+- The trains are now about real-life size: 2 blocks wide and 3 tall. The locomotive is 6 blocks long, the coach 6½
+  (eight seats), the wagon 5. Coaches and wagons ride on swinging bogies, so they bend through curves.
+- Trains move as one, with proper weight: heavier trains pick up speed slower, slopes pull them back (or downhill,
+  along), and loose cars roll down ramps. Top speed 43 km/h (configurable). Trains stop at the end of the line, and
+  a car whose track is broken comes off and drops.
+- Drivers pick the way at junctions with left and right; the rest of the train always follows the same way.
+- The locomotive can be anywhere in a train, pulling or pushing, and cars couple at either end, facing either way.
+  Coupling draws the cars together until their buffers meet.
+- Freight Wagon: 108 slots (four chests' worth) on one wide screen; a full wagon is heavier.
+- Moving trains keep the chunks around them loaded, nudge people and animals off the line, and turn your view with
+  them as they go round bends. The speedometer shows the train's real speed.
+- 0.1.0 trains (which ran on minecart rails) turn back into items when they load: put them on the new track.
+
 ## 0.1.0
 
 The first version.

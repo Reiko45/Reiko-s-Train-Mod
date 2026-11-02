@@ -117,9 +117,9 @@ def steam_locomotive():
     b += mirrored(-24, -32, 10, 12, -15, 15, "tank")
     # Cab: spectacle plate with two windows, sides open above the waist, roof
     b.append(box(14, -30, -15, 15, -15, 15, "cab"))
-    b.append(box(14, -46, -15, 15, -40, 15, "cab"))
-    b.append(box(14, -40, -5, 15, -30, 5, "cab"))
-    b += mirrored(14, -40, 13, 15, -30, 15, "cab")
+    b.append(box(14, -46, -15, 15, -42, 15, "cab"))
+    b.append(box(14, -42, -3, 15, -30, 3, "cab"))
+    b += mirrored(14, -42, 14, 15, -30, 15, "cab")
     b += mirrored(15, -28, 14, 32, -15, 15, "cab")
     b += mirrored(15, -46, 14, 18, -28, 15, "cab")
     b += mirrored(29, -46, 14, 32, -28, 15, "cab")
@@ -131,7 +131,7 @@ def steam_locomotive():
     b.append(box(32, -30, -15, 42, -15, 15, "bunker"))
     b.append(box(33, -31, -13, 41, -30, 13, "coal"))
     b.append(box(15, -24, -4, 16, -16, 4, "firebox"))
-    b.append(box(26, -17, -13, 30, -15, 13, "bench"))
+    b.append(box(22, -17, -13, 26, -15, 13, "bench"))
 
     parts = [body]
     parts += wheel_parts("wheel", [-32, 32], 4, -4, "wheel_small")

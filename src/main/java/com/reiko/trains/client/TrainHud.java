@@ -47,7 +47,7 @@ public final class TrainHud implements LayeredDraw.Layer {
         }
 
         // Speed, junction steering and brake
-        String speed = Math.round(locomotive.clientSpeedKmh()) + " km/h";
+        String speed = Math.round(locomotive.speedKmh()) + " km/h";
         graphics.drawString(font, speed, x + 5, y + 19, 0xFFFFFFFF, true);
         int steer = locomotive.getSteer();
         if (steer != 0) {

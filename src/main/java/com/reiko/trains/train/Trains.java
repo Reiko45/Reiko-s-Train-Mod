@@ -156,6 +156,11 @@ public final class Trains {
         }
         int[] signs = signs(cars);
         head.speed = nextSpeed(head.speed, cars, signs);
+        for (int i = 0; i < cars.size(); i++) {
+            if (cars.get(i) instanceof SteamLocomotive loco) {
+                loco.reportSpeed(head.speed * signs[i]);
+            }
+        }
         if (Math.abs(head.speed) > 1.0E-6) {
             double wanted = head.speed;
             double moved = move(cars, signs, wanted, head);
@@ -170,7 +175,7 @@ public final class Trains {
 
     private static boolean hasDriver(List<TrainCarEntity> cars) {
         for (TrainCarEntity car : cars) {
-            if (car instanceof SteamLocomotive loco && loco.driver() != null) {
+            if (car instanceof SteamLocomotive loco && loco.isDriven()) {
                 return true;
             }
         }
