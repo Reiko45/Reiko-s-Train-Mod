@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "active=false,facing=north,mode=load": {
+      "model": "reikotrains:block/wagon_loader_load"
+    },
+    "active=true,facing=north,mode=load": {
+      "model": "reikotrains:block/wagon_loader_load_active"
+    },
+    "active=false,facing=north,mode=unload": {
+      "model": "reikotrains:block/wagon_loader_unload"
+    },
+    "active=true,facing=north,mode=unload": {
+      "model": "reikotrains:block/wagon_loader_unload_active"
+    },
+    "active=false,facing=east,mode=load": {
+      "model": "reikotrains:block/wagon_loader_load",
+      "y": 90
+    },
+    "active=true,facing=east,mode=load": {
+      "model": "reikotrains:block/wagon_loader_load_active",
+      "y": 90
+    },
+    "active=false,facing=east,mode=unload": {
+      "model": "reikotrains:block/wagon_loader_unload",
+      "y": 90
+    },
+    "active=true,facing=east,mode=unload": {
+      "model": "reikotrains:block/wagon_loader_unload_active",
+      "y": 90
+    },
+    "active=false,facing=south,mode=load": {
+      "model": "reikotrains:block/wagon_loader_load",
+      "y": 180
+    },
+    "active=true,facing=south,mode=load": {
+      "model": "reikotrains:block/wagon_loader_load_active",
+      "y": 180
+    },
+    "active=false,facing=south,mode=unload": {
+      "model": "reikotrains:block/wagon_loader_unload",
+      "y": 180
+    },
+    "active=true,facing=south,mode=unload": {
+      "model": "reikotrains:block/wagon_loader_unload_active",
+      "y": 180
+    },
+    "active=false,facing=west,mode=load": {
+      "model": "reikotrains:block/wagon_loader_load",
+      "y": 270
+    },
+    "active=true,facing=west,mode=load": {
+      "model": "reikotrains:block/wagon_loader_load_active",
+      "y": 270
+    },
+    "active=false,facing=west,mode=unload": {
+      "model": "reikotrains:block/wagon_loader_unload",
+      "y": 270
+    },
+    "active=true,facing=west,mode=unload": {
+      "model": "reikotrains:block/wagon_loader_unload_active",
+      "y": 270
+    }
+  }
+}

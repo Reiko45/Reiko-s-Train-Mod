@@ -13,6 +13,7 @@ import com.reiko.trains.train.SteamLocomotive;
 import com.reiko.trains.train.TrainCarEntity;
 import com.reiko.trains.train.Trains;
 import com.reiko.trains.menu.FreightWagonMenu;
+import com.reiko.trains.freight.LoaderMode;
 import com.reiko.trains.signal.StationBlockEntity;
 import com.reiko.trains.signal.SwitchBlockEntity;
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
@@ -173,6 +175,22 @@ public final class DevShowcase {
         for (int i = 0; i < 70; i++) {
             wagon.setItem(i, new ItemStack(i % 3 == 0 ? Items.OAK_LOG : i % 3 == 1 ? Items.COAL : Items.IRON_INGOT, 64));
         }
+        // A siding to the north with a freight wagon, and a wagon loader topping it up from two chests and a barrel
+        TestTracks.line(level, new BlockPos(-6, Y, -12), TrackAxis.X, 30);
+        FreightWagon sided = put(level, ModEntities.FREIGHT_WAGON.get(), 8, -12);
+        for (int i = 0; i < 30; i++) {
+            sided.setItem(i, new ItemStack(Items.COBBLESTONE, 64));
+        }
+        BlockPos loader = new BlockPos(10, Y, -14);
+        TestTracks.wagonLoader(level, loader, new BlockPos(10, Y, -12), LoaderMode.LOAD);
+        for (BlockPos store : new BlockPos[]{loader.west(), loader.east(), loader.north()}) {
+            level.setBlock(store, store.equals(loader.north()) ? Blocks.BARREL.defaultBlockState() : Blocks.CHEST.defaultBlockState(), 3);
+            if (level.getBlockEntity(store) instanceof net.minecraft.world.Container box) {
+                for (int i = 0; i < box.getContainerSize(); i++) {
+                    box.setItem(i, new ItemStack(i % 2 == 0 ? Items.COAL : Items.OAK_LOG, 64));
+                }
+            }
+        }
         SteamLocomotive a = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(22, Y, 14), EAST);
         PassengerCoach aCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(15, Y, 14), EAST);
         SteamLocomotive b = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(30, Y, 38), new Vec3(-1, 0, 0));
@@ -195,6 +213,8 @@ public final class DevShowcase {
                 build(player.serverLevel());
             });
         });
+        at(24, mc -> look(mc, 14.0, Y + 1.6, -10.2, 125.0F, 26.0F));
+        at(54, mc -> shot(mc, "00_wagon_loader"));
         at(60, mc -> look(mc, 22.0, Y + 1.9, 9.5, 180.0F, 4.0F));
         at(120, mc -> shot(mc, "01_train_and_station"));
         at(122, mc -> look(mc, 29.0, Y + 2.2, 1.8, -160.0F, 16.0F));

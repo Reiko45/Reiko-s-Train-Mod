@@ -1,6 +1,7 @@
 package com.reiko.trains.registry;
 
 import com.reiko.trains.ReikoTrains;
+import com.reiko.trains.freight.WagonLoaderBlock;
 import com.reiko.trains.signal.SignalBlock;
 import com.reiko.trains.signal.StationBlock;
 import com.reiko.trains.signal.SwitchBlock;
@@ -24,6 +25,10 @@ public final class ModBlocks {
 
     public static final DeferredBlock<SwitchBlock> SWITCH = BLOCKS.register("switch_stand", () -> new SwitchBlock(BlockBehaviour.Properties.of()
             .strength(1.5F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK)));
+
+    public static final DeferredBlock<WagonLoaderBlock> WAGON_LOADER = BLOCKS.register("wagon_loader", () -> new WagonLoaderBlock(BlockBehaviour.Properties.of()
+            .strength(2.5F).sound(SoundType.METAL).requiresCorrectToolForDrops()
+            .lightLevel(state -> state.getValue(WagonLoaderBlock.ACTIVE) ? 4 : 0)));
 
     private ModBlocks() {
     }

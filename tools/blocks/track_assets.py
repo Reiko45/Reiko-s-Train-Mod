@@ -367,12 +367,93 @@ def switch_models():
         json.dump({"variants": variants}, out, indent=2)
 
 
+def loader_textures():
+    """The wagon loader: a riveted steel box, its chute, and arrows on top for which way the goods go."""
+    steel, frame = (70, 92, 110), (40, 52, 64)
+
+    def panel(name, draw=None):
+        img = Image.new("RGBA", (16, 16))
+        for y in range(16):
+            for x in range(16):
+                c = shade(steel, 1 + 0.05 * noise(name, x, y) - (0.08 if y in (5, 10) else 0))
+                if x in (0, 15) or y in (0, 15):
+                    c = shade(frame, 1)
+                elif (x, y) in ((2, 2), (13, 2), (2, 13), (13, 13)):
+                    c = shade((150, 165, 178), 1)
+                img.putpixel((x, y), c)
+        if draw:
+            draw(img)
+        img.save(f"{ASSETS}/textures/block/{name}.png")
+
+    def arrow(color, up):
+        def draw(img):
+            for row in range(5):
+                y = (3 + row) if up else (12 - row)
+                for x in range(8 - row, 8 + row):
+                    img.putpixel((x, y), shade(color, 1))
+            for y in (range(8, 13) if up else range(3, 8)):
+                for x in (7, 8):
+                    img.putpixel((x, y), shade(color, 1))
+        return draw
+
+    def hatch(img):
+        for y in range(3, 11):
+            for x in range(3, 13):
+                edge = x in (3, 12) or y in (3, 10)
+                img.putpixel((x, y), shade(frame, 0.8) if edge else (24, 26, 30, 255))
+    panel("wagon_loader_side")
+    panel("wagon_loader_top_load", arrow((70, 200, 90), True))
+    panel("wagon_loader_top_unload", arrow((235, 140, 40), False))
+    panel("wagon_loader_front", hatch)
+    solid("wagon_loader_chute", (24, 26, 30), edge=(40, 52, 64))
+    lamp("wagon_loader_lamp_on", (255, 190, 60), True)
+    lamp("wagon_loader_lamp_off", (255, 190, 60), False)
+
+
+def loader_models():
+    for mode in ("load", "unload"):
+        for active in (False, True):
+            name = f"wagon_loader_{mode}{'_active' if active else ''}"
+            tex = {"particle": "reikotrains:block/wagon_loader_side", "side": "reikotrains:block/wagon_loader_side",
+                   "top": f"reikotrains:block/wagon_loader_top_{mode}", "front": "reikotrains:block/wagon_loader_front",
+                   "chute": "reikotrains:block/wagon_loader_chute",
+                   "lamp": f"reikotrains:block/wagon_loader_lamp_{'on' if active else 'off'}"}
+            spout = element([4.5, 8, -5], [11.5, 12, 1], {"north": ("#chute", [0, 0, 7, 4]), "east": ("#side", [0, 4, 6, 8]),
+                                                          "west": ("#side", [0, 4, 6, 8]), "up": ("#side", [4, 0, 11, 6]),
+                                                          "down": ("#side", [4, 0, 11, 6])})
+            spout["rotation"] = {"origin": [8, 10, 0], "axis": "x", "angle": -22.5}
+            elements = [
+                element([0, 0, 0], [16, 16, 16], {"north": ("#front", [0, 0, 16, 16]), "south": ("#side", [0, 0, 16, 16]),
+                                                  "east": ("#side", [0, 0, 16, 16]), "west": ("#side", [0, 0, 16, 16]),
+                                                  "up": ("#top", [0, 0, 16, 16]), "down": ("#side", [0, 0, 16, 16])}),
+                spout,
+                element([6.5, 12.5, -0.5], [9.5, 14.5, 0], {"north": ("#lamp", [0, 0, 16, 16]), "east": ("#side", [0, 0, 1, 2]),
+                                                           "west": ("#side", [0, 0, 1, 2]), "up": ("#side", [0, 0, 3, 1]),
+                                                           "down": ("#side", [0, 0, 3, 1])}, lit="north" if active else None),
+            ]
+            model = {"parent": "block/block", "textures": tex, "elements": elements}
+            with open(f"{ASSETS}/models/block/{name}.json", "w") as out:
+                json.dump(model, out, indent=2)
+    variants = {}
+    for facing, y in (("north", 0), ("east", 90), ("south", 180), ("west", 270)):
+        for mode in ("load", "unload"):
+            for active in ("false", "true"):
+                v = {"model": f"reikotrains:block/wagon_loader_{mode}{'_active' if active == 'true' else ''}"}
+                if y:
+                    v["y"] = y
+                variants[f"active={active},facing={facing},mode={mode}"] = v
+    with open(f"{ASSETS}/blockstates/wagon_loader.json", "w") as out:
+        json.dump({"variants": variants}, out, indent=2)
+
+
 def signals_and_stations():
     signal_textures()
     signal_models()
     station_models()
     switch_textures()
     switch_models()
+    loader_textures()
+    loader_models()
 
 
 if __name__ == "__main__":

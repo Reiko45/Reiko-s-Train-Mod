@@ -1,5 +1,8 @@
 package com.reiko.trains.gametest;
 
+import com.reiko.trains.freight.LoaderMode;
+import com.reiko.trains.freight.WagonLoaderBlock;
+import com.reiko.trains.freight.WagonLoaderBlockEntity;
 import com.reiko.trains.item.TrainCarItem;
 import com.reiko.trains.registry.ModBlocks;
 import com.reiko.trains.signal.SignalBlock;
@@ -109,6 +112,16 @@ public final class TestTracks {
         stand.attach(junction.node(), junction.side());
         stand.powered(powered);
         return stand;
+    }
+
+    /** A wagon loader at {@code pos} for the track block {@code node}, as if a player had put it there. */
+    public static WagonLoaderBlockEntity wagonLoader(ServerLevel level, BlockPos pos, BlockPos node, LoaderMode mode) {
+        level.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 2);
+        level.setBlock(pos, ModBlocks.WAGON_LOADER.get().defaultBlockState().setValue(WagonLoaderBlock.FACING, WagonLoaderBlock.facing(pos, node, null))
+                .setValue(WagonLoaderBlock.MODE, mode), 3);
+        WagonLoaderBlockEntity loader = (WagonLoaderBlockEntity) level.getBlockEntity(pos);
+        loader.attach(node);
+        return loader;
     }
 
     /** A timetable stop for a station. */

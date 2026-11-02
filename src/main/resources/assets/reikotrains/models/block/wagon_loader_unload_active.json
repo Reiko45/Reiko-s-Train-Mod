@@ -1,0 +1,212 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "particle": "reikotrains:block/wagon_loader_side",
+    "side": "reikotrains:block/wagon_loader_side",
+    "top": "reikotrains:block/wagon_loader_top_unload",
+    "front": "reikotrains:block/wagon_loader_front",
+    "chute": "reikotrains:block/wagon_loader_chute",
+    "lamp": "reikotrains:block/wagon_loader_lamp_on"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#side",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#side",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#side",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#top",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#side",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        4.5,
+        8,
+        -5
+      ],
+      "to": [
+        11.5,
+        12,
+        1
+      ],
+      "faces": {
+        "north": {
+          "texture": "#chute",
+          "uv": [
+            0,
+            0,
+            7,
+            4
+          ]
+        },
+        "east": {
+          "texture": "#side",
+          "uv": [
+            0,
+            4,
+            6,
+            8
+          ]
+        },
+        "west": {
+          "texture": "#side",
+          "uv": [
+            0,
+            4,
+            6,
+            8
+          ]
+        },
+        "up": {
+          "texture": "#side",
+          "uv": [
+            4,
+            0,
+            11,
+            6
+          ]
+        },
+        "down": {
+          "texture": "#side",
+          "uv": [
+            4,
+            0,
+            11,
+            6
+          ]
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          10,
+          0
+        ],
+        "axis": "x",
+        "angle": -22.5
+      }
+    },
+    {
+      "from": [
+        6.5,
+        12.5,
+        -0.5
+      ],
+      "to": [
+        9.5,
+        14.5,
+        0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#lamp",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "neoforge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        },
+        "east": {
+          "texture": "#side",
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ]
+        },
+        "west": {
+          "texture": "#side",
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ]
+        },
+        "up": {
+          "texture": "#side",
+          "uv": [
+            0,
+            0,
+            3,
+            1
+          ]
+        },
+        "down": {
+          "texture": "#side",
+          "uv": [
+            0,
+            0,
+            3,
+            1
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,9 +1,9 @@
 # Reiko's Train Mod
 
 Big steam trains for Minecraft **1.21.1** (NeoForge), on their own track. Lay a railway with curves, ramps and
-junctions, signal it, work its switches by hand or with redstone, name its stations, and either drive the trains
-yourself (throttle, brake, whistle, a choice of way at every junction) or give them a timetable and let them run
-between the stations on their own.
+junctions, signal it, work its switches by hand or with redstone, name its stations, load and unload freight
+automatically, and either drive the trains yourself (throttle, brake, whistle, a choice of way at every junction) or
+give them a timetable and let them run between the stations on their own.
 
 ![A train on the line](docs/screenshots/train.jpg)
 
@@ -20,6 +20,8 @@ between the stations on their own.
 - **Passenger Coach**: 6½ blocks long, eight seats in four rows.
 - **Freight Wagon**: holds 108 stacks (four chests' worth), all on one screen. Hoppers above or below it fill and empty
   it, crates pile up in it as it fills, and a full one is heavier to pull.
+- **Wagon Loader**: fills the freight wagons of a train standing beside it from the chests next to it, or empties
+  them into the chests.
 - **Coupler**: joins cars into trains.
 - **Railway Signal**: red while there's a train on the line ahead, green when it's clear. Trains stop for red.
 - **Switch Stand**: sets which way trains go at a junction. Flip it by hand, or set and hold it with redstone.
@@ -64,6 +66,7 @@ or ramp can cross gaps between them, so bridges are just long curves. Leave thre
 | Switch Stand | Lever, iron ingot, iron ingot (a column) |
 | Station | Any sign, iron ingot, iron ingot (a column) |
 | Timetable | Two paper and a clock |
+| Wagon Loader | Iron ingot, hopper, iron ingot; iron ingot, chest, iron ingot |
 
 Everything's also in the **Reiko's Trains** creative tab.
 
@@ -116,6 +119,7 @@ In `serverconfig/reikotrains-server.toml` in each world:
 | `acceleration` | `0.004` | How quickly a locomotive with two coaches picks up speed |
 | `signalsStopDrivers` | `true` | Whether trains people drive stop for red signals by themselves |
 | `maxTrainLength` | `16` | The most cars in one train |
+| `loaderSpeed` | `640` | How many items a wagon loader moves a second (640 fills a wagon in about 11 seconds) |
 
 The fuel a locomotive takes is the item tag `reikotrains:locomotive_fuel`, so a datapack can change it.
 
@@ -184,6 +188,29 @@ to stop it running. Sneak-click the air with a timetable to clear it.
 
 ![Two trains on timetables share a signalled loop](docs/screenshots/timetabled_trains.jpg)
 
+## Loading and unloading freight
+
+Put a **Wagon Loader** beside the track (up to three blocks away, and two is best: its chute reaches over to the
+wagons), and storage next to it on any side: chests, barrels, hoppers, or other mods' storage. When a train stands
+still with a car alongside the loader, the loader works on every freight wagon in the train, front to back:
+
+- **Loading** (green arrow on top, pointing at the track): it fills the wagons from its storage.
+- **Unloading** (orange arrow, pointing away): it empties them into its storage.
+
+Click the loader to switch between the two. Its lamp lights while it's moving goods. It moves ten stacks a second
+(server setting `loaderSpeed`), so a full wagon takes about 11 seconds; two loaders at one train work twice as fast.
+
+- **Redstone** pauses it.
+- A **comparator** beside it reads how full the train's wagons are (0 with no train there).
+- Hoppers and pipes can also go through it: into the train while it's loading, out of it while it's unloading.
+- A train on a **timetable** waits at a station until the loaders beside it have finished with it: its time at the
+  station is the least it stays. The cab shows "loading" or "unloading" meanwhile. A loader counts as finished when
+  it's had nothing to move for a second (the wagons are full, or its storage is empty, or full when unloading).
+
+A freight train can then run a round trip by itself: load at the mine, unload at the yard.
+
+![A wagon loader filling a freight wagon](docs/screenshots/wagon_loader.jpg)
+
 ## Upgrading from 0.1.0
 
 0.1.0's trains ran on minecart rails. In 0.2.0 they're bigger and need Train Track, so any 0.1.0 train cars in a world
@@ -210,6 +237,8 @@ waiting at a signal, taking a branch to reach its station, handing over to a dri
 sharing a signalled loop without ever meeting. `SwitchGameTests` covers switch stands finding their junction,
 clicking and redstone (holding it thrown or straight on), three-way junctions, drivers going the way the switch is set whatever they steer, throwing a
 switch under a train without splitting it, and timetabled trains setting switches their way or obeying a held one.
+`LoaderGameTests` covers loading and unloading a wagon, filling every wagon in a train, redstone, the comparator,
+hoppers going through the loader, moving trains being left alone, and a timetabled train waiting until it's loaded.
 
 `./gradlew runClient -Pshowcase -PwindowSize=1280x720` builds a test railway, runs trains round it and saves
 screenshots to `run/screenshots/` (that's where the pictures above come from).
@@ -239,6 +268,9 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
   track ahead up to the next signals) and checks it for trains. A switch stand works one side of a junction block.
   `TrackSide` keeps track of which are at which block, so trains look them up as they go: wherever a train chooses
   its way (driving, looking ahead, or a timetable's route), a switch there decides.
+- **Freight** (`freight/`): a wagon loader finds the train standing at its track block each couple of ticks and moves
+  goods between the storage next to it and the train's wagons through NeoForge item handlers. It keeps a list of
+  loaded loaders, so a timetabled train can ask whether any is still busy with it.
 - **Driving** (`train/Lookahead`, `Autopilot`): every tick a train looks 80 blocks down the line for signals,
   stations and the end of the track, and slows to stop in time for a red signal (or its station). A timetabled train's
   `Autopilot` searches the track for the way to its next station.
@@ -249,7 +281,6 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
 ## Ideas for later
 
 - More locomotives (a diesel?), tenders, more wagons
-- Loading and unloading wagons at stations automatically
 - A departures board
 
 ## License

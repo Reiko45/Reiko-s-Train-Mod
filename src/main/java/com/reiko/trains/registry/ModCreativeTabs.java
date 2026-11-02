@@ -22,6 +22,7 @@ public final class ModCreativeTabs {
                 output.accept(ModItems.STEAM_LOCOMOTIVE.get());
                 output.accept(ModItems.PASSENGER_COACH.get());
                 output.accept(ModItems.FREIGHT_WAGON.get());
+                output.accept(ModItems.WAGON_LOADER.get());
                 output.accept(ModItems.COUPLER.get());
                 output.accept(ModItems.TIMETABLE.get());
             })

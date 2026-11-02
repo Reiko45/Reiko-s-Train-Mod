@@ -10,7 +10,15 @@ import com.reiko.trains.registry.ModEntities;
 import com.reiko.trains.registry.ModItems;
 import com.reiko.trains.registry.ModMenus;
 import com.reiko.trains.registry.ModSounds;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.Entity;
+import net.neoforged.neoforge.capabilities.ICapabilityProvider;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.items.wrapper.InvWrapper;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -36,6 +44,17 @@ public final class ReikoTrains {
         ModSounds.SOUNDS.register(modBus);
         ModCreativeTabs.TABS.register(modBus);
         container.registerConfig(ModConfig.Type.SERVER, TrainsConfig.SPEC);
+        modBus.addListener(ReikoTrains::registerCapabilities);
+    }
+
+    /** Freight wagons work with other mods' pipes and hoppers; a wagon loader passes goods through to the train. */
+    private static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        // The wagon's hitbox parts share its entity type, and are containers too (passing through to it).
+        ICapabilityProvider<Entity, Void, IItemHandler> wagon = (entity, context) -> entity instanceof Container container ? new InvWrapper(container) : null;
+        ICapabilityProvider<Entity, Direction, IItemHandler> wagonSided = (entity, side) -> entity instanceof Container container ? new InvWrapper(container) : null;
+        event.registerEntity(Capabilities.ItemHandler.ENTITY, ModEntities.FREIGHT_WAGON.get(), wagon);
+        event.registerEntity(Capabilities.ItemHandler.ENTITY_AUTOMATION, ModEntities.FREIGHT_WAGON.get(), wagonSided);
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.WAGON_LOADER.get(), (loader, side) -> loader.port());
     }
 
     public static ResourceLocation id(String path) {

@@ -98,5 +98,10 @@
   "message.reikotrains.switch.redstone.straight": "Redstone holds it straight on",
   "message.reikotrains.switch.set.left": "Set to the left",
   "message.reikotrains.switch.set.right": "Set to the right",
-  "message.reikotrains.switch.set.straight": "Set straight on"
+  "message.reikotrains.switch.set.straight": "Set straight on",
+  "block.reikotrains.wagon_loader": "Wagon Loader",
+  "message.reikotrains.loader.load": "Loading: fills trains' freight wagons from the storage next to it",
+  "message.reikotrains.loader.unload": "Unloading: empties trains' freight wagons into the storage next to it",
+  "hud.reikotrains.auto.loading": "At %s: loading",
+  "hud.reikotrains.auto.unloading": "At %s: unloading"
 }

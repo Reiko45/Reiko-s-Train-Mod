@@ -30,6 +30,8 @@ public final class ModItems {
             () -> new BlockItem(ModBlocks.SWITCH.get(), new Item.Properties()));
     public static final DeferredItem<BlockItem> STATION = ITEMS.register("station",
             () -> new BlockItem(ModBlocks.STATION.get(), new Item.Properties()));
+    public static final DeferredItem<BlockItem> WAGON_LOADER = ITEMS.register("wagon_loader",
+            () -> new BlockItem(ModBlocks.WAGON_LOADER.get(), new Item.Properties()));
     public static final DeferredItem<TimetableItem> TIMETABLE = ITEMS.register("timetable",
             () -> new TimetableItem(new Item.Properties().stacksTo(1)));
 

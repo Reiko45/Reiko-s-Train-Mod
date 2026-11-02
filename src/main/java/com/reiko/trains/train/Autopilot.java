@@ -3,6 +3,8 @@ package com.reiko.trains.train;
 import com.mojang.serialization.Dynamic;
 import com.reiko.trains.ReikoTrains;
 import com.reiko.trains.config.TrainsConfig;
+import com.reiko.trains.freight.LoaderMode;
+import com.reiko.trains.freight.WagonLoaderBlockEntity;
 import com.reiko.trains.signal.StationBlockEntity;
 import com.reiko.trains.signal.SwitchBlockEntity;
 import com.reiko.trains.signal.TrackSide;
@@ -96,6 +98,9 @@ public final class Autopilot {
             return Component.empty();
         }
         if (phase == Phase.DWELLING) {
+            if (loading != null) {
+                return Component.translatable("hud.reikotrains.auto." + (loading == LoaderMode.LOAD ? "loading" : "unloading"), stop.name());
+            }
             return Component.translatable("hud.reikotrains.auto.at", stop.name(), (timer + 19) / 20);
         }
         if (waitingAtSignal) {
@@ -108,6 +113,9 @@ public final class Autopilot {
     }
 
     private boolean waitingAtSignal;
+    /** While it's standing at a station: what a wagon loader's doing with the train, if anything. */
+    @Nullable
+    private LoaderMode loading;
 
     /** Picks the way at a junction: the one that leads to the current stop, or heads most towards it. */
     EdgeRef choose(Level level, BlockPos node, int side, List<EdgeRef> options, Vec3 heading, boolean setSwitch) {
@@ -167,7 +175,12 @@ public final class Autopilot {
             return Drive.NONE;
         }
         if (phase == Phase.DWELLING) {
-            if (--timer <= 0) {
+            // It waits its time at the station, and then for any wagon loaders to finish with it.
+            loading = WagonLoaderBlockEntity.busyWith(level, cars);
+            if (timer > 0) {
+                timer--;
+            }
+            if (timer <= 0 && loading == null) {
                 depart(cars);
             }
             loco.updateAutoDisplay();

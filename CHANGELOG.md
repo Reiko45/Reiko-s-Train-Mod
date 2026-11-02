@@ -2,6 +2,19 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.5.0
+
+Freight loading.
+
+- Wagon Loader: put it beside the track with chests (or barrels, hoppers, other mods' storage) next to it. When a
+  train stands with a car alongside it, it fills the train's freight wagons from them, front to back, or empties the
+  wagons into them; click it to switch. Ten stacks a second (server setting `loaderSpeed`). Redstone pauses it; a
+  comparator reads how full the train is; hoppers and pipes can go through it into or out of the train. Its lamp
+  lights while it works.
+- Trains on a timetable wait at a station until the loaders beside them have finished, and the cab says so.
+- Freight wagons now offer their inventory to other mods' pipes and hoppers (NeoForge item handler).
+- Eight new game tests: 50 in all.
+
 ## 0.4.1
 
 - Redstone can now hold a switch straight on, as well as thrown: sneak-click the stand to choose which (at a
