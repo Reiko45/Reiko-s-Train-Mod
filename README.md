@@ -9,6 +9,12 @@ give them a timetable and let them run between the stations on their own.
 
 ![Round the bend](docs/screenshots/on_the_move.jpg)
 
+## Requirements
+
+- Minecraft 1.21.1 with NeoForge 21.1.265 or newer
+- [BuildCraft Reborn](https://github.com/Reiko45/BuildCraft-Reborn) 2.1.0 or newer: the diesel locomotive runs on
+  its diesel, the same fuel as the diesel vehicles in [Reiko's Car Mod](https://github.com/Reiko45/Reiko-s-Car-Mod)
+
 ## What's in it
 
 - **Train Track**: its own railway, separate from minecart rails. Straight track goes down block by block (east-west,
@@ -19,8 +25,8 @@ give them a timetable and let them run between the stations on their own.
   goes. Seats a driver and a fireman.
 - **Express Locomotive**: a crimson 4-6-0, 8 blocks long, with big driving wheels: a third faster than the tank
   engine and nearly twice as strong. It burns coal from its **Tender**, which holds four times as much.
-- **Diesel Locomotive**: a blue road-switcher, 7 blocks long, on two bogies. It runs on **Diesel Fuel**, pulls
-  harder than either steam engine, and uses less fuel.
+- **Diesel Locomotive**: a blue road-switcher, 7 blocks long, on two bogies. It runs on BuildCraft's diesel (Dense
+  Fuel), the same as the car mod's diesel trucks, and pulls harder than either steam engine.
 - **Passenger Coach**: 6½ blocks long, eight seats in four rows.
 - **Freight Wagon**: holds 108 stacks (four chests' worth), all on one screen. Hoppers above or below it fill and empty
   it, crates pile up in it as it fills, and a full one is heavier to pull.
@@ -66,7 +72,6 @@ or ramp can cross gaps between them, so bridges are just long curves. Leave thre
 | Express Locomotive | Copper, gold, copper; iron ingot, steam locomotive, iron ingot; three iron ingots |
 | Tender | Iron ingot, cauldron, iron ingot; iron ingot, minecart, iron ingot |
 | Diesel Locomotive | Three iron ingots; iron ingot, blast furnace, iron ingot; copper ingot, minecart, copper ingot |
-| Diesel Fuel | An iron nugget and four coal or charcoal (shapeless) |
 | Passenger Coach | Glass panes on top; planks, wool, planks; iron ingot, minecart, iron ingot |
 | Freight Wagon | Planks around a chest (top middle open); iron ingot, minecart, iron ingot |
 | Coupler | Iron ingot, chain, iron ingot (a column) |
@@ -136,12 +141,17 @@ worth, four times a tank engine's firebox, and the coal heap in it goes down as 
 The **Diesel Locomotive** is a road-switcher: a long hood in front of a high cab, so you can see over it whichever
 way you're going, and a short hood behind. It rides on two bogies like the coaches.
 
-- It runs on **Diesel Fuel**, not coal: canisters made from an iron nugget and four coal or charcoal. Its tank holds
-  ten. Click it with canisters to fill it; hoppers and wagon loaders can fill it too (they give it diesel only).
-  Steam engines won't take diesel, and the diesel won't take coal. A canister also burns in a furnace.
+- It runs on **diesel**, the same as the diesel vehicles in Reiko's Car Mod: BuildCraft Reborn's **Dense Fuel**
+  (refined from oil) or **Mixed Heavy Fuels**, or other mods' diesel and biodiesel. Its tank holds 16 buckets of Dense
+  Fuel; how far a bucket goes comes from BuildCraft's own fuel values, so a bucket of Mixed Heavy Fuels (worth about a
+  quarter as much) goes a quarter as far, and more of it fits. At full throttle a bucket of Dense Fuel lasts about
+  five minutes; idling, nearly an hour.
+- To fill it, click it with a bucket (or any other mod's fluid container) of diesel, pipe it in, or put a **wagon
+  loader** by the track with a BuildCraft tank next to it: a diesel standing there is pumped full, five buckets a
+  second, and a timetabled train waits until it's done. The diesel won't take coal, and steam engines won't take
+  diesel.
 - It pulls harder than either steam engine, so it gets a heavy train going quickest, though the express is faster
-  flat out. It's frugal: a canister goes further than the four coal it's made from would in a steam engine, and it
-  burns little standing still.
+  flat out.
 - Its engine rumbles, and the note rises as the throttle opens. Its exhaust smokes harder the harder it works, with
   a black cloud when you open up. It sounds a two-tone horn instead of a whistle (the same key).
 
@@ -172,9 +182,11 @@ In `serverconfig/reikotrains-server.toml` in each world:
 | `signalsStopDrivers` | `true` | Whether trains people drive stop for red signals by themselves |
 | `maxTrainLength` | `16` | The most cars in one train |
 | `loaderSpeed` | `640` | How many items a wagon loader moves a second (640 fills a wagon in about 11 seconds) |
+| `fallbackDieselEnergyPerBucket` | `96000` | MJ in a bucket of a diesel fluid BuildCraft has no fuel value for |
 
-The fuel steam engines take is the item tag `reikotrains:locomotive_fuel`, and the diesel's is
-`reikotrains:diesel_fuel`, so a datapack can change them (a fuel needs a furnace burn time too).
+The fuel steam engines take is the item tag `reikotrains:locomotive_fuel`, and the diesel's is the fluid tag
+`reikotrains:diesel` (BuildCraft's Dense Fuel and Mixed Heavy Fuels, and `c:diesel`, `c:biodiesel` and the like, as
+in the car mod), so a datapack can change them.
 
 ## Signals
 
@@ -256,6 +268,8 @@ Click the loader to switch between the two. Its lamp lights while it's moving go
 - **Redstone** pauses it.
 - A **comparator** beside it reads how full the train's wagons are (0 with no train there).
 - Hoppers and pipes can also go through it: into the train while it's loading, out of it while it's unloading.
+- Loading, it refuels the engines too: a tender takes coal (and the like) from its chests, and a diesel is pumped
+  full of diesel from fluid tanks next to it (a BuildCraft tank, say).
 - A train on a **timetable** waits at a station until the loaders beside it have finished with it: its time at the
   station is the least it stays. The cab shows "loading" or "unloading" meanwhile. A loader counts as finished when
   it's had nothing to move for a second (the wagons are full, or its storage is empty, or full when unloading).
@@ -271,7 +285,7 @@ turn back into items (dropped where they stood) the first time they load. Put th
 
 ## Building from source
 
-You need Java 21. Then:
+You need Java 21. BuildCraft Reborn's jar is in `libs/` (the build and the dev runs use it). Then:
 
 ```sh
 ./gradlew build              # the mod jar ends up in build/libs/
@@ -290,8 +304,9 @@ waiting at a signal, taking a branch to reach its station, handing over to a dri
 sharing a signalled loop without ever meeting. `SwitchGameTests` covers switch stands finding their junction,
 clicking and redstone (holding it thrown or straight on), three-way junctions, drivers going the way the switch is set whatever they steer, throwing a
 switch under a train without splitting it, and timetabled trains setting switches their way or obeying a held one.
-`LocomotiveGameTests` covers the diesel (diesel fuel only, steam engines refusing it, pulling harder on less fuel,
-running a timetable with a steam engine helping, a wagon loader refuelling it, the fuel's recipe and burn time), the
+`LocomotiveGameTests` covers the diesel (filling it with buckets of BuildCraft's Dense Fuel and Mixed Heavy Fuels but
+not coal or water, steam engines refusing diesel, BuildCraft's energy values and the tank size, pulling harder,
+running a timetable with a steam engine helping, a wagon loader pumping it full from a BuildCraft tank), the
 express needing its tender (and shovelling coal into it), its speed, two engines
 pulling together (one at the back facing back), a double-headed train on a timetable, an express on a timetable, and
 a wagon loader topping up a tender with fuel only. `LoaderGameTests` covers loading and unloading a wagon, filling every wagon in a train, redstone, the comparator,

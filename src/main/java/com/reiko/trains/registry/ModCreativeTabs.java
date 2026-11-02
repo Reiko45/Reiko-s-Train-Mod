@@ -23,7 +23,6 @@ public final class ModCreativeTabs {
                 output.accept(ModItems.EXPRESS_LOCOMOTIVE.get());
                 output.accept(ModItems.TENDER.get());
                 output.accept(ModItems.DIESEL_LOCOMOTIVE.get());
-                output.accept(ModItems.DIESEL_FUEL.get());
                 output.accept(ModItems.PASSENGER_COACH.get());
                 output.accept(ModItems.FREIGHT_WAGON.get());
                 output.accept(ModItems.WAGON_LOADER.get());

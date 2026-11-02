@@ -63,6 +63,12 @@ neoForge {
     }
 }
 
+dependencies {
+    // BuildCraft Reborn: its fuels (and their energy values) are what the diesel locomotive runs on. It's required at
+    // runtime too, so it goes on the dev runs' classpath, where NeoForge loads it as a mod.
+    implementation files("libs/${buildcraft_jar}")
+}
+
 // Fills in the ${...} placeholders in neoforge.mods.toml from gradle.properties.
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
     var replaceProperties = [
@@ -76,6 +82,7 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             mod_license            : mod_license,
             mod_version            : mod_version,
             mod_authors            : mod_authors,
+            buildcraft_version_range: buildcraft_version_range,
     ]
     inputs.properties replaceProperties
     expand replaceProperties

@@ -27,6 +27,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
@@ -41,6 +43,8 @@ import net.neoforged.neoforge.items.wrapper.InvWrapper;
 public class WagonLoaderBlockEntity extends BlockEntity {
     /** How often it works, in ticks. */
     private static final int PERIOD = 2;
+    /** How much diesel it pumps into each diesel locomotive a go, in millibuckets: five buckets a second. */
+    private static final int FLUID_PER_PERIOD = 500;
     /** A loader counts as busy with a train until it's gone this long without moving anything. */
     private static final int BUSY_TICKS = 20;
     private static final Map<Level, Set<WagonLoaderBlockEntity>> LOADED = new WeakHashMap<>();
@@ -124,23 +128,38 @@ public class WagonLoaderBlockEntity extends BlockEntity {
         List<TrainCarEntity> train = loader.standingTrain();
         List<FreightWagon> wagons = new ArrayList<>();
         List<IItemHandler> tenders = new ArrayList<>();
+        List<DieselLocomotive> diesels = new ArrayList<>();
         for (TrainCarEntity car : train) {
             if (car instanceof FreightWagon wagon) {
                 wagons.add(wagon);
-            } else if (car instanceof Tender || car instanceof DieselLocomotive) {
-                tenders.add(new InvWrapper((net.minecraft.world.Container) car)); // their fuel chutes take only their fuel
+            } else if (car instanceof Tender tender) {
+                tenders.add(new InvWrapper(tender)); // its chute takes only coal and the like
+            } else if (car instanceof DieselLocomotive diesel) {
+                diesels.add(diesel);
             }
         }
         loader.wagons = wagons;
         if (loader.serving != null && !train.contains(loader.serving)) {
             loader.serving = null; // that train's gone
         }
+        if (!diesels.isEmpty() && loader.mode() == LoaderMode.LOAD && !level.hasNeighborSignal(pos)) {
+            // Diesels fill up from tanks next to the loader (a BuildCraft tank, say), a few buckets a second.
+            int pumped = 0;
+            for (DieselLocomotive diesel : diesels) {
+                for (IFluidHandler source : loader.fluidStorage()) {
+                    pumped += FluidUtil.tryFluidTransfer(diesel.tank(), source, FLUID_PER_PERIOD, true).getAmount();
+                }
+            }
+            if (pumped > 0) {
+                loader.moved(train.getFirst());
+            }
+        }
         if ((!wagons.isEmpty() || !tenders.isEmpty()) && !level.hasNeighborSignal(pos)) {
             int budget = Math.max(1, Mth.ceil(TrainsConfig.LOADER_SPEED.get() * PERIOD / 20.0));
             List<IItemHandler> storage = loader.storage();
             int moved;
             if (loader.mode() == LoaderMode.LOAD) {
-                // Tenders and diesels take their fuel first (their chutes take nothing else), then the wagons fill.
+                // Tenders take their coal first (their chutes take nothing else), then the wagons fill.
                 List<IItemHandler> targets = new ArrayList<>(tenders);
                 targets.addAll(handlers(wagons));
                 moved = move(storage, targets, budget);
@@ -199,6 +218,22 @@ public class WagonLoaderBlockEntity extends BlockEntity {
             }
             IItemHandler handler = level.getCapability(Capabilities.ItemHandler.BLOCK, next, direction.getOpposite());
             if (handler != null && seen.add(handler)) {
+                handlers.add(handler);
+            }
+        }
+        return handlers;
+    }
+
+    /** The fluid storage next to it (tanks, pipes), for filling diesels. */
+    private List<IFluidHandler> fluidStorage() {
+        List<IFluidHandler> handlers = new ArrayList<>();
+        for (Direction direction : Direction.values()) {
+            BlockPos next = worldPosition.relative(direction);
+            if (level.getBlockEntity(next) instanceof WagonLoaderBlockEntity) {
+                continue;
+            }
+            IFluidHandler handler = level.getCapability(Capabilities.FluidHandler.BLOCK, next, direction.getOpposite());
+            if (handler != null && !handlers.contains(handler)) {
                 handlers.add(handler);
             }
         }

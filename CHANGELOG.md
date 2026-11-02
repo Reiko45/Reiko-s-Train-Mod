@@ -2,6 +2,18 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.8.0
+
+The diesel runs on BuildCraft's diesel, like the car mod's diesel vehicles.
+
+- Now requires BuildCraft Reborn 2.1.0 or newer.
+- The diesel locomotive's tank holds 16 buckets of Dense Fuel. It takes BuildCraft's Dense Fuel and Mixed Heavy
+  Fuels (and other mods' diesel and biodiesel: fluid tag `reikotrains:diesel`), at BuildCraft's own fuel values, the
+  same as Reiko's Car Mod. Fill it from a bucket or any fluid container, by pipe, or from a BuildCraft tank beside a
+  wagon loader (five buckets a second; timetabled trains wait until they're full).
+- The Diesel Fuel canister is gone (any in a world disappear when it loads).
+- Server setting `fallbackDieselEnergyPerBucket` for diesel fluids BuildCraft has no value for.
+
 ## 0.7.0
 
 The diesel.

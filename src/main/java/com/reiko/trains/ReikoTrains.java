@@ -10,11 +10,15 @@ import com.reiko.trains.registry.ModEntities;
 import com.reiko.trains.registry.ModItems;
 import com.reiko.trains.registry.ModMenus;
 import com.reiko.trains.registry.ModSounds;
+import com.reiko.trains.train.DieselLocomotive;
+import javax.annotation.Nullable;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.capabilities.ICapabilityProvider;
+import net.neoforged.neoforge.entity.PartEntity;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
@@ -56,9 +60,15 @@ public final class ReikoTrains {
         event.registerEntity(Capabilities.ItemHandler.ENTITY_AUTOMATION, ModEntities.FREIGHT_WAGON.get(), wagonSided);
         event.registerEntity(Capabilities.ItemHandler.ENTITY, ModEntities.TENDER.get(), wagon);
         event.registerEntity(Capabilities.ItemHandler.ENTITY_AUTOMATION, ModEntities.TENDER.get(), wagonSided);
-        event.registerEntity(Capabilities.ItemHandler.ENTITY, ModEntities.DIESEL_LOCOMOTIVE.get(), wagon);
-        event.registerEntity(Capabilities.ItemHandler.ENTITY_AUTOMATION, ModEntities.DIESEL_LOCOMOTIVE.get(), wagonSided);
+        // A diesel's tank takes diesel from buckets, pipes and other mods' fluid containers (its hitbox parts too).
+        event.registerEntity(Capabilities.FluidHandler.ENTITY, ModEntities.DIESEL_LOCOMOTIVE.get(), ReikoTrains::dieselTank);
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.WAGON_LOADER.get(), (loader, side) -> loader.port());
+    }
+
+    @Nullable
+    private static IFluidHandler dieselTank(Entity entity, @Nullable Direction side) {
+        Entity car = entity instanceof PartEntity<?> part ? part.getParent() : entity;
+        return car instanceof DieselLocomotive diesel ? diesel.tank() : null;
     }
 
     public static ResourceLocation id(String path) {

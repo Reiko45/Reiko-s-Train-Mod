@@ -1,36 +1,39 @@
 package com.reiko.trains.train;
 
-import com.reiko.trains.ReikoTrains;
 import com.reiko.trains.registry.ModItems;
 import com.reiko.trains.registry.ModSounds;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.Container;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.fluids.FluidUtil;
 
 /**
  * A diesel road-switcher, seven blocks long, on two bogies: a long hood in front of a high cab, so the driver sees
- * over it either way. It runs on {@code reikotrains:diesel_fuel} (Diesel Fuel canisters) in its own tank, not coal.
- * Quicker away than the steam engines and frugal at rest: its engine idles when it stands. It sounds its two-tone
- * horn instead of a whistle, and its exhaust smokes harder as the throttle opens. Hoppers and wagon loaders can fill
- * its tank: as a container it has one slot, a filler, that takes diesel fuel.
+ * over it either way. It runs on diesel (see {@link DieselFuel}: BuildCraft Reborn's Dense Fuel and Mixed Heavy
+ * Fuels, the same as the car mod's diesel vehicles), kept in its tank as energy. Fill it from a bucket or any fluid
+ * container, through pipes, or from BuildCraft tanks beside a wagon loader. Quicker away than the steam engines and
+ * frugal at rest: its engine idles when it stands. It sounds its two-tone horn instead of a whistle, and its exhaust
+ * smokes harder as the throttle opens.
  */
-public class DieselLocomotive extends Locomotive implements Container {
-    public static final TagKey<Item> DIESEL_FUEL = TagKey.create(Registries.ITEM, ReikoTrains.id("diesel_fuel"));
-    /** The tank holds ten canisters. */
-    public static final double FUEL_CAPACITY = 10 * 9600;
+public class DieselLocomotive extends Locomotive {
+    /** The tank holds 16 buckets of Dense Fuel (more of a weaker diesel fits by the bucket, but goes less far). */
+    public static final int TANK_BUCKETS = 16;
+    public static final double FUEL_CAPACITY = TANK_BUCKETS * DieselFuel.BUCKET_ENERGY;
+    /** MJ it burns per "unit" of the shared burn rate: at full throttle, a bucket of Dense Fuel lasts about 5 minutes. */
+    private static final double BURN_SCALE = 200;
     /** The driver on the left of the cab, the second man on the right, high up to see over the hood. */
     private static final Seat[] SEATS = {new Seat(-1.31, -0.5, 1.28), new Seat(-1.31, 0.5, 1.28)};
 
-    private final FuelChute filler = new FuelChute(this, stack -> stack.is(DIESEL_FUEL));
+    private final DieselTank tank = new DieselTank(this);
     // client
     private int puff;
     private int lastThrottle;
@@ -38,16 +41,6 @@ public class DieselLocomotive extends Locomotive implements Container {
 
     public DieselLocomotive(EntityType<? extends DieselLocomotive> type, Level level) {
         super(type, level);
-    }
-
-    @Override
-    protected CarPart[] createParts() {
-        CarPart[] plain = super.createParts();
-        CarPart[] parts = new CarPart[plain.length];
-        for (int i = 0; i < plain.length; i++) {
-            parts[i] = new ContainerCarPart(this, plain[i].offset, 2.0F, partHeight());
-        }
-        return parts;
     }
 
     @Override
@@ -102,8 +95,42 @@ public class DieselLocomotive extends Locomotive implements Container {
     }
 
     @Override
+    protected double burnScale() {
+        return BURN_SCALE;
+    }
+
+    /** It takes no solid fuel: see {@link #interactCar}. */
+    @Override
     public boolean acceptsFuel(ItemStack stack) {
-        return stack.is(DIESEL_FUEL);
+        return false;
+    }
+
+    /** Its tank, for buckets, pipes and wagon loaders. */
+    public DieselTank tank() {
+        return tank;
+    }
+
+    /** Clicking it with a bucket (or any fluid container) of diesel fills its tank. */
+    @Override
+    protected InteractionResult interactCar(Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        var fluid = FluidUtil.getFluidContained(stack);
+        if (fluid.isEmpty()) {
+            return super.interactCar(player, hand);
+        }
+        if (level().isClientSide) {
+            return InteractionResult.SUCCESS;
+        }
+        if (!DieselFuel.isDiesel(fluid.get())) {
+            player.displayClientMessage(Component.translatable("message.reikotrains.not_diesel"), true);
+        } else if (FluidUtil.interactWithFluidHandler(player, hand, tank)) {
+            Vec3 at = fuelInlet();
+            level().playSound(null, at.x, at.y, at.z, SoundEvents.BUCKET_EMPTY, SoundSource.NEUTRAL, 0.8F, 1.0F);
+            player.displayClientMessage(Component.translatable(fuelMessage(), fuelPercent()), true);
+        } else {
+            player.displayClientMessage(Component.translatable(fullMessage()), true);
+        }
+        return InteractionResult.CONSUME;
     }
 
     @Override
@@ -140,14 +167,6 @@ public class DieselLocomotive extends Locomotive implements Container {
     @Override
     protected Item getDropItem() {
         return ModItems.DIESEL_LOCOMOTIVE.get();
-    }
-
-    @Override
-    public void tick() {
-        super.tick();
-        if (!level().isClientSide && !filler.isEmpty() && tickCount % 10 == 0) {
-            filler.tip();
-        }
     }
 
     /**
@@ -196,84 +215,5 @@ public class DieselLocomotive extends Locomotive implements Container {
         }
         float moving = (float) Math.min(1.0, Math.abs(getX() - xo) + Math.abs(getZ() - zo));
         return isAutomatic() ? Math.min(1.0F, moving * 3) : Math.abs(getThrottle()) / (float) MAX_THROTTLE;
-    }
-
-    @Override
-    public void destroy(Item dropItem) {
-        if (!level().isClientSide) {
-            filler.drop(this);
-        }
-        super.destroy(dropItem);
-    }
-
-    @Override
-    protected void addAdditionalSaveData(CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
-        filler.save(tag, registryAccess());
-    }
-
-    @Override
-    protected void readAdditionalSaveData(CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
-        filler.load(tag, registryAccess());
-    }
-
-    // ----------------------------------------------------------------------------------------------------------------
-    // Container: the filler
-
-    @Override
-    public int getContainerSize() {
-        return 1;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return filler.isEmpty();
-    }
-
-    @Override
-    public ItemStack getItem(int slot) {
-        return slot == 0 ? filler.get() : ItemStack.EMPTY;
-    }
-
-    @Override
-    public ItemStack removeItem(int slot, int amount) {
-        return slot == 0 ? filler.take(amount) : ItemStack.EMPTY;
-    }
-
-    @Override
-    public ItemStack removeItemNoUpdate(int slot) {
-        return slot == 0 ? filler.takeAll() : ItemStack.EMPTY;
-    }
-
-    @Override
-    public void setItem(int slot, ItemStack stack) {
-        if (slot == 0) {
-            filler.set(stack);
-        }
-    }
-
-    @Override
-    public boolean canPlaceItem(int slot, ItemStack stack) {
-        return filler.accepts(stack);
-    }
-
-    @Override
-    public boolean canTakeItem(Container target, int slot, ItemStack stack) {
-        return filler.canTake(stack);
-    }
-
-    @Override
-    public void setChanged() {
-    }
-
-    @Override
-    public boolean stillValid(Player player) {
-        return false;
-    }
-
-    @Override
-    public void clearContent() {
-        filler.clear();
     }
 }

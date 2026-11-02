@@ -114,11 +114,11 @@
   "hud.reikotrains.no_tender": "NO TENDER",
   "entity.reikotrains.diesel_locomotive": "Diesel Locomotive",
   "item.reikotrains.diesel_locomotive": "Diesel Locomotive",
-  "item.reikotrains.diesel_fuel": "Diesel Fuel",
   "message.reikotrains.diesel_fuel": "Fuel tank %s%% full",
   "message.reikotrains.diesel_full": "The fuel tank is full",
-  "message.reikotrains.no_diesel": "Out of fuel: fill the tank with Diesel Fuel",
+  "message.reikotrains.no_diesel": "Out of fuel: fill the tank with diesel (BuildCraft's Dense Fuel or Mixed Heavy Fuels)",
   "hud.reikotrains.no_fuel": "NO FUEL",
   "subtitles.reikotrains.diesel_horn": "Diesel horn sounds",
-  "subtitles.reikotrains.diesel_engine": "Diesel engine runs"
+  "subtitles.reikotrains.diesel_engine": "Diesel engine runs",
+  "message.reikotrains.not_diesel": "A diesel runs on diesel: BuildCraft's Dense Fuel or Mixed Heavy Fuels"
 }

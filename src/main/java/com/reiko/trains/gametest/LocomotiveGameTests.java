@@ -7,7 +7,7 @@ import com.reiko.trains.network.TrainControlPayload;
 import com.reiko.trains.registry.ModEntities;
 import com.reiko.trains.signal.StationBlockEntity;
 import com.reiko.trains.track.TrackAxis;
-import com.reiko.trains.registry.ModItems;
+import com.reiko.trains.train.DieselFuel;
 import com.reiko.trains.train.DieselLocomotive;
 import com.reiko.trains.train.ExpressLocomotive;
 import com.reiko.trains.train.Locomotive;
@@ -17,6 +17,8 @@ import com.reiko.trains.train.Tender;
 import com.reiko.trains.train.Trains;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
@@ -27,7 +29,11 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -200,30 +206,66 @@ public final class LocomotiveGameTests {
     // ----------------------------------------------------------------------------------------------------------------
     // The diesel
 
+    private static Fluid fluid(String id) {
+        return BuiltInRegistries.FLUID.get(ResourceLocation.parse(id));
+    }
+
+    private static ItemStack bucket(String id) {
+        return new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(id)));
+    }
+
     @GameTest(template = LINE, timeoutTicks = 200)
-    public static void dieselRunsOnDieselFuelOnly(GameTestHelper helper) {
+    public static void dieselRunsOnBuildcraftDiesel(GameTestHelper helper) {
         line(helper, 4);
         DieselLocomotive diesel = TestTracks.car(helper.getLevel(), ModEntities.DIESEL_LOCOMOTIVE.get(), at(helper, 20, 4), EAST);
-        Player fireman = helper.makeMockPlayer(GameType.SURVIVAL);
-        fireman.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.COAL, 16));
-        diesel.interact(fireman, InteractionHand.MAIN_HAND);
-        helper.assertTrue(diesel.fuel() == 0 && fireman.getMainHandItem().getCount() == 16, "a diesel shouldn't take coal");
-        fireman.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.DIESEL_FUEL.get(), 16));
-        diesel.interact(fireman, InteractionHand.MAIN_HAND);
-        helper.assertTrue(diesel.fuel() == DieselLocomotive.FUEL_CAPACITY, "ten canisters should fill its tank, has " + diesel.fuel());
-        helper.assertTrue(fireman.getMainHandItem().getCount() == 6, "leaving six, not " + fireman.getMainHandItem().getCount());
+        Player stoker = helper.makeMockPlayer(GameType.SURVIVAL);
+        stoker.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.COAL, 16));
+        diesel.interact(stoker, InteractionHand.MAIN_HAND);
+        helper.assertTrue(diesel.fuel() == 0 && stoker.getMainHandItem().getCount() == 16, "a diesel shouldn't take coal");
+        stoker.stopRiding();
+        Player fueller = helper.makeMockPlayer(GameType.SURVIVAL);
+        fueller.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.WATER_BUCKET));
+        diesel.interact(fueller, InteractionHand.MAIN_HAND);
+        helper.assertTrue(diesel.fuel() == 0 && fueller.getMainHandItem().is(Items.WATER_BUCKET), "nor water");
+        fueller.setItemInHand(InteractionHand.MAIN_HAND, bucket("buildcraftreborn:fuel_dense_bucket"));
+        diesel.interact(fueller, InteractionHand.MAIN_HAND);
+        helper.assertTrue(Math.abs(diesel.fuel() - DieselFuel.BUCKET_ENERGY) < 1, "a bucket of Dense Fuel should go in, has " + diesel.fuel());
+        helper.assertTrue(fueller.getMainHandItem().is(Items.BUCKET), "leaving the empty bucket");
+        fueller.setItemInHand(InteractionHand.MAIN_HAND, bucket("buildcraftreborn:fuel_mixed_heavy_bucket"));
+        diesel.interact(fueller, InteractionHand.MAIN_HAND);
+        helper.assertTrue(Math.abs(diesel.fuel() - DieselFuel.BUCKET_ENERGY - 96_000) < 1, "and a bucket of Mixed Heavy Fuels, worth less, has " + diesel.fuel());
         SteamLocomotive tank = TestTracks.car(helper.getLevel(), ModEntities.STEAM_LOCOMOTIVE.get(), at(helper, 40, 4), EAST);
-        tank.interact(fireman, InteractionHand.MAIN_HAND);
-        helper.assertTrue(tank.fuel() == 0 && fireman.getMainHandItem().getCount() == 6, "a steam engine shouldn't take diesel");
+        fueller.setItemInHand(InteractionHand.MAIN_HAND, bucket("buildcraftreborn:fuel_dense_bucket"));
+        tank.interact(fueller, InteractionHand.MAIN_HAND);
+        helper.assertTrue(tank.fuel() == 0, "a steam engine shouldn't take diesel");
+        fueller.stopRiding();
         Player driver = board(helper, diesel);
         throttle(diesel, 4);
         double startX = diesel.getX();
+        double before = diesel.fuel();
         helper.runAfterDelay(80, () -> {
             helper.assertTrue(diesel.isRunning() && diesel.getX() > startX + 2, "it should be running, and off");
-            helper.assertTrue(diesel.fuel() < DieselLocomotive.FUEL_CAPACITY, "burning its diesel");
+            helper.assertTrue(diesel.fuel() < before, "burning its diesel");
             driver.stopRiding();
             helper.succeed();
         });
+    }
+
+    @GameTest(template = LINE)
+    public static void dieselEnergyComesFromBuildcraft(GameTestHelper helper) {
+        helper.assertTrue(helper.getLevel().getRecipeManager().byKey(ReikoTrains.id("diesel_locomotive")).isPresent(), "no recipe for the diesel");
+        FluidStack dense = new FluidStack(fluid("buildcraftreborn:fuel_dense"), 1000);
+        FluidStack heavy = new FluidStack(fluid("buildcraftreborn:fuel_mixed_heavy"), 1000);
+        helper.assertTrue(DieselFuel.isDiesel(dense) && DieselFuel.isDiesel(heavy), "Dense Fuel and Mixed Heavy Fuels should be diesel");
+        helper.assertTrue(!DieselFuel.isDiesel(new FluidStack(fluid("buildcraftreborn:fuel_light"), 1000)), "Light Fuel (gasoline) shouldn't");
+        helper.assertTrue(!DieselFuel.isDiesel(new FluidStack(fluid("buildcraftreborn:oil"), 1000)), "nor crude oil");
+        helper.assertTrue(DieselFuel.energyPerBucket(dense) == 360_000, "a bucket of Dense Fuel should be 360,000 MJ, not " + DieselFuel.energyPerBucket(dense));
+        helper.assertTrue(DieselFuel.energyPerBucket(heavy) == 96_000, "Mixed Heavy Fuels 96,000 MJ, not " + DieselFuel.energyPerBucket(heavy));
+        // Over the 16-bucket tank, more of a weaker diesel fits
+        DieselLocomotive diesel = ModEntities.DIESEL_LOCOMOTIVE.get().create(helper.getLevel());
+        helper.assertTrue(diesel.tank().fill(new FluidStack(dense.getFluid(), 20_000), IFluidHandler.FluidAction.SIMULATE) == 16_000, "16 buckets of Dense Fuel fill it");
+        helper.assertTrue(diesel.tank().fill(new FluidStack(heavy.getFluid(), 100_000), IFluidHandler.FluidAction.SIMULATE) == 60_000, "or 60 of Mixed Heavy Fuels");
+        helper.succeed();
     }
 
     @GameTest(template = LINE, timeoutTicks = 300)
@@ -239,7 +281,7 @@ public final class LocomotiveGameTests {
             Trains.couple(Trains.train(diesel).getLast(), TestTracks.car(level, ModEntities.FREIGHT_WAGON.get(), at(helper, 19 - 6 * i, 7), EAST));
         }
         tank.setFuel(16000);
-        diesel.setFuel(16000);
+        diesel.setFuel(DieselLocomotive.FUEL_CAPACITY);
         Player a = board(helper, tank);
         Player b = board(helper, diesel);
         throttle(tank, 4);
@@ -247,7 +289,7 @@ public final class LocomotiveGameTests {
         helper.runAfterDelay(80, () -> {
             helper.assertTrue(Math.abs(diesel.trainSpeed()) > Math.abs(tank.trainSpeed()) * 1.3,
                     "with three wagons on, the diesel should pick up speed quicker: " + diesel.trainSpeed() + " against " + tank.trainSpeed());
-            helper.assertTrue(16000 - diesel.fuel() < 16000 - tank.fuel(), "and use less fuel doing it");
+            helper.assertTrue(diesel.fuel() < DieselLocomotive.FUEL_CAPACITY && tank.fuel() < 16000, "both burning their fuel");
             a.stopRiding();
             b.stopRiding();
             helper.succeed();
@@ -261,7 +303,7 @@ public final class LocomotiveGameTests {
         DieselLocomotive diesel = TestTracks.car(helper.getLevel(), ModEntities.DIESEL_LOCOMOTIVE.get(), at(helper, 26, 4), EAST);
         SteamLocomotive tank = TestTracks.car(helper.getLevel(), ModEntities.STEAM_LOCOMOTIVE.get(), at(helper, 18, 4), EAST);
         helper.assertTrue(Trains.couple(diesel, tank) == Trains.CoupleResult.COUPLED, "a diesel and a steam engine should couple");
-        diesel.setFuel(16000);
+        diesel.setFuel(DieselLocomotive.FUEL_CAPACITY);
         tank.setFuel(16000);
         diesel.autopilot().start(List.of(TestTracks.stop(station)));
         boolean[] helped = {false};
@@ -273,32 +315,21 @@ public final class LocomotiveGameTests {
     }
 
     @GameTest(template = LINE, timeoutTicks = 200)
-    public static void loaderRefuelsADiesel(GameTestHelper helper) {
+    public static void loaderFillsADieselFromABuildcraftTank(GameTestHelper helper) {
         line(helper, 4);
         DieselLocomotive diesel = TestTracks.car(helper.getLevel(), ModEntities.DIESEL_LOCOMOTIVE.get(), at(helper, 30, 4), EAST);
         WagonLoaderBlockEntity loader = TestTracks.wagonLoader(helper.getLevel(), helper.absolutePos(new BlockPos(30, 1, 6)), at(helper, 30, 4), LoaderMode.LOAD);
-        BlockPos chestPos = loader.getBlockPos().east();
-        helper.getLevel().setBlock(chestPos, Blocks.CHEST.defaultBlockState(), 3);
-        ChestBlockEntity chest = (ChestBlockEntity) helper.getLevel().getBlockEntity(chestPos);
-        chest.setItem(0, new ItemStack(Items.COAL, 64));
-        chest.setItem(1, new ItemStack(ModItems.DIESEL_FUEL.get(), 16));
+        BlockPos tankPos = loader.getBlockPos().east();
+        helper.getLevel().setBlock(tankPos, BuiltInRegistries.BLOCK.get(ResourceLocation.parse("buildcraftreborn:tank")).defaultBlockState(), 3);
+        IFluidHandler store = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, tankPos, null);
+        helper.assertTrue(store != null, "a BuildCraft tank should hold fluids");
+        int filled = store.fill(new FluidStack(fluid("buildcraftreborn:fuel_dense"), 8000), IFluidHandler.FluidAction.EXECUTE);
+        helper.assertTrue(filled == 8000, "the tank should take 8 buckets of Dense Fuel, took " + filled);
         helper.succeedWhen(() -> {
-            helper.assertTrue(diesel.fuel() == DieselLocomotive.FUEL_CAPACITY, "the loader should have filled the diesel's tank, has " + diesel.fuel());
-            helper.assertTrue(chest.getItem(0).getCount() == 64, "and left the coal");
-            helper.assertTrue(chest.getItem(1).getCount() + diesel.getItem(0).getCount() == 6, "with six canisters to spare");
+            helper.assertTrue(Math.abs(diesel.fuel() - 8 * DieselFuel.BUCKET_ENERGY) < 1, "the loader should have pumped all 8 buckets into the diesel, has "
+                    + diesel.fuel() / DieselFuel.BUCKET_ENERGY);
+            helper.assertTrue(store.getFluidInTank(0).isEmpty(), "and emptied the tank");
         });
-    }
-
-    @GameTest(template = LINE)
-    public static void dieselFuelRecipeAndFurnace(GameTestHelper helper) {
-        for (String name : List.of("diesel_locomotive", "diesel_fuel")) {
-            helper.assertTrue(helper.getLevel().getRecipeManager().byKey(ReikoTrains.id(name)).isPresent(), "no recipe for " + name);
-        }
-        ItemStack can = new ItemStack(ModItems.DIESEL_FUEL.get());
-        helper.assertTrue(can.is(DieselLocomotive.DIESEL_FUEL), "diesel fuel should be in the diesel_fuel tag");
-        helper.assertTrue(!can.is(Locomotive.FUEL), "and not steam engines' fuel");
-        helper.assertTrue(can.getBurnTime(net.minecraft.world.item.crafting.RecipeType.SMELTING) == 9600, "a canister should burn for 9600 ticks");
-        helper.succeed();
     }
 
     @GameTest(template = LINE, timeoutTicks = 200)

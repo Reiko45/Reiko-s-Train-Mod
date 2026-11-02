@@ -28,6 +28,9 @@ public final class TrainsConfig {
     public static final ModConfigSpec.IntValue MAX_TRAIN_LENGTH = BUILDER
             .comment("The most cars (counting the locomotive) one train can have.")
             .defineInRange("maxTrainLength", 16, 2, 64);
+    public static final ModConfigSpec.DoubleValue FALLBACK_DIESEL_ENERGY = BUILDER
+            .comment("MJ per bucket for a fluid in the reikotrains:diesel tag that BuildCraft has no fuel value for.")
+            .defineInRange("fallbackDieselEnergyPerBucket", 96_000.0, 1.0, 100_000_000.0);
     public static final ModConfigSpec.IntValue LOADER_SPEED = BUILDER
             .comment("How many items a wagon loader moves a second. 640 (ten stacks) fills a freight wagon in about 11",
                     "seconds. Two loaders at one train work twice as fast.")

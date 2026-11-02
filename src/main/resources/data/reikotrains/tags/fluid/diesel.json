@@ -1,0 +1,28 @@
+{
+  "values": [
+    {
+      "id": "buildcraftreborn:fuel_dense",
+      "required": false
+    },
+    {
+      "id": "buildcraftreborn:fuel_mixed_heavy",
+      "required": false
+    },
+    {
+      "id": "#c:diesel",
+      "required": false
+    },
+    {
+      "id": "#c:biodiesel",
+      "required": false
+    },
+    {
+      "id": "#c:high_power_biodiesel",
+      "required": false
+    },
+    {
+      "id": "#c:boosted_diesel",
+      "required": false
+    }
+  ]
+}

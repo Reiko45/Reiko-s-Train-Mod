@@ -191,6 +191,11 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
         return 1.0;
     }
 
+    /** How much of its fuel's unit one "unit" of burning is: 1 for steam engines (furnace ticks of fuel). */
+    protected double burnScale() {
+        return 1.0;
+    }
+
     /** How fast it burns fuel standing with the throttle shut, compared with the tank engine. */
     protected double idleAppetite() {
         return 1.0;
@@ -486,7 +491,7 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
         FuelStore store = fuelStore();
         if (lit && store != null && store.fuel() > 0 && TrainsConfig.NEEDS_FUEL.getAsBoolean()) {
             double rate = 0.1 * idleAppetite() + 0.35 * appetite() * Math.abs(workingThrottle()) / (double) MAX_THROTTLE;
-            store.setFuel(store.fuel() - rate * TrainsConfig.FUEL_USE.get());
+            store.setFuel(store.fuel() - rate * burnScale() * TrainsConfig.FUEL_USE.get());
         }
         showFuel();
         if (whistleCooldown > 0) {
