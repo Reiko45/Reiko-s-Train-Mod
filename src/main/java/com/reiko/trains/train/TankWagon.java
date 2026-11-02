@@ -20,12 +20,12 @@ import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 /**
- * A tank wagon: 64 buckets of one fluid (water, lava, oil, BuildCraft's fuels, any mod's fluid). Fill and empty it
+ * A tank wagon: 256 buckets of one fluid (water, lava, oil, BuildCraft's fuels, any mod's fluid). Fill and empty it
  * with buckets, pipes, or a wagon loader beside a tank; a gauge on its side shows how full it is. A full one is
  * heavier to pull. If it's broken up, what's in it is lost.
  */
 public class TankWagon extends TrainCarEntity {
-    public static final int CAPACITY = 64_000;
+    public static final int CAPACITY = 256_000;
     /** The gauge: 0 empty, else 1-4 lit for each quarter (or part of one) full. */
     private static final EntityDataAccessor<Integer> DATA_LEVEL = SynchedEntityData.defineId(TankWagon.class, EntityDataSerializers.INT);
 
@@ -99,7 +99,7 @@ public class TankWagon extends TrainCarEntity {
         return InteractionResult.CONSUME;
     }
 
-    /** "Tank wagon: 12 of 64 buckets of Water", or empty. */
+    /** "Tank wagon: 12 of 256 buckets of Water", or empty. */
     public Component contents() {
         FluidStack fluid = tank.getFluid();
         if (fluid.isEmpty()) {

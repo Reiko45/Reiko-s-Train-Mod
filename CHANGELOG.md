@@ -2,6 +2,12 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.9.1
+
+- The tank wagon holds 256 buckets (was 64).
+- Wagon loaders pump fluids four times as fast: twenty buckets a second into (or out of) each diesel and tank wagon,
+  so a full tank wagon takes about 13 seconds.
+
 ## 0.9.0
 
 More wagons.

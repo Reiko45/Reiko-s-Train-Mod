@@ -86,8 +86,8 @@ public final class WagonGameTests {
         wagon.interact(player, InteractionHand.MAIN_HAND);
         helper.assertTrue(wagon.tank().getFluidAmount() == 2000 && player.getMainHandItem().is(Items.WATER_BUCKET), "an empty bucket should draw one off");
         double light = wagon.mass();
-        wagon.tank().fill(new FluidStack(Fluids.WATER, 62_000), IFluidHandler.FluidAction.EXECUTE);
-        helper.assertTrue(wagon.tank().getFluidAmount() == TankWagon.CAPACITY, "it holds 64 buckets");
+        wagon.tank().fill(new FluidStack(Fluids.WATER, 300_000), IFluidHandler.FluidAction.EXECUTE);
+        helper.assertTrue(wagon.tank().getFluidAmount() == 256_000, "it holds 256 buckets, not " + wagon.tank().getFluidAmount() / 1000);
         helper.assertTrue(wagon.renderLoad() == 4 && wagon.mass() > light * 2, "full, the gauge shows it all and it's heavier");
         IFluidHandler pipe = wagon.getCapability(Capabilities.FluidHandler.ENTITY, null);
         helper.assertTrue(pipe != null && pipe.drain(10_000, IFluidHandler.FluidAction.EXECUTE).getAmount() == 10_000, "pipes can draw from it");

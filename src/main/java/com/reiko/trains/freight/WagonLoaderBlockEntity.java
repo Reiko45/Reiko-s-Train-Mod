@@ -44,8 +44,11 @@ import net.neoforged.neoforge.items.wrapper.InvWrapper;
 public class WagonLoaderBlockEntity extends BlockEntity {
     /** How often it works, in ticks. */
     private static final int PERIOD = 2;
-    /** How much diesel it pumps into each diesel locomotive a go, in millibuckets: five buckets a second. */
-    private static final int FLUID_PER_PERIOD = 500;
+    /**
+     * How much fluid it pumps into (or out of) each diesel locomotive and tank wagon a go, in millibuckets: twenty
+     * buckets a second, so a 256-bucket tank wagon fills in about 13 seconds, much as a freight wagon loads.
+     */
+    private static final int FLUID_PER_PERIOD = 2000;
     /** A loader counts as busy with a train until it's gone this long without moving anything. */
     private static final int BUSY_TICKS = 20;
     private static final Map<Level, Set<WagonLoaderBlockEntity>> LOADED = new WeakHashMap<>();
@@ -147,7 +150,7 @@ public class WagonLoaderBlockEntity extends BlockEntity {
             loader.serving = null; // that train's gone
         }
         if ((!diesels.isEmpty() || !tanks.isEmpty()) && !level.hasNeighborSignal(pos)) {
-            // Fluids, a few buckets a second for each car: loading, diesels fill up from tanks next to the loader (a
+            // Fluids, twenty buckets a second for each car: loading, diesels fill up from tanks next to the loader (a
             // BuildCraft tank, say) and then tank wagons; unloading, tank wagons empty into them.
             List<IFluidHandler> fluids = loader.fluidStorage();
             int pumped = 0;

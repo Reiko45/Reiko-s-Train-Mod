@@ -30,7 +30,7 @@ give them a timetable and let them run between the stations on their own.
 - **Passenger Coach**: 6½ blocks long, eight seats in four rows.
 - **Freight Wagon**: holds 108 stacks (four chests' worth), all on one screen. Hoppers above or below it fill and empty
   it, crates pile up in it as it fills, and a full one is heavier to pull.
-- **Tank Wagon**: carries 64 buckets of any fluid: water, lava, oil, BuildCraft's fuels. A gauge on its side shows
+- **Tank Wagon**: carries 256 buckets of any fluid: water, lava, oil, BuildCraft's fuels. A gauge on its side shows
   how full it is.
 - **Guard's Van**: for the back of the train. Two seats and a stove inside, tail lamps, and a brake that makes the
   whole train stop quicker.
@@ -153,7 +153,7 @@ way you're going, and a short hood behind. It rides on two bogies like the coach
   quarter as much) goes a quarter as far, and more of it fits. At full throttle a bucket of Dense Fuel lasts about
   five minutes; idling, nearly an hour.
 - To fill it, click it with a bucket (or any other mod's fluid container) of diesel, pipe it in, or put a **wagon
-  loader** by the track with a BuildCraft tank next to it: a diesel standing there is pumped full, five buckets a
+  loader** by the track with a BuildCraft tank next to it: a diesel standing there is pumped full, twenty buckets a
   second, and a timetabled train waits until it's done. The diesel won't take coal, and steam engines won't take
   diesel.
 - It pulls harder than either steam engine, so it gets a heavy train going quickest, though the express is faster
@@ -167,10 +167,10 @@ way you're going, and a short hood behind. It rides on two bogies like the coach
 
 ### Tank wagons and guard's vans
 
-The **Tank Wagon** carries 64 buckets of one fluid at a time. Click it with a full bucket (or any other mod's fluid
+The **Tank Wagon** carries 256 buckets of one fluid at a time. Click it with a full bucket (or any other mod's fluid
 container) to pour it in, or with an empty one to draw some off; click it empty-handed to see what's in it. Pipes
 can fill and empty it too, and a **wagon loader** with fluid tanks next to it fills tank wagons (loading) or empties
-them (unloading), five buckets a second each: so a train can carry BuildCraft's oil or fuel from a refinery to a
+them (unloading), twenty buckets a second each (a full one in about 13 seconds): so a train can carry BuildCraft's oil or fuel from a refinery to a
 depot by itself. The gauge on its side lights a quarter at a time as it fills; a full one is heavier to pull. If a
 tank wagon's broken up, what's in it is lost.
 
