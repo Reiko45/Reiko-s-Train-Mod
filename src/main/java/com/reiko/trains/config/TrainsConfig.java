@@ -21,6 +21,10 @@ public final class TrainsConfig {
             .comment("How quickly a locomotive pulling two coaches picks up speed, in blocks per tick per tick. Lighter",
                     "trains pick up speed faster, heavier ones slower, and uphill slower still.")
             .defineInRange("acceleration", 0.004, 0.0005, 0.05);
+    public static final ModConfigSpec.BooleanValue SIGNALS_STOP_DRIVERS = BUILDER
+            .comment("Whether trains people are driving stop for red signals by themselves, like trains on a timetable",
+                    "do. Turn off to leave it to the drivers.")
+            .define("signalsStopDrivers", true);
     public static final ModConfigSpec.IntValue MAX_TRAIN_LENGTH = BUILDER
             .comment("The most cars (counting the locomotive) one train can have.")
             .defineInRange("maxTrainLength", 16, 2, 64);

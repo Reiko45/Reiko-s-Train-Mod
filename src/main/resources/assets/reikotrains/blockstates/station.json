@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "facing=north,powered=true": {
+      "model": "reikotrains:block/station"
+    },
+    "facing=north,powered=false": {
+      "model": "reikotrains:block/station"
+    },
+    "facing=east,powered=true": {
+      "model": "reikotrains:block/station",
+      "y": 90
+    },
+    "facing=east,powered=false": {
+      "model": "reikotrains:block/station",
+      "y": 90
+    },
+    "facing=south,powered=true": {
+      "model": "reikotrains:block/station",
+      "y": 180
+    },
+    "facing=south,powered=false": {
+      "model": "reikotrains:block/station",
+      "y": 180
+    },
+    "facing=west,powered=true": {
+      "model": "reikotrains:block/station",
+      "y": 270
+    },
+    "facing=west,powered=false": {
+      "model": "reikotrains:block/station",
+      "y": 270
+    }
+  }
+}

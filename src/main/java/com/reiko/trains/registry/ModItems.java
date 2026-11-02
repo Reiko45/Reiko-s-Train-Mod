@@ -2,8 +2,10 @@ package com.reiko.trains.registry;
 
 import com.reiko.trains.ReikoTrains;
 import com.reiko.trains.item.CouplerItem;
+import com.reiko.trains.item.TimetableItem;
 import com.reiko.trains.item.TrainCarItem;
 import com.reiko.trains.track.TrackItem;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -21,6 +23,13 @@ public final class ModItems {
             () -> new TrainCarItem(ModEntities.FREIGHT_WAGON, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<CouplerItem> COUPLER = ITEMS.register("coupler",
             () -> new CouplerItem(new Item.Properties().stacksTo(1)));
+
+    public static final DeferredItem<BlockItem> SIGNAL = ITEMS.register("signal",
+            () -> new BlockItem(ModBlocks.SIGNAL.get(), new Item.Properties()));
+    public static final DeferredItem<BlockItem> STATION = ITEMS.register("station",
+            () -> new BlockItem(ModBlocks.STATION.get(), new Item.Properties()));
+    public static final DeferredItem<TimetableItem> TIMETABLE = ITEMS.register("timetable",
+            () -> new TimetableItem(new Item.Properties().stacksTo(1)));
 
     private ModItems() {
     }

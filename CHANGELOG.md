@@ -2,6 +2,22 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.3.0
+
+Signals, stations and timetables.
+
+- Railway Signal: guards the line ahead (to the next signal, down every branch) and shows red while a train's on it.
+  Trains stop short of red signals, including trains people are driving (server setting `signalsStopDrivers`).
+  Redstone holds a signal at red; a comparator reads 15 while the line ahead is occupied. Signals also show timetabled
+  trains which way a line runs.
+- Station: a nameboard showing its name, set from its screen (or an anvil); trains stop with their front level with
+  it. It gives a redstone signal while a train stands at it.
+- Timetable: click stations to list them, then click a train to run it between them by itself. It picks its way at
+  junctions, waits at stations (each station sets how long), obeys signals, reverses at termini, and tells its
+  passengers where they are. A driver takes over by touching the throttle or brake.
+- The cab gauges show the next signal (red or green, and how far) and the next station, or the timetable's progress.
+- Ten new game tests: 30 in all.
+
 ## 0.2.0
 
 Bigger trains on their own track.

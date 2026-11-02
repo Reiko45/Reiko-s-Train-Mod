@@ -88,6 +88,7 @@ public final class ReikoTrainsClient {
                 c -> new TrainModel(c.bakeLayer(WAGON_LAYER), new String[0], new float[0], new String[0], 0.0F, 1.0F, FreightWagonGeometry.CARGO),
                 bogie, ReikoTrains.id("textures/entity/freight_wagon.png")));
         event.registerBlockEntityRenderer(ModBlockEntities.TRACK.get(), TrackRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.STATION.get(), StationRenderer::new);
     }
 
     private static void registerKeys(RegisterKeyMappingsEvent event) {

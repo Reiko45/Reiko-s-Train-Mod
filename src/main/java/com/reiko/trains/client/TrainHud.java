@@ -16,6 +16,8 @@ import net.minecraft.network.chat.Component;
 public final class TrainHud implements LayeredDraw.Layer {
     private static final int WIDTH = 118;
     private static final int HEIGHT = 46;
+    /** The extra row for the next signal and station (or the timetable). */
+    private static final int INFO = 24;
     private static final int MARGIN = 6;
     private static final String[] NOTCHES = {"R2", "R1", "N", "1", "2", "3", "4"};
 
@@ -27,10 +29,34 @@ public final class TrainHud implements LayeredDraw.Layer {
             return;
         }
         Font font = minecraft.font;
+        Component status = locomotive.status();
+        int aspect = locomotive.signalAspect();
+        boolean info = aspect != 0 || !status.getString().isEmpty() || locomotive.isAutomatic();
+        int height = HEIGHT + (info ? INFO : 0);
         int x = graphics.guiWidth() - WIDTH - MARGIN;
-        int y = graphics.guiHeight() - HEIGHT - MARGIN;
-        graphics.fill(x, y, x + WIDTH, y + HEIGHT, 0xA0101014);
-        graphics.renderOutline(x, y, WIDTH, HEIGHT, 0x60FFFFFF);
+        int top = graphics.guiHeight() - height - MARGIN;
+        graphics.fill(x, top, x + WIDTH, top + height, 0xA0101014);
+        graphics.renderOutline(x, top, WIDTH, height, 0x60FFFFFF);
+        if (info) {
+            // The next signal: a lamp, red or green, and how far
+            int sy = top + 4;
+            if (aspect != 0) {
+                int lamp = aspect == 1 ? 0xFF3CE05A : 0xFFFF3B30;
+                graphics.fill(x + 5, sy + 1, x + 11, sy + 7, 0xFF000000);
+                graphics.fill(x + 6, sy + 2, x + 10, sy + 6, lamp);
+                graphics.drawString(font, Component.translatable("hud.reikotrains.signal", locomotive.signalDistance()), x + 14, sy, 0xFFD0D0D0, false);
+            }
+            if (locomotive.isAutomatic()) {
+                Component auto = Component.translatable("hud.reikotrains.auto");
+                int aw = font.width(auto) + 6;
+                graphics.fill(x + WIDTH - aw - 4, sy - 1, x + WIDTH - 4, sy + 9, 0xFF3070D0);
+                graphics.drawString(font, auto, x + WIDTH - aw - 1, sy, 0xFFFFFFFF, false);
+            }
+            // The next station, or what the timetable's doing
+            String line = font.plainSubstrByWidth(status.getString(), WIDTH - 10);
+            graphics.drawString(font, line, x + 5, sy + 11, 0xFFFFE9A8, false);
+        }
+        int y = top + (info ? INFO : 0);
 
         // Throttle: one box per notch, the current one lit
         int throttle = locomotive.getThrottle();
@@ -39,7 +65,7 @@ public final class TrainHud implements LayeredDraw.Layer {
             int notch = i + SteamLocomotive.MIN_THROTTLE;
             int bx = x + 4 + i * (boxW + 1);
             int by = y + 4;
-            boolean lit = notch == throttle;
+            boolean lit = notch == throttle && !locomotive.isAutomatic();
             int color = !lit ? 0x40FFFFFF : notch < 0 ? 0xFFF08A24 : notch == 0 ? 0xFFB8B8B8 : 0xFF4CC266;
             graphics.fill(bx, by, bx + boxW, by + 11, color);
             String label = NOTCHES[i];

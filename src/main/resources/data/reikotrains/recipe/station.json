@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "S": {
+      "tag": "minecraft:signs"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "pattern": [
+    "S",
+    "I",
+    "I"
+  ],
+  "result": {
+    "count": 1,
+    "id": "reikotrains:station"
+  }
+}

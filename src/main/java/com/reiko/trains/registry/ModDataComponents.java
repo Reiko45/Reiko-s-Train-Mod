@@ -1,6 +1,8 @@
 package com.reiko.trains.registry;
 
 import com.reiko.trains.ReikoTrains;
+import com.reiko.trains.train.Timetable;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
 import net.minecraft.core.BlockPos;
@@ -19,6 +21,10 @@ public final class ModDataComponents {
     /** On track: the track block a curve is being drawn from. */
     public static final Supplier<DataComponentType<BlockPos>> TRACK_START = COMPONENTS.registerComponentType("track_start",
             builder -> builder.persistent(BlockPos.CODEC).networkSynchronized(BlockPos.STREAM_CODEC));
+
+    /** On a timetable: the stations to call at. */
+    public static final Supplier<DataComponentType<List<Timetable.Stop>>> TIMETABLE = COMPONENTS.registerComponentType("timetable",
+            builder -> builder.persistent(Timetable.CODEC).networkSynchronized(Timetable.STREAM_CODEC));
 
     private ModDataComponents() {
     }

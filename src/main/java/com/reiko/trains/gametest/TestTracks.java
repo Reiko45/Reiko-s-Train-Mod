@@ -1,10 +1,18 @@
 package com.reiko.trains.gametest;
 
 import com.reiko.trains.item.TrainCarItem;
+import com.reiko.trains.registry.ModBlocks;
+import com.reiko.trains.signal.SignalBlock;
+import com.reiko.trains.signal.SignalBlockEntity;
+import com.reiko.trains.signal.StationBlock;
+import com.reiko.trains.signal.StationBlockEntity;
+import com.reiko.trains.track.TrackGraph;
+import com.reiko.trains.train.Timetable;
 import com.reiko.trains.track.TrackAxis;
 import com.reiko.trains.track.TrackBuilder;
 import com.reiko.trains.train.TrainCarEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Blocks;
@@ -56,6 +64,37 @@ public final class TestTracks {
         BlockPos westEnd = southWest.offset(0, 0, 2 * r);
         connect(level, westEnd, westEnd.offset(-r, 0, -r));
         connect(level, westEnd.offset(-r, 0, -r), southWest);
+    }
+
+    /**
+     * A signal at {@code pos} guarding the track block {@code node} for trains leaving it by {@code side} (facing
+     * them), as if a player had put it there.
+     */
+    public static SignalBlockEntity signal(ServerLevel level, BlockPos pos, BlockPos node, int side) {
+        TrackAxis axis = TrackGraph.axis(level, node);
+        Vec3 out = axis.out(side);
+        level.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 2);
+        level.setBlock(pos, ModBlocks.SIGNAL.get().defaultBlockState().setValue(SignalBlock.FACING, Direction.getNearest(-out.x, 0, -out.z)), 3);
+        SignalBlockEntity signal = (SignalBlockEntity) level.getBlockEntity(pos);
+        signal.attach(node, side);
+        return signal;
+    }
+
+    /** A station at {@code pos} for the track block {@code node}. */
+    public static StationBlockEntity station(ServerLevel level, BlockPos pos, BlockPos node, String name, int dwellSeconds) {
+        level.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 2);
+        Vec3 toTrack = Vec3.atCenterOf(node).subtract(Vec3.atCenterOf(pos));
+        level.setBlock(pos, ModBlocks.STATION.get().defaultBlockState().setValue(StationBlock.FACING, Direction.getNearest(toTrack.x, 0, toTrack.z)), 3);
+        StationBlockEntity station = (StationBlockEntity) level.getBlockEntity(pos);
+        station.attach(node);
+        station.setName(name);
+        station.setDwellSeconds(dwellSeconds);
+        return station;
+    }
+
+    /** A timetable stop for a station. */
+    public static Timetable.Stop stop(StationBlockEntity station) {
+        return new Timetable.Stop(station.getBlockPos(), station.node(), station.name());
     }
 
     /** Puts a car on the track block at {@code pos}, facing {@code look}, and adds it to the world. */

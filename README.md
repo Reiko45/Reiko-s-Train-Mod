@@ -1,8 +1,8 @@
 # Reiko's Train Mod
 
 Big steam trains for Minecraft **1.21.1** (NeoForge), on their own track. Lay a railway with curves, ramps and
-junctions, fire up a two-block-wide tank engine, couple coaches and freight wagons behind it, and drive the whole
-train with a throttle, a brake, a whistle and a choice of way at every junction.
+junctions, signal it, name its stations, and either drive the trains yourself (throttle, brake, whistle, a choice of
+way at every junction) or give them a timetable and let them run between the stations on their own.
 
 ![A train on the line](docs/screenshots/train.jpg)
 
@@ -20,6 +20,9 @@ train with a throttle, a brake, a whistle and a choice of way at every junction.
 - **Freight Wagon**: holds 108 stacks (four chests' worth), all on one screen. Hoppers above or below it fill and empty
   it, crates pile up in it as it fills, and a full one is heavier to pull.
 - **Coupler**: joins cars into trains.
+- **Railway Signal**: red while there's a train on the line ahead, green when it's clear. Trains stop for red.
+- **Station**: a nameboard beside the track. Trains stop with their front level with it.
+- **Timetable**: a list of stations for a train to run between by itself.
 
 The coaches and wagons ride on two bogies that swing under them, so long cars go round curves like the real thing.
 
@@ -55,6 +58,9 @@ or ramp can cross gaps between them, so bridges are just long curves. Leave thre
 | Passenger Coach | Glass panes on top; planks, wool, planks; iron ingot, minecart, iron ingot |
 | Freight Wagon | Planks around a chest (top middle open); iron ingot, minecart, iron ingot |
 | Coupler | Iron ingot, chain, iron ingot (a column) |
+| Railway Signal (2) | Redstone lamp, iron ingot, iron ingot (a column) |
+| Station | Any sign, iron ingot, iron ingot (a column) |
+| Timetable | Two paper and a clock |
 
 Everything's also in the **Reiko's Trains** creative tab.
 
@@ -83,8 +89,8 @@ empty hand to climb into the cab.
 | H | Whistle (rebind under Controls, *Reiko's Trains*) |
 | Sneak | Get out |
 
-The gauges, bottom right, show the throttle notch (R2, R1, N, 1-4), the speed, which way you're steering, the brake
-and the firebox. Top speed is 43 km/h; a heavy train takes longer to get going, and slows (or stalls) going uphill.
+The gauges, bottom right, show the next signal (and how far), the next station, the throttle notch (R2, R1, N, 1-4),
+the speed, which way you're steering, the brake and the firebox. Top speed is 43 km/h; a heavy train takes longer to get going, and slows (or stalls) going uphill.
 Cars roll downhill on their own. At the end of the line a train stops dead. If the track under a car is broken, the
 car comes off and drops as an item. With nobody at the controls the handbrake holds the train, and the fire only
 burns while someone's driving. A moving train keeps the chunks around it loaded, so it doesn't stop at the edge of
@@ -104,9 +110,48 @@ In `serverconfig/reikotrains-server.toml` in each world:
 | `fuelUse` | `1.0` | How fast fuel burns (1.0: a coal lasts about 3 minutes at full throttle) |
 | `maxSpeed` | `0.6` | Top speed in blocks per tick (0.6 is 12 blocks a second) |
 | `acceleration` | `0.004` | How quickly a locomotive with two coaches picks up speed |
+| `signalsStopDrivers` | `true` | Whether trains people drive stop for red signals by themselves |
 | `maxTrainLength` | `16` | The most cars in one train |
 
 The fuel a locomotive takes is the item tag `reikotrains:locomotive_fuel`, so a datapack can change it.
+
+## Signals
+
+Put a **Railway Signal** beside the track (up to three blocks away; leave a block's gap so trains clear it), looking
+along the line the way the trains will go. It guards the track ahead that way, up to the next signal facing the
+same way (down every branch of any junctions). It shows **red** while any train is on that stretch, and **green**
+when it's clear. Its lamps face the trains coming towards it.
+
+- Trains stop just short of a red signal and go on when it turns green: trains on a timetable always, and trains
+  you're driving too (the server can turn that off with `signalsStopDrivers`). The cab gauges show the next signal and
+  how far it is.
+- **Redstone** holds a signal at red: wire it to a lever to stop trains by hand.
+- A **comparator** beside a signal reads 15 while there's a train on the stretch ahead.
+- Signals face one way, and they also tell trains on a timetable which way the line runs: a loop signalled one way
+  round is run that way round.
+
+![A signal turns red behind a train](docs/screenshots/signals.jpg)
+
+## Stations and timetables
+
+Put a **Station** beside the track the same way. Click it to name it (or name it in an anvil first) and set how long
+trains on a timetable wait there (2 to 120 seconds). It gives a **redstone signal** while a train is standing at it:
+handy for doors, lamps or a bell.
+
+![A station](docs/screenshots/station.jpg)
+
+To run a train by itself:
+
+1. Click stations with a **Timetable**, in the order you want them called at (up to 16). Its tooltip lists them.
+2. Fuel the locomotive, and click any car of the train with the timetable. Off it goes.
+
+A train on a timetable runs to each station in turn and round again: it draws up with its front at the nameboard,
+waits, whistles, and sets off for the next. It picks its way at junctions (the way that leads to the next station),
+stops for red signals, and backs out of dead ends: at a terminus it just reverses. Passengers see the station names
+as they go. Climb into the cab and touch the throttle or brake to take over; sneak-click the train with the timetable
+to stop it running. Sneak-click the air with a timetable to clear it.
+
+![Two trains on timetables share a signalled loop](docs/screenshots/timetabled_trains.jpg)
 
 ## Upgrading from 0.1.0
 
@@ -128,7 +173,10 @@ joining up, the curve rules (radius, steepness, direction) and taking curves apa
 steaming off, running out of fuel, the brake and handbrake, buffer stops, reversing and pushing, going round a loop of
 curves without coming apart, steering at a junction, rolling down and climbing a ramp, coupling (nose to nose, either
 end, one locomotive per train), saving, derailing when the track goes, the 108-slot wagon with a hopper, fuel and
-recipes.
+recipes. `SignalGameTests` covers signals (red with a train ahead, green when it's gone, redstone, comparators),
+drivers stopping at red, stations' redstone, the timetable item, a timetabled train shuttling between two stations,
+waiting at a signal, taking a branch to reach its station, handing over to a driver, and two timetabled trains
+sharing a signalled loop without ever meeting.
 
 `./gradlew runClient -Pshowcase -PwindowSize=1280x720` builds a test railway, runs trains round it and saves
 screenshots to `run/screenshots/` (that's where the pictures above come from).
@@ -154,14 +202,22 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
   the same distance along the track. The bogie at the very front chooses the way at junctions, and the rest follow its
   choices, so a train never splits at a junction. Cars are made of several hitbox parts along their length, as entity
   boxes can't turn.
+- **Signals and stations** (`signal/`): each is tied to a track block. A signal works out its section (the track ahead
+  up to the next signals) and checks it for trains. `TrackSide` keeps track of which are at which block, so trains
+  look them up as they go.
+- **Driving** (`train/Lookahead`, `Autopilot`): every tick a train looks 80 blocks down the line for signals,
+  stations and the end of the track, and slows to stop in time for a red signal (or its station). A timetabled train's
+  `Autopilot` searches the track for the way to its next station.
 - **Client** (`client/`): `TrainCarRenderer` draws a car and its swinging bogies, `TrackRenderer` draws curves,
-  `TrackPreview` the outline while you lay track, and `TrainHud` the cab gauges.
+  `TrackPreview` the outline while you lay track, `StationRenderer` the names on the boards, and `TrainHud` the cab
+  gauges.
 
 ## Ideas for later
 
-- Signals, stations and timetables
 - More locomotives (a diesel?), tenders, more wagons
 - Track switches you can set by hand or with redstone
+- Loading and unloading wagons at stations automatically
+- A departures board
 
 ## License
 

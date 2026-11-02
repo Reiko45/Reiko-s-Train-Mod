@@ -174,5 +174,138 @@ def main():
     print("track textures, models and the wagon screen written")
 
 
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Signals and stations
+
+
+def solid(name, base, edge=None, noise_amount=0.05):
+    img = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            c = shade(base, 1 + noise_amount * noise(name, x, y))
+            if edge and (x in (0, 15) or y in (0, 15)):
+                c = shade(edge, 1)
+            img.putpixel((x, y), c)
+    img.save(f"{ASSETS}/textures/block/{name}.png")
+
+
+def lamp(name, color, lit):
+    img = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            r = math.hypot(x - 7.5, y - 7.5)
+            if r > 7.5:
+                c = (20, 20, 22, 255)
+            elif lit:
+                f = 1.25 - 0.45 * (r / 7.5)
+                c = shade(color, f)
+                if r < 2.5:
+                    c = shade((255, 255, 255), 1) if color[0] < 200 or color[1] < 200 else c
+                    c = tuple(min(255, int(v * 0.6 + w * 0.4)) for v, w in zip(c[:3], (255, 255, 240))) + (255,)
+            else:
+                c = shade(color, 0.28 + 0.06 * (1 - r / 7.5))
+            img.putpixel((x, y), c)
+    img.save(f"{ASSETS}/textures/block/{name}.png")
+
+
+def signal_textures():
+    solid("signal_metal", (64, 66, 72))
+    solid("signal_head", (22, 22, 24))
+    lamp("signal_red_on", (255, 60, 40), True)
+    lamp("signal_red_off", (255, 60, 40), False)
+    lamp("signal_green_on", (60, 255, 110), True)
+    lamp("signal_green_off", (60, 255, 110), False)
+    # The station board: navy with a cream border round the 16 x 9 face; the posts are painted metal.
+    board = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            c = shade((26, 44, 96), 1 + 0.04 * noise("board", x, y))
+            if y < 9 and (x in (0, 15) or y in (0, 8)):
+                c = shade((232, 222, 190), 1)
+            board.putpixel((x, y), c)
+    board.save(f"{ASSETS}/textures/block/station_board.png")
+    solid("station_post", (44, 52, 80))
+
+
+def element(frm, to, textures, lit=None):
+    """A box; textures maps face -> (texture, uv); lit is the face that glows."""
+    faces = {}
+    for f, (tex, uv) in textures.items():
+        faces[f] = {"texture": tex, "uv": uv}
+        if f == lit:
+            faces[f]["neoforge_data"] = {"block_light": 15, "sky_light": 15}
+    return {"from": frm, "to": to, "faces": faces}
+
+
+def all_faces(tex, uv=(0, 0, 16, 16)):
+    return {f: (tex, list(uv)) for f in ("north", "south", "east", "west", "up", "down")}
+
+
+def signal_models():
+    for name, red_lit in (("signal_stop", True), ("signal_clear", False)):
+        tex = {"particle": "reikotrains:block/signal_metal", "metal": "reikotrains:block/signal_metal",
+               "head": "reikotrains:block/signal_head",
+               "red": f"reikotrains:block/signal_red_{'on' if red_lit else 'off'}",
+               "green": f"reikotrains:block/signal_green_{'off' if red_lit else 'on'}"}
+        elements = [
+            element([5, 0, 5], [11, 1, 11], all_faces("#metal")),
+            element([7, 1, 7], [9, 20, 9], all_faces("#metal")),
+            element([5.5, 17, 7], [10.5, 31, 9.5], all_faces("#head")),
+            element([6.5, 25, 6.5], [9.5, 28, 7], {"north": ("#red", [0, 0, 16, 16]), "east": ("#head", [0, 0, 1, 3]),
+                                                   "west": ("#head", [0, 0, 1, 3]), "up": ("#head", [0, 0, 3, 1]),
+                                                   "down": ("#head", [0, 0, 3, 1])}, lit="north" if red_lit else None),
+            element([6.5, 19.5, 6.5], [9.5, 22.5, 7], {"north": ("#green", [0, 0, 16, 16]), "east": ("#head", [0, 0, 1, 3]),
+                                                       "west": ("#head", [0, 0, 1, 3]), "up": ("#head", [0, 0, 3, 1]),
+                                                       "down": ("#head", [0, 0, 3, 1])}, lit=None if red_lit else "north"),
+            element([6, 28, 5], [10, 28.5, 7], all_faces("#head", (0, 0, 4, 2))),
+            element([6, 22.5, 5], [10, 23, 7], all_faces("#head", (0, 0, 4, 2))),
+        ]
+        model = {"parent": "block/block", "ambientocclusion": False, "textures": tex, "elements": elements}
+        with open(f"{ASSETS}/models/block/{name}.json", "w") as out:
+            json.dump(model, out, indent=2)
+    variants = {}
+    for facing, y in (("north", 0), ("east", 90), ("south", 180), ("west", 270)):
+        for clear in ("true", "false"):
+            v = {"model": f"reikotrains:block/signal_{'clear' if clear == 'true' else 'stop'}"}
+            if y:
+                v["y"] = y
+            variants[f"clear={clear},facing={facing}"] = v
+    with open(f"{ASSETS}/blockstates/signal.json", "w") as out:
+        json.dump({"variants": variants}, out, indent=2)
+
+
+def station_models():
+    tex = {"particle": "reikotrains:block/station_post", "post": "reikotrains:block/station_post", "board": "reikotrains:block/station_board"}
+    board_faces = {"north": ("#board", [0, 0, 16, 9]), "south": ("#board", [0, 0, 16, 9]),
+                   "east": ("#post", [0, 0, 2, 9]), "west": ("#post", [0, 0, 2, 9]),
+                   "up": ("#post", [0, 0, 16, 2]), "down": ("#post", [0, 0, 16, 2])}
+    elements = [
+        element([1, 0, 7.25], [2.5, 19, 8.75], all_faces("#post", (0, 0, 2, 16))),
+        element([13.5, 0, 7.25], [15, 19, 8.75], all_faces("#post", (0, 0, 2, 16))),
+        element([0, 19, 7], [16, 28, 9], board_faces),
+    ]
+    model = {"parent": "block/block", "ambientocclusion": False, "textures": tex, "elements": elements}
+    with open(f"{ASSETS}/models/block/station.json", "w") as out:
+        json.dump(model, out, indent=2)
+    variants = {}
+    for facing, y in (("north", 0), ("east", 90), ("south", 180), ("west", 270)):
+        for powered in ("true", "false"):
+            v = {"model": "reikotrains:block/station"}
+            if y:
+                v["y"] = y
+            variants[f"facing={facing},powered={powered}"] = v
+    with open(f"{ASSETS}/blockstates/station.json", "w") as out:
+        json.dump({"variants": variants}, out, indent=2)
+
+
+def signals_and_stations():
+    signal_textures()
+    signal_models()
+    station_models()
+
+
 if __name__ == "__main__":
     main()
+    signals_and_stations()

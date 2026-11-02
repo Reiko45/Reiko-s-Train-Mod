@@ -5,6 +5,9 @@ import com.reiko.trains.config.TrainsConfig;
 import com.reiko.trains.network.TrainControlPayload;
 import com.reiko.trains.registry.ModItems;
 import com.reiko.trains.registry.ModSounds;
+import com.reiko.trains.track.TrackGraph;
+import com.reiko.trains.track.TrackPos;
+import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
@@ -53,10 +56,14 @@ public class SteamLocomotive extends TrainCarEntity {
     private static final EntityDataAccessor<Boolean> DATA_STEAM = SynchedEntityData.defineId(SteamLocomotive.class, EntityDataSerializers.BOOLEAN);
     /** The train's speed, forwards for the locomotive, in blocks per tick: for the speedometer. */
     private static final EntityDataAccessor<Float> DATA_SPEED = SynchedEntityData.defineId(SteamLocomotive.class, EntityDataSerializers.FLOAT);
+    /** The next signal ahead, for the gauges: 0 none, else 1 (clear) or 2 (red) times 10000, plus how far in blocks. */
+    private static final EntityDataAccessor<Integer> DATA_SIGNAL = SynchedEntityData.defineId(SteamLocomotive.class, EntityDataSerializers.INT);
+    /** The next station ahead and how far, or the timetable's status, for the gauges. */
+    private static final EntityDataAccessor<Component> DATA_STATUS = SynchedEntityData.defineId(SteamLocomotive.class, EntityDataSerializers.COMPONENT);
+    private static final EntityDataAccessor<Boolean> DATA_AUTO = SynchedEntityData.defineId(SteamLocomotive.class, EntityDataSerializers.BOOLEAN);
 
     private double fuel;
-    /** Drives itself as if someone were at the controls (for the dev showcase). */
-    private boolean autopilot;
+    private final Autopilot autopilot = new Autopilot(this);
     private int whistleCooldown;
     private int noFuelWarning;
     // client
@@ -76,6 +83,9 @@ public class SteamLocomotive extends TrainCarEntity {
         builder.define(DATA_FUEL, 0);
         builder.define(DATA_STEAM, false);
         builder.define(DATA_SPEED, 0.0F);
+        builder.define(DATA_SIGNAL, 0);
+        builder.define(DATA_STATUS, Component.empty());
+        builder.define(DATA_AUTO, false);
     }
 
     @Override
@@ -164,8 +174,17 @@ public class SteamLocomotive extends TrainCarEntity {
         return getFirstPassenger() instanceof Player player ? player : null;
     }
 
-    /** What the driver's keys do; see {@link TrainControlPayload}. */
+    /** What the driver's keys do; see {@link TrainControlPayload}. Working the throttle or brake takes over from the timetable. */
     public void control(int action) {
+        boolean takesOver = action == TrainControlPayload.THROTTLE_UP || action == TrainControlPayload.THROTTLE_DOWN
+                || action == TrainControlPayload.BRAKE_ON;
+        if (takesOver && autopilot.isOn()) {
+            autopilot.stop();
+            Player driver = driver();
+            if (driver != null) {
+                driver.displayClientMessage(Component.translatable("message.reikotrains.auto.taken_over"), true);
+            }
+        }
         switch (action) {
             case TrainControlPayload.THROTTLE_UP -> setThrottle(getThrottle() + 1);
             case TrainControlPayload.THROTTLE_DOWN -> setThrottle(getThrottle() - 1);
@@ -188,8 +207,13 @@ public class SteamLocomotive extends TrainCarEntity {
         }
     }
 
-    private boolean hasSteam() {
+    boolean hasSteam() {
         return fuel > 0 || !TrainsConfig.NEEDS_FUEL.getAsBoolean();
+    }
+
+    /** How hard it can pull a train this heavy, in blocks per tick per tick. */
+    double pull(double trainMass) {
+        return TrainsConfig.ACCELERATION.get() * REFERENCE_MASS / trainMass;
     }
 
     /** Held in place: the brake's on, or nobody's driving (the handbrake). */
@@ -197,14 +221,85 @@ public class SteamLocomotive extends TrainCarEntity {
         return isBraking() || !isDriven();
     }
 
-    /** Whether someone's at the controls. */
+    /** Whether someone's at the controls, or it's running a timetable. */
     public boolean isDriven() {
-        return driver() != null || autopilot;
+        return driver() != null || autopilot.isOn();
     }
 
-    /** Runs the locomotive with nobody aboard, at whatever throttle it's set to (for the dev showcase). */
-    public void setAutopilot(boolean on) {
-        autopilot = on;
+    public Autopilot autopilot() {
+        return autopilot;
+    }
+
+    public boolean isAutomatic() {
+        return entityData.get(DATA_AUTO);
+    }
+
+    /** For the gauges: the next signal ahead, 0 if none in sight, else 1 (clear) or 2 (red). */
+    public int signalAspect() {
+        return entityData.get(DATA_SIGNAL) / 10000;
+    }
+
+    public int signalDistance() {
+        return entityData.get(DATA_SIGNAL) % 10000;
+    }
+
+    /** For the gauges: the next station and how far, or where the timetable has got to. */
+    public Component status() {
+        return entityData.get(DATA_STATUS);
+    }
+
+    /**
+     * Run by the train each tick before it moves (the locomotive is car {@code index}): looks down the line, and works
+     * out how it's being driven. On a timetable the autopilot does it; otherwise it's the driver, though (unless the
+     * server turns it off) the train won't run past a red signal.
+     */
+    Drive plan(List<TrainCarEntity> cars, int[] signs, int index, double speed) {
+        if (autopilot.isOn()) {
+            return autopilot.plan(cars, signs, speed);
+        }
+        int throttle = getThrottle();
+        int direction = Math.abs(speed) > 1.0E-4 ? (speed > 0 ? 1 : -1) : throttle != 0 ? Integer.signum(throttle) * signs[index] : 1;
+        int steer = getSteer();
+        TrackPos.Chooser chooser = (node, side, options, heading) -> TrackGraph.choose(options, heading, steer);
+        Lookahead look = Lookahead.look(cars, signs, direction, chooser, null);
+        showLookahead(look);
+        updateAutoDisplay();
+        double limit = TrainsConfig.SIGNALS_STOP_DRIVERS.getAsBoolean() ? Drive.stoppingSpeed(look.signalStop) : Double.POSITIVE_INFINITY;
+        return new Drive(direction, null, limit, false, 0);
+    }
+
+    /** Puts what's ahead on the gauges: the next signal, and (when not on a timetable) the next station. */
+    void showLookahead(Lookahead look) {
+        int signal = look.signalDistance < 0 ? 0 : (look.signalClear ? 1 : 2) * 10000 + Mth.clamp((int) Math.round(look.signalDistance / 2) * 2, 0, 9999);
+        if (entityData.get(DATA_SIGNAL) != signal) {
+            entityData.set(DATA_SIGNAL, signal);
+        }
+        if (!autopilot.isOn()) {
+            Component status = Component.empty();
+            if (look.station != null) {
+                int distance = (int) Math.round(look.stationDistance);
+                status = Math.abs(distance) <= 2 && Math.abs(entityData.get(DATA_SPEED)) < 0.01
+                        ? Component.translatable("hud.reikotrains.station.at", look.station.name())
+                        : Component.translatable("hud.reikotrains.station.ahead", look.station.name(), Math.max(0, distance / 5 * 5));
+            }
+            if (!status.equals(entityData.get(DATA_STATUS))) {
+                entityData.set(DATA_STATUS, status);
+            }
+        }
+    }
+
+    /** Puts the timetable's state on the gauges. */
+    void updateAutoDisplay() {
+        boolean on = autopilot.isOn();
+        if (entityData.get(DATA_AUTO) != on) {
+            entityData.set(DATA_AUTO, on);
+        }
+        if (on) {
+            Component status = autopilot.status();
+            if (!status.equals(entityData.get(DATA_STATUS))) {
+                entityData.set(DATA_STATUS, status);
+            }
+        }
     }
 
     /** The train's speed in km/h, for the speedometer (either way). */
@@ -367,11 +462,14 @@ public class SteamLocomotive extends TrainCarEntity {
     protected void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putDouble("Fuel", fuel);
+        autopilot.save(tag);
     }
 
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         setFuel(tag.getDouble("Fuel"));
+        autopilot.load(tag);
+        updateAutoDisplay();
     }
 }

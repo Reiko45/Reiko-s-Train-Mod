@@ -35,6 +35,15 @@ PALETTE = {
     "O": (104, 70, 40, 255),    # dark wood
     "x": (196, 152, 94, 255),   # crate
     "X": (140, 104, 60, 255),   # crate dark
+    "r": (200, 40, 30, 255),    # red lamp
+    "R": (255, 110, 90, 255),   # red lamp, bright
+    "g": (30, 150, 60, 255),    # green lamp
+    "G": (110, 240, 140, 255),  # green lamp, bright
+    "n": (26, 44, 96, 255),     # navy board
+    "W": (240, 236, 220, 255),  # lettering
+    "p": (236, 230, 210, 255),  # paper
+    "P": (170, 60, 50, 255),    # heading
+    "y": (240, 200, 70, 255),   # clock face
 }
 
 ICONS = {
@@ -109,6 +118,60 @@ ICONS = {
         ".OoosSooooosSooO",
         ".OOOsSOOOOOsSOO.",
         "...sS......sS...",
+    ],
+    "signal": [
+        "......KKKK......",
+        "......KrrK......",
+        ".....KrRRrK.....",
+        "......KrrK......",
+        "......KKKK......",
+        "......KggK......",
+        ".....KgGGgK.....",
+        "......KggK......",
+        "......KKKK......",
+        ".......SS.......",
+        ".......SS.......",
+        ".......SS.......",
+        ".......SS.......",
+        ".......SS.......",
+        ".....SSSSSS.....",
+        "................",
+    ],
+    "station": [
+        "................",
+        "................",
+        "cccccccccccccccc",
+        "cnnnnnnnnnnnnnnc",
+        "cnWWnWnWWnWWnnnc",
+        "cnWnnWnWnnWnnnnc",
+        "cnnnnnnnnnnnnnnc",
+        "cccccccccccccccc",
+        ".SS..........SS.",
+        ".SS..........SS.",
+        ".SS..........SS.",
+        ".SS..........SS.",
+        ".SS..........SS.",
+        ".SS..........SS.",
+        ".SS..........SS.",
+        "................",
+    ],
+    "timetable": [
+        "..pppppppppppp..",
+        "..pPPPPPPPPPPp..",
+        "..pppppppppppp..",
+        "..pkkkpkkkkkkp..",
+        "..pppppppppppp..",
+        "..pkkpppkkkkkp..",
+        "..pppppppppppp..",
+        "..pkkkkpkkkkpp..",
+        "..pppppppppppp..",
+        "..pkkkppbbbbpp..",
+        "..pppppbyyyybp..",
+        "..pkkkpbykyybp..",
+        "..pppppbyykkbp..",
+        "..pppppbyyyybp..",
+        "..ppppppbbbbpp..",
+        "................",
     ],
     "coupler": [
         "................",

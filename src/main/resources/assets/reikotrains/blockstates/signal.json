@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "clear=true,facing=north": {
+      "model": "reikotrains:block/signal_clear"
+    },
+    "clear=false,facing=north": {
+      "model": "reikotrains:block/signal_stop"
+    },
+    "clear=true,facing=east": {
+      "model": "reikotrains:block/signal_clear",
+      "y": 90
+    },
+    "clear=false,facing=east": {
+      "model": "reikotrains:block/signal_stop",
+      "y": 90
+    },
+    "clear=true,facing=south": {
+      "model": "reikotrains:block/signal_clear",
+      "y": 180
+    },
+    "clear=false,facing=south": {
+      "model": "reikotrains:block/signal_stop",
+      "y": 180
+    },
+    "clear=true,facing=west": {
+      "model": "reikotrains:block/signal_clear",
+      "y": 270
+    },
+    "clear=false,facing=west": {
+      "model": "reikotrains:block/signal_stop",
+      "y": 270
+    }
+  }
+}

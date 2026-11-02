@@ -13,6 +13,7 @@ import com.reiko.trains.train.SteamLocomotive;
 import com.reiko.trains.train.TrainCarEntity;
 import com.reiko.trains.train.Trains;
 import com.reiko.trains.menu.FreightWagonMenu;
+import com.reiko.trains.signal.StationBlockEntity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -137,15 +138,25 @@ public final class DevShowcase {
     }
 
     /**
-     * The layout: a main line along z = 0 with a junction at x = 52 (a branch curving off south-east), and a loop
-     * (straights at z = 14 and z = 38, x 12 to 42, with radius-12 ends) to the south.
+     * The layout: a main line along z = 0 with a station (Riverside) and a signal, and a junction at x = 52; and to
+     * the south a loop (straights at z = 14 and z = 38, x 12 to 42, radius-12 ends) signalled for trains going round
+     * clockwise, with two stations (Northgate, Southport) and two trains running between them on timetables.
      */
     private static void build(ServerLevel level) {
         TestTracks.line(level, new BlockPos(-30, Y, 0), TrackAxis.X, 110);
         BlockPos branch = new BlockPos(52, Y, 0);
         TestTracks.connect(level, branch, branch.offset(14, 0, 6));
         TestTracks.line(level, branch.offset(15, 0, 7), TrackAxis.SE, 10);
+        TestTracks.station(level, new BlockPos(32, Y, -3), new BlockPos(32, Y, 0), "Riverside", 10);
+        TestTracks.signal(level, new BlockPos(46, Y, -2), new BlockPos(46, Y, 0), 1);
+
         TestTracks.loop(level, new BlockPos(0, Y, 14), 30, 12);
+        for (int x : new int[]{14, 26, 38}) {
+            TestTracks.signal(level, new BlockPos(x, Y, 12), new BlockPos(x, Y, 14), 1);
+            TestTracks.signal(level, new BlockPos(54 - x, Y, 40), new BlockPos(54 - x, Y, 38), -1);
+        }
+        StationBlockEntity north = TestTracks.station(level, new BlockPos(32, Y, 11), new BlockPos(32, Y, 14), "Northgate", 4);
+        StationBlockEntity south = TestTracks.station(level, new BlockPos(22, Y, 41), new BlockPos(22, Y, 38), "Southport", 4);
 
         SteamLocomotive loco = put(level, ModEntities.STEAM_LOCOMOTIVE.get(), 22, 0);
         PassengerCoach coach = put(level, ModEntities.PASSENGER_COACH.get(), 15, 0);
@@ -157,9 +168,16 @@ public final class DevShowcase {
         for (int i = 0; i < 70; i++) {
             wagon.setItem(i, new ItemStack(i % 3 == 0 ? Items.OAK_LOG : i % 3 == 1 ? Items.COAL : Items.IRON_INGOT, 64));
         }
-        SteamLocomotive loopLoco = put(level, ModEntities.STEAM_LOCOMOTIVE.get(), 30, 14);
-        PassengerCoach loopCoach = put(level, ModEntities.PASSENGER_COACH.get(), 23, 14);
-        Trains.couple(loopLoco, loopCoach);
+        SteamLocomotive a = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(22, Y, 14), EAST);
+        PassengerCoach aCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(15, Y, 14), EAST);
+        SteamLocomotive b = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(30, Y, 38), new Vec3(-1, 0, 0));
+        PassengerCoach bCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(37, Y, 38), new Vec3(-1, 0, 0));
+        Trains.couple(a, aCoach);
+        Trains.couple(b, bCoach);
+        a.setFuel(32000);
+        b.setFuel(32000);
+        a.autopilot().start(List.of(TestTracks.stop(south), TestTracks.stop(north)));
+        b.autopilot().start(List.of(TestTracks.stop(north), TestTracks.stop(south)));
     }
 
     private static void script() {
@@ -172,49 +190,24 @@ public final class DevShowcase {
                 build(player.serverLevel());
             });
         });
-        at(60, mc -> look(mc, 12.5, Y + 1.9, 13.5, 180.0F, 6.0F));
-        at(130, mc -> shot(mc, "01_train_side"));
-        at(135, mc -> look(mc, 31.0, Y + 2.6, 6.5, 125.0F, 12.0F));
-        at(190, mc -> shot(mc, "02_train_front"));
-        at(195, mc -> look(mc, 58.0, Y + 14.0, 6.0, 40.0F, 40.0F));
-        at(250, mc -> shot(mc, "03_loop_curve"));
-        at(255, mc -> look(mc, 47.0, Y + 7.0, -8.0, -30.0F, 30.0F));
-        at(310, mc -> shot(mc, "04_junction"));
-        // The wagon's screen
-        at(315, mc -> server(mc, player -> {
-            player.teleportTo(player.serverLevel(), 2.5, Y + 1.0, 4.0, 180.0F, 20.0F);
-            FreightWagon wagon = find(player.serverLevel(), FreightWagon.class, 2.5, 0.5);
-            player.openMenu(new SimpleMenuProvider((id, inventory, p) -> new FreightWagonMenu(id, inventory, wagon), wagon.getDisplayName()));
-        }));
-        at(345, mc -> shot(mc, "05_wagon_screen"));
-        at(347, mc -> server(mc, ServerPlayer::closeContainer));
-        // Drawing a curve: the preview
-        at(350, mc -> server(mc, player -> {
-            ItemStack track = new ItemStack(ModItems.TRACK.get(), 64);
-            track.set(ModDataComponents.TRACK_START.get(), new BlockPos(-20, Y, 0));
-            player.setItemInHand(InteractionHand.MAIN_HAND, track);
-            player.getAbilities().flying = true;
-            player.onUpdateAbilities();
-            player.teleportTo(player.serverLevel(), -10.0, Y + 1.5, 13.0, 160.0F, 50.0F);
-        }));
-        at(352, mc -> mc.gameRenderer.setRenderHand(true));
-        at(400, mc -> shot(mc, "06_track_preview"));
-        at(402, mc -> server(mc, player -> player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY)));
-        // The loop train sets off on its own; watch it round the bend.
-        at(405, mc -> server(mc, player -> {
-            SteamLocomotive loco = find(player.serverLevel(), SteamLocomotive.class, 30.5, 14.5);
-            loco.setFuel(16000);
-            loco.setAutopilot(true);
-            loco.control(TrainControlPayload.THROTTLE_UP);
-            loco.control(TrainControlPayload.THROTTLE_UP);
-            player.teleportTo(player.serverLevel(), 47.0, Y + 2.2, 9.0, 60.0F, 8.0F);
-        }));
-        at(455, mc -> shot(mc, "07_curve_a"));
-        at(470, mc -> shot(mc, "08_curve_b"));
-        at(485, mc -> shot(mc, "09_curve_c"));
-        at(500, mc -> shot(mc, "10_curve_d"));
-        // Into the main train's cab, and off down the line
-        at(505, mc -> server(mc, player -> {
+        at(60, mc -> look(mc, 22.0, Y + 1.9, 9.5, 180.0F, 4.0F));
+        at(120, mc -> shot(mc, "01_train_and_station"));
+        at(122, mc -> look(mc, 29.0, Y + 2.2, 1.8, -160.0F, 16.0F));
+        at(165, mc -> shot(mc, "02_station_board"));
+        at(167, mc -> look(mc, 9.5, Y + 2.6, 11.0, -62.0F, 10.0F));
+        at(200, mc -> shot(mc, "02b_signals"));
+        // The loop: trains running round between the stations, signals changing behind them
+        at(205, mc -> look(mc, 27.0, Y + 32.0, 26.0, 0.0F, 90.0F));
+        at(260, mc -> shot(mc, "03_loop_from_above"));
+        at(262, mc -> look(mc, 2.0, Y + 6.0, 6.0, -55.0F, 22.0F));
+        at(340, mc -> shot(mc, "04_loop_signals"));
+        at(342, mc -> look(mc, 40.0, Y + 2.5, 8.0, 115.0F, 12.0F));
+        at(420, mc -> shot(mc, "05_northgate"));
+        at(500, mc -> shot(mc, "06_northgate_later"));
+        at(502, mc -> look(mc, 10.0, Y + 3.0, 45.0, -140.0F, 14.0F));
+        at(580, mc -> shot(mc, "07_southport"));
+        // Into the cab of the main line train
+        at(585, mc -> server(mc, player -> {
             SteamLocomotive loco = find(player.serverLevel(), SteamLocomotive.class, 22.5, 0.5);
             player.getAbilities().flying = false;
             player.onUpdateAbilities();
@@ -222,27 +215,33 @@ public final class DevShowcase {
             player.startRiding(loco);
             loco.setFuel(16000);
         }));
-        at(512, mc -> {
+        at(592, mc -> {
             mc.player.setYRot(-90.0F);
             mc.player.setXRot(6.0F);
             mc.gameRenderer.setRenderHand(true);
         });
-        at(540, mc -> shot(mc, "11_cab_view"));
-        at(542, mc -> server(mc, player -> {
-            if (player.getVehicle() instanceof SteamLocomotive loco) {
-                for (int i = 0; i < 3; i++) {
-                    loco.control(TrainControlPayload.THROTTLE_UP);
-                }
-            }
-        }));
-        at(620, mc -> shot(mc, "12_cab_moving"));
+        at(620, mc -> shot(mc, "08_cab_gauges"));
         at(622, mc -> server(mc, player -> {
             if (player.getVehicle() instanceof SteamLocomotive loco) {
-                loco.control(TrainControlPayload.BRAKE_ON);
+                loco.control(TrainControlPayload.THROTTLE_UP);
+                loco.control(TrainControlPayload.THROTTLE_UP);
             }
         }));
-        at(660, mc -> look(mc, 27.0, Y + 22.0, 26.0, 0.0F, 60.0F));
-        at(720, mc -> shot(mc, "13_overview"));
-        at(760, Minecraft::stop);
+        at(700, mc -> shot(mc, "09_cab_running"));
+        at(702, mc -> mc.options.setCameraType(CameraType.THIRD_PERSON_BACK));
+        at(740, mc -> shot(mc, "10_passing_riverside"));
+        at(742, mc -> {
+            mc.options.setCameraType(CameraType.FIRST_PERSON);
+            server(mc, player -> {
+                if (player.getVehicle() instanceof SteamLocomotive loco) {
+                    loco.control(TrainControlPayload.BRAKE_ON);
+                }
+            });
+        });
+        // The station's settings screen
+        at(780, mc -> mc.setScreen(new com.reiko.trains.client.StationScreen(new BlockPos(32, Y, -3), "Riverside", 10)));
+        at(800, mc -> shot(mc, "11_station_screen"));
+        at(805, mc -> mc.setScreen(null));
+        at(830, Minecraft::stop);
     }
 }

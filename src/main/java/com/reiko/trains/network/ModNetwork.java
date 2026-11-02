@@ -1,6 +1,7 @@
 package com.reiko.trains.network;
 
 import com.reiko.trains.ReikoTrains;
+import com.reiko.trains.signal.StationBlockEntity;
 import com.reiko.trains.train.SteamLocomotive;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -11,7 +12,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 @EventBusSubscriber(modid = ReikoTrains.MODID)
 public final class ModNetwork {
-    private static final String PROTOCOL_VERSION = "1";
+    private static final String PROTOCOL_VERSION = "2";
 
     private ModNetwork() {
     }
@@ -20,6 +21,9 @@ public final class ModNetwork {
     static void register(RegisterPayloadHandlersEvent event) {
         PayloadRegistrar registrar = event.registrar(PROTOCOL_VERSION);
         registrar.playToServer(TrainControlPayload.TYPE, TrainControlPayload.STREAM_CODEC, ModNetwork::handleControl);
+        registrar.playToServer(StationSettingsPayload.TYPE, StationSettingsPayload.STREAM_CODEC, ModNetwork::handleStation);
+        registrar.playToClient(OpenStationPayload.TYPE, OpenStationPayload.STREAM_CODEC,
+                (payload, context) -> com.reiko.trains.client.StationScreen.open(payload));
     }
 
     /** Only the driver (the first one aboard) can work the controls. */
@@ -27,6 +31,16 @@ public final class ModNetwork {
         Player player = context.player();
         if (player.getVehicle() instanceof SteamLocomotive locomotive && locomotive.driver() == player) {
             locomotive.control(payload.action());
+        }
+    }
+
+    /** Anyone close enough to the station can rename it. */
+    private static void handleStation(StationSettingsPayload payload, IPayloadContext context) {
+        Player player = context.player();
+        if (player.distanceToSqr(payload.pos().getCenter()) < 64 && player.level().isLoaded(payload.pos())
+                && player.level().getBlockEntity(payload.pos()) instanceof StationBlockEntity station) {
+            station.setName(payload.name());
+            station.setDwellSeconds(payload.dwellSeconds());
         }
     }
 }

@@ -8,7 +8,11 @@ import com.reiko.trains.track.TrackGraph;
 import com.reiko.trains.track.TrackPos;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.UUID;
 import javax.annotation.Nullable;
 import net.minecraft.network.chat.Component;
@@ -41,7 +45,26 @@ public final class Trains {
     private static final double HARD_LIMIT = 1.5;
     public static final TicketType<ChunkPos> TICKET = TicketType.create(ReikoTrains.MODID + ":train", Comparator.comparingLong(ChunkPos::toLong), 60);
 
+    private static final Map<Level, Set<TrainCarEntity>> LOADED = new WeakHashMap<>();
+
     private Trains() {
+    }
+
+    static synchronized void loaded(TrainCarEntity car) {
+        LOADED.computeIfAbsent(car.level(), l -> new HashSet<>()).add(car);
+    }
+
+    static synchronized void unloaded(TrainCarEntity car) {
+        Set<TrainCarEntity> cars = LOADED.get(car.level());
+        if (cars != null) {
+            cars.remove(car);
+        }
+    }
+
+    /** Every train car in the level right now (server). */
+    public static synchronized List<TrainCarEntity> loadedCars(Level level) {
+        Set<TrainCarEntity> cars = LOADED.get(level);
+        return cars == null ? List.of() : List.copyOf(cars);
     }
 
     // ----------------------------------------------------------------------------------------------------------------
@@ -155,7 +178,13 @@ public final class Trains {
             }
         }
         int[] signs = signs(cars);
-        head.speed = nextSpeed(head.speed, cars, signs);
+        Drive drive = Drive.NONE;
+        for (int i = 0; i < cars.size(); i++) {
+            if (cars.get(i) instanceof SteamLocomotive loco) {
+                drive = loco.plan(cars, signs, i, head.speed);
+            }
+        }
+        head.speed = nextSpeed(head.speed, cars, signs, drive);
         for (int i = 0; i < cars.size(); i++) {
             if (cars.get(i) instanceof SteamLocomotive loco) {
                 loco.reportSpeed(head.speed * signs[i]);
@@ -163,7 +192,7 @@ public final class Trains {
         }
         if (Math.abs(head.speed) > 1.0E-6) {
             double wanted = head.speed;
-            double moved = move(cars, signs, wanted, head);
+            double moved = move(cars, signs, wanted, head, drive.chooser());
             if (moved < Math.abs(wanted) - 1.0E-6) {
                 head.speed = 0; // hit the end of the track
             }
@@ -182,8 +211,11 @@ public final class Trains {
         return false;
     }
 
-    /** The train's speed next tick: the locomotive's pull, gravity, friction and brakes. */
-    static double nextSpeed(double speed, List<TrainCarEntity> cars, int[] signs) {
+    /**
+     * The train's speed next tick: the locomotive's pull (on the throttle, or on a timetable aiming for the drive's
+     * target), gravity, friction and brakes, then held to the drive's limit (to stop for a red signal or station).
+     */
+    static double nextSpeed(double speed, List<TrainCarEntity> cars, int[] signs, Drive drive) {
         double mass = 0;
         double gravity = 0;
         SteamLocomotive loco = null;
@@ -198,14 +230,33 @@ public final class Trains {
             }
         }
         double accel = gravity / mass;
-        if (loco != null) {
+        int dir = drive.direction();
+        if (drive.automatic() && loco != null) {
+            double wanted = dir * drive.target();
+            if (loco.hasSteam() && (wanted - speed) * dir > 0) {
+                accel += dir * Math.min(loco.pull(mass), Math.abs(wanted - speed) + 0.002);
+            }
+        } else if (loco != null) {
             accel += loco.traction(speed * locoSign, mass) * locoSign;
         }
         double next = speed + accel;
         double resistance = ROLLING_RESISTANCE + Math.abs(next) * DRAG;
         next = Math.abs(next) <= resistance ? 0 : next - Math.signum(next) * resistance;
-        if (loco != null && loco.isHeld()) {
+        if (drive.automatic()) {
+            // Brake down to the speed it's aiming for; standing still, hold it there.
+            double over = next * dir - drive.target();
+            if (over > 0) {
+                next -= dir * Math.min(over, BRAKE);
+            }
+            if (drive.target() <= 0 && Math.abs(next) < 0.05) {
+                next = 0;
+            }
+        } else if (loco != null && loco.isHeld()) {
             next = Math.abs(next) <= BRAKE ? 0 : next - Math.signum(next) * BRAKE;
+        }
+        // Never past a red signal (or a stop): slow to what it takes to stop in time.
+        if (next * dir > drive.limit()) {
+            next = dir * drive.limit();
         }
         return Math.max(-HARD_LIMIT, Math.min(HARD_LIMIT, next));
     }
@@ -214,7 +265,7 @@ public final class Trains {
      * Moves every car of a train {@code distance} blocks along the track (positive the way the first car faces).
      * Returns how far it got: less, if the front of the train reached the end of the track.
      */
-    static double move(List<TrainCarEntity> cars, int[] signs, double distance, TrainCarEntity head) {
+    static double move(List<TrainCarEntity> cars, int[] signs, double distance, TrainCarEntity head, @Nullable TrackPos.Chooser chooser) {
         Level level = head.level();
         int leadIndex = distance > 0 ? 0 : cars.size() - 1;
         TrainCarEntity leadCar = cars.get(leadIndex);
@@ -223,7 +274,7 @@ public final class Trains {
         TrackPos probe = (leadIsFront ? leadCar.front : leadCar.rear).copy();
         int steer = steering(cars);
         TrackPos.Chooser leaderChooser = (node, side, options, heading) -> {
-            EdgeRef chosen = TrackGraph.choose(options, heading, steer);
+            EdgeRef chosen = chooser != null ? chooser.choose(node, side, options, heading) : TrackGraph.choose(options, heading, steer);
             head.routes.put(routeKey(node.asLong(), side), chosen);
             return chosen;
         };
@@ -383,7 +434,7 @@ public final class Trains {
         }
         // Draw the second train up, moving the second car towards the first.
         int[] signsB = signs(trainB);
-        move(trainB, signsB, gap * (secondEndFront ? 1 : -1) * signsB[0], second);
+        move(trainB, signsB, gap * (secondEndFront ? 1 : -1) * signsB[0], second, null);
         first.follower = second.getUUID();
         first.followerCache = second;
         second.leader = first.getUUID();

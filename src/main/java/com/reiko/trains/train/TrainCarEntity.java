@@ -417,6 +417,9 @@ public abstract class TrainCarEntity extends VehicleEntity {
         if (stack.getItem() instanceof CouplerItem) {
             return CouplerItem.useOnCar(stack, player, this);
         }
+        if (stack.getItem() instanceof com.reiko.trains.item.TimetableItem) {
+            return com.reiko.trains.item.TimetableItem.useOnCar(stack, player, this);
+        }
         return interactCar(player, hand);
     }
 
@@ -489,6 +492,20 @@ public abstract class TrainCarEntity extends VehicleEntity {
 
     // ----------------------------------------------------------------------------------------------------------------
     // Breaking, saving
+
+    @Override
+    public void onAddedToLevel() {
+        super.onAddedToLevel();
+        if (!level().isClientSide) {
+            Trains.loaded(this);
+        }
+    }
+
+    @Override
+    public void onRemovedFromLevel() {
+        super.onRemovedFromLevel();
+        Trains.unloaded(this);
+    }
 
     @Override
     public void remove(RemovalReason reason) {
