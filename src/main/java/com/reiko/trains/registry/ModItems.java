@@ -44,6 +44,8 @@ public final class ModItems {
             () -> new BlockItem(ModBlocks.STATION.get(), new Item.Properties()));
     public static final DeferredItem<BlockItem> CHARGING_POINT = ITEMS.register("charging_point",
             () -> new BlockItem(ModBlocks.CHARGING_POINT.get(), new Item.Properties()));
+    public static final DeferredItem<BlockItem> TRACK_SENSOR = ITEMS.register("track_sensor",
+            () -> new BlockItem(ModBlocks.TRACK_SENSOR.get(), new Item.Properties()));
     public static final DeferredItem<BlockItem> LEVEL_CROSSING = ITEMS.register("level_crossing",
             () -> new BlockItem(ModBlocks.LEVEL_CROSSING.get(), new Item.Properties()));
     public static final DeferredItem<BlockItem> WAGON_LOADER = ITEMS.register("wagon_loader",

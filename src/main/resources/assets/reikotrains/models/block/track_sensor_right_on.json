@@ -1,0 +1,282 @@
+{
+  "parent": "block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "reikotrains:block/sensor_body",
+    "body": "reikotrains:block/sensor_body",
+    "metal": "reikotrains:block/signal_metal",
+    "head": "reikotrains:block/signal_head",
+    "top": "reikotrains:block/sensor_top_right",
+    "back": "reikotrains:block/sensor_back",
+    "eye": "reikotrains:block/sensor_eye_on"
+  },
+  "elements": [
+    {
+      "from": [
+        3,
+        0,
+        3
+      ],
+      "to": [
+        13,
+        1,
+        13
+      ],
+      "faces": {
+        "north": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            10,
+            10
+          ]
+        },
+        "south": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            10,
+            10
+          ]
+        },
+        "east": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            10,
+            10
+          ]
+        },
+        "west": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            10,
+            10
+          ]
+        },
+        "up": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            10,
+            10
+          ]
+        },
+        "down": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            10,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        7,
+        1,
+        7
+      ],
+      "to": [
+        9,
+        5,
+        9
+      ],
+      "faces": {
+        "north": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            2,
+            4
+          ]
+        },
+        "south": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            2,
+            4
+          ]
+        },
+        "east": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            2,
+            4
+          ]
+        },
+        "west": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            2,
+            4
+          ]
+        },
+        "up": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            2,
+            4
+          ]
+        },
+        "down": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            2,
+            4
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        3.5,
+        5,
+        4
+      ],
+      "to": [
+        12.5,
+        12,
+        12
+      ],
+      "faces": {
+        "north": {
+          "texture": "#head",
+          "uv": [
+            3.5,
+            4,
+            12.5,
+            11
+          ]
+        },
+        "south": {
+          "texture": "#back",
+          "uv": [
+            3.5,
+            4,
+            12.5,
+            11
+          ]
+        },
+        "east": {
+          "texture": "#body",
+          "uv": [
+            3.5,
+            4,
+            12.5,
+            11
+          ]
+        },
+        "west": {
+          "texture": "#body",
+          "uv": [
+            3.5,
+            4,
+            12.5,
+            11
+          ]
+        },
+        "up": {
+          "texture": "#top",
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ]
+        },
+        "down": {
+          "texture": "#body",
+          "uv": [
+            3.5,
+            4,
+            12.5,
+            11
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        6,
+        6.5,
+        3.5
+      ],
+      "to": [
+        10,
+        10.5,
+        4
+      ],
+      "faces": {
+        "north": {
+          "texture": "#eye",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "neoforge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        },
+        "east": {
+          "texture": "#head",
+          "uv": [
+            0,
+            0,
+            0.5,
+            4
+          ]
+        },
+        "west": {
+          "texture": "#head",
+          "uv": [
+            0,
+            0,
+            0.5,
+            4
+          ]
+        },
+        "up": {
+          "texture": "#head",
+          "uv": [
+            0,
+            0,
+            4,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#head",
+          "uv": [
+            0,
+            0,
+            4,
+            0.5
+          ]
+        }
+      }
+    }
+  ]
+}

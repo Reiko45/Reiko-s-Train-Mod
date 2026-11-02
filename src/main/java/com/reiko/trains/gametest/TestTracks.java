@@ -10,6 +10,8 @@ import com.reiko.trains.registry.ModBlocks;
 import com.reiko.trains.signal.LevelCrossingBlock;
 import com.reiko.trains.signal.LevelCrossingBlockEntity;
 import com.reiko.trains.signal.SignalBlock;
+import com.reiko.trains.signal.TrackSensorBlock;
+import com.reiko.trains.signal.TrackSensorBlockEntity;
 import com.reiko.trains.signal.SignalBlockEntity;
 import com.reiko.trains.signal.StationBlock;
 import com.reiko.trains.signal.StationBlockEntity;
@@ -153,6 +155,20 @@ public final class TestTracks {
         ChargingPointBlockEntity charger = (ChargingPointBlockEntity) level.getBlockEntity(pos);
         charger.attach(node);
         return charger;
+    }
+
+    /** A track sensor at {@code pos} for the nearest track block, its eye facing it, as if a player had put it there. */
+    public static TrackSensorBlockEntity trackSensor(ServerLevel level, BlockPos pos) {
+        level.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 2);
+        BlockPos node = TrackSide.nearestTrack(level, pos);
+        if (node == null) {
+            throw new IllegalStateException("No track near " + pos.toShortString() + " for a track sensor");
+        }
+        level.setBlock(pos, ModBlocks.TRACK_SENSOR.get().defaultBlockState().setValue(TrackSensorBlock.FACING,
+                WagonLoaderBlock.facing(pos, node, null)), 3);
+        TrackSensorBlockEntity sensor = (TrackSensorBlockEntity) level.getBlockEntity(pos);
+        sensor.attach(node);
+        return sensor;
     }
 
     /** A timetable stop for a station. */

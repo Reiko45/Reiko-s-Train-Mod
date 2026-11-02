@@ -89,6 +89,27 @@ public final class Trains {
         return List.of();
     }
 
+    /**
+     * The cars of the train over a track block right now, moving or not (a car's over it when its body, buffer to
+     * buffer, is alongside it). Empty if there's none.
+     */
+    public static List<TrainCarEntity> over(Level level, net.minecraft.core.BlockPos node) {
+        Vec3 at = TrackEdge.node(node);
+        for (TrainCarEntity car : loadedCars(level)) {
+            if (!car.isOnTrack() || car.isRemoved()) {
+                continue;
+            }
+            Vec3 d = at.subtract(car.position());
+            Vec3 f = car.flatForward();
+            double along = Math.abs(d.x * f.x + d.z * f.z);
+            double across = Math.abs(d.x * -f.z + d.z * f.x);
+            if (along <= car.halfLength() + 0.1 && across < 1.5 && Math.abs(d.y) < 2.5) {
+                return train(car);
+            }
+        }
+        return List.of();
+    }
+
     // ----------------------------------------------------------------------------------------------------------------
     // Finding the train
 

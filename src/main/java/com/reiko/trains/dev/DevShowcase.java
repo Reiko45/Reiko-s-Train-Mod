@@ -275,6 +275,12 @@ public final class DevShowcase {
         Trains.couple(electricFirst, electricSecond);
         Trains.couple(electric, electricFirst);
         electric.setFuel(ElectricLocomotive.BATTERY_CAPACITY * 0.2);
+        // Further along, a track sensor that only senses trains with an electric going east, lighting a lamp.
+        com.reiko.trains.signal.TrackSensorBlockEntity sensor = TestTracks.trackSensor(level, new BlockPos(44, Y, ELECTRIC_LINE + 3));
+        sensor.setFilter(new ItemStack(com.reiko.trains.registry.ModItems.ELECTRIC_LOCOMOTIVE.get()));
+        level.setBlock(sensor.getBlockPos(), sensor.getBlockState().setValue(com.reiko.trains.signal.TrackSensorBlock.DIRECTION,
+                com.reiko.trains.signal.SensorDirection.RIGHT), 3);
+        level.setBlock(new BlockPos(45, Y, ELECTRIC_LINE + 3), Blocks.REDSTONE_LAMP.defaultBlockState(), 3);
 
         Locomotive a = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(22, Y, 14), EAST);
         PassengerCoach aCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(15, Y, 14), EAST);
@@ -492,6 +498,9 @@ public final class DevShowcase {
             });
         });
         at(1890, mc -> shot(mc, "30_electric_running"));
-        at(1900, Minecraft::stop);
+        // The track sensor lighting its lamp as the electric goes by
+        at(1892, mc -> look(mc, 42.4, Y + 1.0, ELECTRIC_LINE + 6.3, 214.0F, 18.0F));
+        at(1925, mc -> shot(mc, "31_track_sensor"));
+        at(1935, Minecraft::stop);
     }
 }

@@ -1,0 +1,94 @@
+{
+  "variants": {
+    "direction=both,facing=north,powered=false": {
+      "model": "reikotrains:block/track_sensor_both"
+    },
+    "direction=both,facing=north,powered=true": {
+      "model": "reikotrains:block/track_sensor_both_on"
+    },
+    "direction=left,facing=north,powered=false": {
+      "model": "reikotrains:block/track_sensor_left"
+    },
+    "direction=left,facing=north,powered=true": {
+      "model": "reikotrains:block/track_sensor_left_on"
+    },
+    "direction=right,facing=north,powered=false": {
+      "model": "reikotrains:block/track_sensor_right"
+    },
+    "direction=right,facing=north,powered=true": {
+      "model": "reikotrains:block/track_sensor_right_on"
+    },
+    "direction=both,facing=east,powered=false": {
+      "model": "reikotrains:block/track_sensor_both",
+      "y": 90
+    },
+    "direction=both,facing=east,powered=true": {
+      "model": "reikotrains:block/track_sensor_both_on",
+      "y": 90
+    },
+    "direction=left,facing=east,powered=false": {
+      "model": "reikotrains:block/track_sensor_left",
+      "y": 90
+    },
+    "direction=left,facing=east,powered=true": {
+      "model": "reikotrains:block/track_sensor_left_on",
+      "y": 90
+    },
+    "direction=right,facing=east,powered=false": {
+      "model": "reikotrains:block/track_sensor_right",
+      "y": 90
+    },
+    "direction=right,facing=east,powered=true": {
+      "model": "reikotrains:block/track_sensor_right_on",
+      "y": 90
+    },
+    "direction=both,facing=south,powered=false": {
+      "model": "reikotrains:block/track_sensor_both",
+      "y": 180
+    },
+    "direction=both,facing=south,powered=true": {
+      "model": "reikotrains:block/track_sensor_both_on",
+      "y": 180
+    },
+    "direction=left,facing=south,powered=false": {
+      "model": "reikotrains:block/track_sensor_left",
+      "y": 180
+    },
+    "direction=left,facing=south,powered=true": {
+      "model": "reikotrains:block/track_sensor_left_on",
+      "y": 180
+    },
+    "direction=right,facing=south,powered=false": {
+      "model": "reikotrains:block/track_sensor_right",
+      "y": 180
+    },
+    "direction=right,facing=south,powered=true": {
+      "model": "reikotrains:block/track_sensor_right_on",
+      "y": 180
+    },
+    "direction=both,facing=west,powered=false": {
+      "model": "reikotrains:block/track_sensor_both",
+      "y": 270
+    },
+    "direction=both,facing=west,powered=true": {
+      "model": "reikotrains:block/track_sensor_both_on",
+      "y": 270
+    },
+    "direction=left,facing=west,powered=false": {
+      "model": "reikotrains:block/track_sensor_left",
+      "y": 270
+    },
+    "direction=left,facing=west,powered=true": {
+      "model": "reikotrains:block/track_sensor_left_on",
+      "y": 270
+    },
+    "direction=right,facing=west,powered=false": {
+      "model": "reikotrains:block/track_sensor_right",
+      "y": 270
+    },
+    "direction=right,facing=west,powered=true": {
+      "model": "reikotrains:block/track_sensor_right_on",
+      "y": 270
+    }
+  }
+}

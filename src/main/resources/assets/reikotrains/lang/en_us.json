@@ -152,5 +152,14 @@
   "message.reikotrains.electric_flat": "The batteries are flat: charge them at a charging point",
   "message.reikotrains.charger.stored": "Charging point: %s of %s MJ stored",
   "subtitles.reikotrains.electric_horn": "Electric locomotive horn sounds",
-  "subtitles.reikotrains.electric_motor": "Electric motors hum"
+  "subtitles.reikotrains.electric_motor": "Electric motors hum",
+  "block.reikotrains.track_sensor": "Track Sensor",
+  "message.reikotrains.sensor.direction.both": "Senses trains going either way",
+  "message.reikotrains.sensor.direction.left": "Senses only trains going left (as you stand behind it)",
+  "message.reikotrains.sensor.direction.right": "Senses only trains going right (as you stand behind it)",
+  "message.reikotrains.sensor.filter.any": "Senses every train",
+  "message.reikotrains.sensor.filter.car": "Senses only trains with a %s",
+  "message.reikotrains.sensor.filter.any_timetable": "Senses only trains running a timetable",
+  "message.reikotrains.sensor.filter.timetable": "Senses only trains running this timetable (%s stops)",
+  "message.reikotrains.sensor.filter.carrying": "Senses only trains carrying %s"
 }

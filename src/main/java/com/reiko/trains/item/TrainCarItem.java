@@ -29,6 +29,11 @@ public class TrainCarItem extends Item {
         this.type = type;
     }
 
+    /** The kind of car it puts on the track. */
+    public EntityType<? extends TrainCarEntity> carType() {
+        return type.get();
+    }
+
     /** Why a car can't go somewhere, or null if it can (and was put there). */
     public enum Problem {
         NOT_TRACK("not_track"),

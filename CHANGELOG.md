@@ -2,6 +2,18 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.14.0
+
+Track sensors.
+
+- New block: the **Track Sensor**. Put it beside the track; it gives off a redstone signal while a train is over the
+  track beside it (moving or standing), and a comparator reads how many cars the train has.
+- Click it to sense trains going either way, or only left or only right (an arrow on top shows which).
+- Click it with an item to sense only some trains: a train car (trains with that kind of car), a timetable (trains
+  running it; a blank one, any timetabled train), a filled bucket (trains with a tank wagon of that fluid), or anything
+  else (trains carrying it). The item shows on its back. Sneak-click to clear it.
+- Seven new game tests, including a sensor at a junction sending goods trains down the branch: 92 in all.
+
 ## 0.13.0
 
 The electric locomotive.

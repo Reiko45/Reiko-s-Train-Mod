@@ -688,6 +688,92 @@ def charger_models():
         json.dump({"variants": variants}, out, indent=2)
 
 
+def sensor_textures():
+    yellow = (232, 190, 40)
+    solid("sensor_body", yellow, (30, 30, 32), 0.04)
+    lamp("sensor_eye_on", (255, 60, 40), True)
+    lamp("sensor_eye_off", (255, 60, 40), False)
+    # The back, where its filter item shows: a dark panel in a frame (the face shows the 9 x 7 from (3.5, 4)).
+    back = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            c = shade((40, 42, 46), 1 + 0.05 * noise("sensor_back", x, y))
+            if x in (3, 12) or y in (4, 10):
+                c = shade(yellow, 1)
+            back.putpixel((x, y), c)
+    back.save(f"{ASSETS}/textures/block/sensor_back.png")
+    # The top, with an arrow (or two) showing which way trains must be going to be sensed, seen from behind it: the
+    # face shows the 8 x 8 from (4, 4), north (the track) at the top.
+    arrows = {
+        "right": ["........",
+                  ".....K..",
+                  ".....KK.",
+                  "KKKKKKKK",
+                  "KKKKKKKK",
+                  ".....KK.",
+                  ".....K..",
+                  "........"],
+        "both": ["........",
+                 ".K....K.",
+                 "KK....KK",
+                 "KKKKKKKK",
+                 "KKKKKKKK",
+                 "KK....KK",
+                 ".K....K.",
+                 "........"],
+    }
+    arrows["left"] = [row[::-1] for row in arrows["right"]]
+    for name, art in arrows.items():
+        top = Image.new("RGBA", (16, 16))
+        for y in range(16):
+            for x in range(16):
+                c = shade(yellow, 1 + 0.04 * noise("sensor_top", x, y))
+                if 4 <= x < 12 and 4 <= y < 12 and art[y - 4][x - 4] == "K":
+                    c = (24, 24, 26)
+                top.putpixel((x, y), c)
+        top.save(f"{ASSETS}/textures/block/sensor_top_{name}.png")
+
+
+def sensor_models():
+    """
+    The track sensor (it faces north, its eye looking at the track at -z): a yellow head on a short post, a red eye
+    on the front that lights while it senses a train, an arrow on top for which way trains must be going, and a frame
+    on the back where its filter item shows.
+    """
+    for direction in ("both", "left", "right"):
+        for powered in (False, True):
+            name = f"track_sensor_{direction}{'_on' if powered else ''}"
+            tex = {"particle": "reikotrains:block/sensor_body", "body": "reikotrains:block/sensor_body",
+                   "metal": "reikotrains:block/signal_metal", "head": "reikotrains:block/signal_head",
+                   "top": f"reikotrains:block/sensor_top_{direction}", "back": "reikotrains:block/sensor_back",
+                   "eye": f"reikotrains:block/sensor_eye_{'on' if powered else 'off'}"}
+            head = all_faces("#body", (3.5, 4, 12.5, 11))
+            head["up"] = ("#top", [4, 4, 12, 12])
+            head["north"] = ("#head", [3.5, 4, 12.5, 11])
+            head["south"] = ("#back", [3.5, 4, 12.5, 11])
+            elements = [
+                element([3, 0, 3], [13, 1, 13], all_faces("#metal", (0, 0, 10, 10))),
+                element([7, 1, 7], [9, 5, 9], all_faces("#metal", (0, 0, 2, 4))),
+                element([3.5, 5, 4], [12.5, 12, 12], head),
+                element([6, 6.5, 3.5], [10, 10.5, 4], {"north": ("#eye", [0, 0, 16, 16]), "east": ("#head", [0, 0, 0.5, 4]),
+                                                       "west": ("#head", [0, 0, 0.5, 4]), "up": ("#head", [0, 0, 4, 0.5]),
+                                                       "down": ("#head", [0, 0, 4, 0.5])}, lit="north" if powered else None),
+            ]
+            model = {"parent": "block/block", "ambientocclusion": False, "textures": tex, "elements": elements}
+            with open(f"{ASSETS}/models/block/{name}.json", "w") as out:
+                json.dump(model, out, indent=2)
+    variants = {}
+    for facing, y in (("north", 0), ("east", 90), ("south", 180), ("west", 270)):
+        for direction in ("both", "left", "right"):
+            for powered in ("false", "true"):
+                v = {"model": f"reikotrains:block/track_sensor_{direction}{'_on' if powered == 'true' else ''}"}
+                if y:
+                    v["y"] = y
+                variants[f"direction={direction},facing={facing},powered={powered}"] = v
+    with open(f"{ASSETS}/blockstates/track_sensor.json", "w") as out:
+        json.dump({"variants": variants}, out, indent=2)
+
+
 def signals_and_stations():
     signal_textures()
     signal_models()
@@ -700,6 +786,8 @@ def signals_and_stations():
     crossing_models()
     charger_textures()
     charger_models()
+    sensor_textures()
+    sensor_models()
 
 
 if __name__ == "__main__":
