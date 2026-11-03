@@ -16,6 +16,7 @@ import com.reiko.trains.train.GuardsVan;
 import com.reiko.trains.train.TankWagon;
 import com.reiko.trains.train.Tender;
 import com.reiko.trains.train.PassengerCoach;
+import com.reiko.trains.train.CarTransporter;
 import com.reiko.trains.train.Locomotive;
 import com.reiko.trains.train.TrainCarEntity;
 import com.reiko.trains.train.Trains;
@@ -48,6 +49,7 @@ import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.WorldDataConfiguration;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
@@ -362,6 +364,11 @@ public final class DevShowcase {
         bulletFront.setFuel(com.reiko.trains.train.BulletTrain.BATTERY_CAPACITY);
         bulletBack.setFuel(com.reiko.trains.train.BulletTrain.BATTERY_CAPACITY);
 
+        // A tenth line, with Reiko's Car Mod: a goods train with two car transporters, and a car to drive on.
+        if (com.reiko.trains.train.CarCargo.CAR_MOD) {
+            CarShowcase.build(level, Y);
+        }
+
         Locomotive limited = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(24, Y, SPEED_LINE), EAST);
         PassengerCoach limitedCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(17, Y, SPEED_LINE), EAST);
         Trains.couple(limited, limitedCoach);
@@ -377,6 +384,45 @@ public final class DevShowcase {
         b.setFuel(32000);
         a.autopilot().start(List.of(TestTracks.stop(south), TestTracks.stop(north)));
         b.autopilot().start(List.of(TestTracks.stop(north), TestTracks.stop(south)));
+    }
+
+    /**
+     * With Reiko's Car Mod: driving a sedan onto a car transporter (seen from behind it: really driving, the forward key
+     * held down), then the train with its cars aboard from beside the line, and going by on its way to Docks.
+     */
+    private static void carScene() {
+        int line = CarShowcase.LINE;
+        at(2812, mc -> server(mc, player -> CarShowcase.boardSedan(player, Y)));
+        at(2818, mc -> {
+            mc.options.setCameraType(CameraType.THIRD_PERSON_BACK);
+            mc.player.setYRot(-90.0F);
+            mc.player.setXRot(12.0F);
+        });
+        at(2840, mc -> mc.options.keyUp.setDown(true));
+        at(2875, mc -> mc.options.keyUp.setDown(false));
+        at(2895, mc -> shot(mc, "41_driving_on"));
+        at(2897, mc -> {
+            mc.options.setCameraType(CameraType.FIRST_PERSON);
+            look(mc, 30.0, Y + 4.0, line + 9.0, -128.0F, 16.0F);
+        });
+        at(2940, mc -> shot(mc, "42_car_transporters"));
+        at(2942, mc -> {
+            look(mc, 86.0, Y + 2.2, line + 6.0, 115.0F, 6.0F);
+            server(mc, player -> CarShowcase.depart(player, Y));
+        });
+        boolean[] passing = {false};
+        for (int time = 2990; time <= 3100; time++) {
+            boolean last = time == 3100;
+            at(time, mc -> {
+                List<CarTransporter> wagons = mc.level.getEntitiesOfClass(CarTransporter.class,
+                        new AABB(0, Y - 2, line - 4, 120, Y + 4, line + 4));
+                double east = wagons.stream().mapToDouble(Entity::getX).max().orElse(0);
+                if (!passing[0] && (last || east >= 66)) {
+                    passing[0] = true;
+                    shot(mc, "43_cars_by_rail");
+                }
+            });
+        }
     }
 
     private static void script() {
@@ -687,6 +733,9 @@ public final class DevShowcase {
             });
         }
         at(2805, mc -> mc.options.fov().set(70));
-        at(2810, Minecraft::stop);
+        if (com.reiko.trains.train.CarCargo.CAR_MOD) {
+            carScene();
+        }
+        at(3110, Minecraft::stop);
     }
 }

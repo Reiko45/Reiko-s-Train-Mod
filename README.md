@@ -17,6 +17,8 @@ give them a timetable and let them run between the stations on their own.
   and the electric locomotive on its power (MJ)
 - Optional: [Xaero's Minimap](https://modrinth.com/mod/xaeros-minimap) 24 or newer (made with 26.6.0): trains show
   on it
+- Optional: [Reiko's Car Mod](https://github.com/Reiko45/Reiko-s-Car-Mod) 1.39 or newer: car transporter wagons
+  carry its cars
 
 ## What's in it
 
@@ -44,6 +46,8 @@ give them a timetable and let them run between the stations on their own.
   how full it is.
 - **Livestock Wagon**: six stalls for cows, sheep, pigs, horses or any other animal, with slatted sides to see them
   through. Lead animals to it, or have a wagon loader load them from a pen.
+- **Car Transporter**: a long flatbed for the cars, vans and buses of Reiko's Car Mod. Drive them on at the end and
+  off again, from wagon to wagon along the train.
 - **Guard's Van**: for the back of the train. Two seats and a stove inside, tail lamps, and a brake that makes the
   whole train stop quicker.
 - **Wagon Loader**: fills the freight wagons of a train standing beside it from the chests next to it, or empties
@@ -102,6 +106,7 @@ or ramp can cross gaps between them, so bridges are just long curves. Leave thre
 | Freight Wagon | Planks around a chest (top middle open); iron ingot, minecart, iron ingot |
 | Tank Wagon | Three iron ingots; iron ingot, bucket, iron ingot; iron ingot, minecart, iron ingot |
 | Livestock Wagon | Three planks; fence, hay bale, fence; iron ingot, minecart, iron ingot |
+| Car Transporter | Chain, iron ingot, chain; iron ingot, minecart, iron ingot |
 | Guard's Van | Planks, lantern, planks; planks, furnace, planks; iron ingot, minecart, iron ingot |
 | Coupler | Iron ingot, chain, iron ingot (a column) |
 | Railway Signal (2) | Redstone lamp, iron ingot, iron ingot (a column) |
@@ -272,6 +277,31 @@ two, for any animals: cows, sheep, pigs, chickens, goats, horses, llamas... (not
   market by itself.
 
 ![A livestock wagon loaded from the pen behind the wagon loader, the last two animals still waiting](docs/screenshots/livestock_wagon.jpg)
+
+### Car transporters
+
+The **Car Transporter** is a long, low flatbed, twelve blocks long, with tyre tracks along its deck, yellow guard
+rails and hinged plates at each end. It carries the cars, vans, trucks and buses of
+[Reiko's Car Mod](https://github.com/Reiko45/Reiko-s-Car-Mod) (without that mod it carries nothing).
+
+- **Driving on**: with the train stopped, drive up to a free end of a car transporter, lined up with it, and keep
+  going (forwards, or backwards if you're reversing on). The car rolls aboard and along to the far end, or up to the
+  cars already there. If the transporter's empty and there's another one coupled beyond it, it carries on to that
+  one, so a train of them fills up from the far end, as real car trains do. Cars go on end to end: the deck takes
+  11½ blocks of them: three cars, or a bus.
+- **Aboard**, a car stays where it is: it doesn't drive, burn fuel or wear. Its driver can stay in it for the ride,
+  or get out. A loaded transporter is heavier to pull.
+- **Driving off**: sit in it with the train stopped and keep going forwards or backwards. It drives off the end of
+  the train that way if there's room, or on along the train to the next car transporter. Another car in the way, or
+  another kind of car coupled at that end, stops it.
+- It won't take a car that's towing a trailer or another car (unhitch first), or one that doesn't fit.
+- Clicking it says how many cars are aboard. The cars are saved with it, in their places.
+
+![Driving a sedan onto a car transporter](docs/screenshots/driving_on.jpg)
+
+![Two car transporters, one full and one with the sedan aboard](docs/screenshots/car_transporters.jpg)
+
+![Cars by rail, on the way to the docks](docs/screenshots/cars_by_rail.jpg)
 
 ### More than one locomotive
 
@@ -558,9 +588,10 @@ You need Java 21. BuildCraft Reborn's jar is in `libs/` (the build and the dev r
 ./gradlew runGameTestServer  # runs the game tests and exits
 ```
 
-Xaero's Minimap isn't ours to share, so the minimap support compiles against stand-ins for the few of its classes it
-uses (`src/xaeroStubs/`), which never go in the jar. To try it in a dev client, put Xaero's Minimap's jar in a folder
-and pass it: `./gradlew runClient -PxaeroJars=/path/to/folder`.
+Xaero's Minimap and Reiko's Car Mod are optional, so the train mod compiles against stand-ins for the few of their
+classes it uses (`src/stubs/`), which never go in the jar. To try them in a dev client (or the game tests), put their
+jars in folders and pass them: `./gradlew runClient -PxaeroJars=/path/to/folder -PcarJars=/path/to/other/folder` (the
+car mod needs Reiko's Economy's jar there too).
 
 The **game tests** (`src/main/java/com/reiko/trains/gametest`) build real track and run trains on it: straight lines
 joining up, the curve rules (radius, steepness, direction) and taking curves apart, cars sitting on their bogies,
@@ -612,6 +643,12 @@ from speed to stop short of a red signal, a timetabled set running out and back 
 leading home), driving it from the back car, both driving cars charging at once, and its seats. Some run on
 `long_line`, a 256-block test track.
 
+`CarTransportGameTests` covers car transporters (with the car mod; without it they pass straight away): a sedan
+driving on and rolling to the far end, staying aboard when its driver gets out, cars filling the deck end to end
+until a bus won't fit, driving off either end with another car in the way or not, driving on along the train to the
+far transporter and back off over the empty one, a train carrying its cars along (and not taking any more while it's
+moving), and the cars' places saved with it.
+
 `TrainMapGameTests` covers the map of trains for minimaps: a train on it once, at its leading locomotive, with its
 kind and length, a timetabled train's next stop, a broken locomotive coming off it (and the other engine taking
 over), players being sent the other trains nearest first and not their own, dropping trains that aren't where the
@@ -619,7 +656,8 @@ map says, and saving it with the world.
 
 `./gradlew runClient -Pshowcase -PwindowSize=1280x720` builds a test railway, runs trains round it and saves
 screenshots to `run/screenshots/` (that's where the pictures above come from). Add `-PxaeroJars=/path/to/folder` for
-the minimap shot, and `-PshowcaseFrom=<tick>` to skip to the scene starting at that tick (`2202` for the Bullet Train).
+the minimap shot, `-PcarJars=/path/to/folder` for the car transporter scene, and `-PshowcaseFrom=<tick>` to skip to the
+scene starting at that tick (`2202` for the Bullet Train, `2810` for the car transporters).
 
 ### Models, textures and sounds
 
@@ -666,6 +704,10 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
   `Autopilot` searches the track for the way to its next station. Leaving wagons, it works out which way it'll set
   off and splits the train at the other end (`Trains.split`); picking them up, it looks along its way for cars with
   no locomotive near the station (`Trains.nearestAlong`), stops short of them and couples on.
+- **Car transporters** (`train/CarTransporter`, `CarCargo`): cars ride the wagon as passengers, each with its place
+  along the deck (synced to clients, saved with the wagon). The driver's game notices them holding forwards or back
+  against a transporter's end (or aboard) and asks the server, which checks it all again and moves the car on, along
+  or off. Only `CarModAccess` touches the car mod's classes, so without it nothing loads them.
 - **Minimap** (`train/TrainMap`): a saved list per world of where each train is, kept by its leading locomotive every
   second (and when it unloads), sent to each player every two seconds (`TrainMapPayload`). On the client
   `TrainMinimap` moves the loaded ones as they go, and `TrainsXaero` puts them on Xaero's Minimap as its custom

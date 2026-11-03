@@ -2,6 +2,21 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.20.0
+
+Car transporters.
+
+- New wagon: the **Car Transporter**, a long, low flatbed for the cars, vans, trucks and buses of Reiko's Car Mod
+  (optional; without it the wagon carries nothing).
+- Drive a car up to a free end of a standing car transporter and keep going: it rolls aboard, to the far end or up
+  to the cars already there, or on along the train to the next transporter if this one's empty. Sit in it with the
+  train stopped and keep going forwards or back to drive off the end of the train, or along to the next transporter.
+- Aboard, cars don't drive, burn fuel or wear, and their drivers can stay in for the ride. The deck takes 11½ blocks
+  of cars end to end. Cars towing something don't go on.
+- The mod's network version changes, so clients and servers both need 0.20.0.
+- Six new game tests (127 in all), which need the car mod (run with `-PcarJars=...`; without it they pass straight
+  away). The compile-time stand-ins for optional mods moved to `src/stubs/`.
+
 ## 0.19.0
 
 The Bullet Train.

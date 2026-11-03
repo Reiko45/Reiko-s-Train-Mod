@@ -391,6 +391,28 @@ def bullet_coach():
     return [body]
 
 
+def car_transporter():
+    """
+    The car transporter, twelve blocks long: a long, low steel deck with a pair of tyre tracks along it, a low yellow
+    guard rail along each side, hinged plates at each end to drive over, and a fish-bellied centre sill underneath.
+    """
+    body = Part("body")
+    b = body.boxes
+    b.append(box(-96, -17, -15, 96, -14, 15, "ct_deck"))
+    b += mirrored(-96, -14, 13, 96, -12, 15, "ct_sill")
+    b.append(box(-88, -14, -4, 88, -11, 4, "frame"))
+    b.append(box(-40, -11, -4, 40, -8, 4, "frame"))
+    b += buffers(96, y0=-15, y1=-11)
+    # Guard rails: posts every block and a half, a rail along the top
+    b += mirrored(-94, -23, 14, 94, -22, 15, "ct_rail")
+    for x in range(-94, 95, 24):
+        b += mirrored(x, -22, 14, x + 1, -17, 15, "ct_rail")
+    # The bridge plates at the ends, folded down over the buffers
+    b.append(box(-96, -18, -10, -91, -17, 10, "ct_plate"))
+    b.append(box(91, -18, -10, 96, -17, 10, "ct_plate"))
+    return [body]
+
+
 def diesel_bogie():
     """A two-axle bogie for the diesel: deeper sideframes with a spring pack, bigger wheels."""
     frame = Part("frame")
@@ -1172,6 +1194,48 @@ def bellows(t):
     return (36, 36, 40) if int(math.floor(t.y)) % 2 == 0 else (52, 52, 58)
 
 
+TRANSPORTER_STEEL = (70, 78, 90)
+SAFETY_YELLOW = (232, 190, 40)
+
+
+def ct_deck(t):
+    """The deck: chequered steel plate on top with two tyre tracks along it, a yellow edge, and dark underneath."""
+    if t.face == "up":
+        return jitter((40, 42, 46), (t.x, t.z), 0.05)
+    if t.face == "down":
+        az = abs(t.z)
+        c = jitter((112, 116, 122), (t.x, t.z), 0.04)
+        if 5 <= az < 10:
+            c = jitter((84, 88, 94), (t.x, t.z), 0.05)  # the tyre tracks
+            if int(math.floor(t.x)) % 6 == 0:
+                c = shade(c, 0.8)
+        elif (int(math.floor(t.x)) + int(math.floor(t.z))) % 4 == 0:
+            c = shade(c, 1.12)  # the chequer plate's raised studs
+        return shade(c, 0.85) if az > 14 else c
+    if t.end:
+        stripe = int(math.floor((t.z + t.y + 64) / 2)) % 2
+        return SAFETY_YELLOW if stripe else (30, 30, 32)
+    return SAFETY_YELLOW if t.y < -16 else jitter(TRANSPORTER_STEEL, (t.x, t.y, t.z), 0.04)
+
+
+def ct_sill(t):
+    c = jitter(TRANSPORTER_STEEL, (t.x, t.y, t.z, t.face), 0.04)
+    return shade(c, 0.8) if t.edge else c
+
+
+def ct_rail(t):
+    c = jitter(SAFETY_YELLOW, (t.x, t.y, t.z, t.face), 0.04)
+    return shade(c, 0.82) if t.edge else c
+
+
+def ct_plate(t):
+    """The bridge plates: hazard stripes on top."""
+    if t.face == "down":
+        stripe = int(math.floor((t.x + t.z + 64) / 2)) % 2
+        return SAFETY_YELLOW if stripe else (30, 30, 32)
+    return jitter((60, 62, 66), (t.x, t.y, t.z), 0.04)
+
+
 STOCK = (124, 84, 50)
 
 
@@ -1333,6 +1397,10 @@ MATERIALS = {
     "bullet_seat": bullet_seat,
     "bullet_console": bullet_console,
     "bellows": bellows,
+    "ct_deck": ct_deck,
+    "ct_sill": ct_sill,
+    "ct_rail": ct_rail,
+    "ct_plate": ct_plate,
     "stock_side": stock_side,
     "stock_end": stock_end,
     "straw": straw,
@@ -1478,6 +1546,7 @@ def main():
     build("electric_locomotive", "ElectricLocomotiveGeometry", electric_locomotive(), 512)
     build("bullet_train", "BulletTrainGeometry", bullet_train(), 512)
     build("bullet_coach", "BulletCoachGeometry", bullet_coach(), 512)
+    build("car_transporter", "CarTransporterGeometry", car_transporter(), 512)
     build("tank_wagon", "TankWagonGeometry", tank_wagon(), 512,
           "    /** The gauge's lit quarters, one to four as it fills. */\n"
           '    public static final String[] LEVEL = {"level_0", "level_1", "level_2", "level_3"};\n')

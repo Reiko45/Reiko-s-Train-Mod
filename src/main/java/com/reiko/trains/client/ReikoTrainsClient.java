@@ -9,6 +9,7 @@ import com.reiko.trains.client.model.geometry.DieselBogieGeometry;
 import com.reiko.trains.client.model.geometry.DieselLocomotiveGeometry;
 import com.reiko.trains.client.model.geometry.BulletCoachGeometry;
 import com.reiko.trains.client.model.geometry.BulletTrainGeometry;
+import com.reiko.trains.client.model.geometry.CarTransporterGeometry;
 import com.reiko.trains.client.model.geometry.ElectricLocomotiveGeometry;
 import com.reiko.trains.client.model.geometry.ExpressLocomotiveGeometry;
 import com.reiko.trains.client.model.geometry.GuardsVanGeometry;
@@ -74,6 +75,7 @@ public final class ReikoTrainsClient {
     static final ModelLayerLocation LIVESTOCK_LAYER = new ModelLayerLocation(ReikoTrains.id("livestock_wagon"), "main");
     static final ModelLayerLocation BULLET_LAYER = new ModelLayerLocation(ReikoTrains.id("bullet_train"), "main");
     static final ModelLayerLocation BULLET_COACH_LAYER = new ModelLayerLocation(ReikoTrains.id("bullet_coach"), "main");
+    static final ModelLayerLocation CAR_TRANSPORTER_LAYER = new ModelLayerLocation(ReikoTrains.id("car_transporter"), "main");
 
     /** Ticks until a held throttle key moves another notch. */
     private static int throttleRepeat;
@@ -111,6 +113,7 @@ public final class ReikoTrainsClient {
         event.registerLayerDefinition(LIVESTOCK_LAYER, LivestockWagonGeometry::create);
         event.registerLayerDefinition(BULLET_LAYER, BulletTrainGeometry::create);
         event.registerLayerDefinition(BULLET_COACH_LAYER, BulletCoachGeometry::create);
+        event.registerLayerDefinition(CAR_TRANSPORTER_LAYER, CarTransporterGeometry::create);
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -143,6 +146,9 @@ public final class ReikoTrainsClient {
         event.registerEntityRenderer(ModEntities.BULLET_COACH.get(), context -> new TrainCarRenderer<>(context,
                 c -> TrainModel.simple(c.bakeLayer(BULLET_COACH_LAYER), new String[0], new float[0]),
                 bogie, ReikoTrains.id("textures/entity/bullet_coach.png")));
+        event.registerEntityRenderer(ModEntities.CAR_TRANSPORTER.get(), context -> new TrainCarRenderer<>(context,
+                c -> TrainModel.simple(c.bakeLayer(CAR_TRANSPORTER_LAYER), new String[0], new float[0]),
+                bogie, ReikoTrains.id("textures/entity/car_transporter.png")));
         event.registerEntityRenderer(ModEntities.TANK_WAGON.get(), context -> new TrainCarRenderer<>(context,
                 c -> new TrainModel(c.bakeLayer(TANK_WAGON_LAYER), new String[0], new float[0], new String[0], 0.0F, 1.0F, TankWagonGeometry.LEVEL),
                 bogie, ReikoTrains.id("textures/entity/tank_wagon.png")));
@@ -193,6 +199,7 @@ public final class ReikoTrainsClient {
         TrackPreview.tick();
         drive();
         TrainMinimap.tick(Minecraft.getInstance());
+        CarTransportClient.tick(Minecraft.getInstance());
     }
 
     /** Turns the driver's keys into throttle notches, the brake, steering and the whistle. */

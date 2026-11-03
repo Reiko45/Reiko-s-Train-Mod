@@ -38,6 +38,14 @@ Big steam, diesel and electric trains on their own track. Lay straight track blo
     ordering="NONE"
     side="CLIENT"
 
+# Optional: with Reiko's Car Mod, car transporter wagons carry its cars.
+[[dependencies.${mod_id}]]
+    modId="reikocars"
+    type="optional"
+    versionRange="[1.39,)"
+    ordering="NONE"
+    side="BOTH"
+
 # The diesel locomotive runs on BuildCraft Reborn's fuels: Dense Fuel and Mixed Heavy Fuels.
 [[dependencies.${mod_id}]]
     modId="buildcraftreborn"

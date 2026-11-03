@@ -30,6 +30,8 @@ public final class ModItems {
             () -> new TrainCarItem(ModEntities.BULLET_TRAIN, new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
     public static final DeferredItem<TrainCarItem> BULLET_COACH = ITEMS.register("bullet_coach",
             () -> new TrainCarItem(ModEntities.BULLET_COACH, new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
+    public static final DeferredItem<TrainCarItem> CAR_TRANSPORTER = ITEMS.register("car_transporter",
+            () -> new TrainCarItem(ModEntities.CAR_TRANSPORTER, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<TrainCarItem> TENDER = ITEMS.register("tender",
             () -> new TrainCarItem(ModEntities.TENDER, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<TrainCarItem> TANK_WAGON = ITEMS.register("tank_wagon",

@@ -558,6 +558,21 @@ public final class Trains {
         return CoupleResult.COUPLED;
     }
 
+    /**
+     * The car coupled to {@code car}'s front ({@code end} +1) or back (-1), or null if that end's free. (In the train's
+     * list, front to back, a car facing forwards has the car before it at its front.)
+     */
+    @Nullable
+    public static TrainCarEntity coupledAt(TrainCarEntity car, int end) {
+        List<TrainCarEntity> cars = train(car);
+        int index = cars.indexOf(car);
+        if (index < 0) {
+            return null;
+        }
+        int next = index - end * signs(cars)[index];
+        return next >= 0 && next < cars.size() ? cars.get(next) : null;
+    }
+
     /** Whether this end of the car is free: at the front of the train's first car or the back of its last. */
     private static boolean isOuterEnd(List<TrainCarEntity> train, TrainCarEntity car, boolean front) {
         if (train.size() == 1) {
