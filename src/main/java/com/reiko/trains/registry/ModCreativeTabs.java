@@ -27,6 +27,8 @@ public final class ModCreativeTabs {
                 output.accept(ModItems.TENDER.get());
                 output.accept(ModItems.DIESEL_LOCOMOTIVE.get());
                 output.accept(ModItems.ELECTRIC_LOCOMOTIVE.get());
+                output.accept(ModItems.BULLET_TRAIN.get());
+                output.accept(ModItems.BULLET_COACH.get());
                 output.accept(ModItems.PASSENGER_COACH.get());
                 output.accept(ModItems.FREIGHT_WAGON.get());
                 output.accept(ModItems.TANK_WAGON.get());

@@ -306,6 +306,91 @@ def electric_locomotive():
     return [body]
 
 
+BULLET_ROWS = [-12, 6, 24, 42]
+BULLET_COACH_ROWS = [-45, -27, -9, 9, 27, 45]
+
+
+def bullet_seats(rows):
+    """Seats two either side of the aisle, a cushion and a high back, facing forwards."""
+    out = []
+    for c in rows:
+        out += mirrored(c - 3, -20, 2, c + 5, -17, 13, "bullet_seat")
+        out += mirrored(c + 5, -33, 2, c + 7, -17, 13, "bullet_seat")
+    return out
+
+
+def bullet_roof(x0, x1):
+    """The roof over the body: rounded off in three steps."""
+    return [box(x0, -44, -14, x1, -42, 14, "bullet_roof"),
+            box(x0, -45, -12, x1, -44, 12, "bullet_roof"),
+            box(x0, -46, -9, x1, -45, 9, "bullet_roof")]
+
+
+def bullet_train():
+    """
+    The Bullet Train's driving car, nine blocks long: a long nose that rises and widens in slices from a low tip to
+    the cab, the windscreen above it (open, so the driver can see out), then the passenger section with its windows
+    in a blue band, a gangway at the back, skirts along the sides between the bogies and a charging socket. White,
+    with a blue stripe. It rides on the diesel's bogies.
+    """
+    body = Part("body")
+    b = body.boxes
+    # The nose, tip (x = -72) to cab (x = -44), in thin slices that rise and widen; each is rounded off on top by a
+    # narrower box
+    slices = 14
+    for k in range(slices):
+        x0 = -72 + 2 * k
+        s = (k + 0.5) / slices
+        top = -round(22 + 9 * (1 - (1 - s) ** 2))
+        hw = round(9 + 6 * math.sqrt(s))
+        b.append(box(x0, top + 1, -hw, x0 + 2, -17, hw, "bullet_nose"))
+        b.append(box(x0, top, -(hw - 2), x0 + 2, top + 1, hw - 2, "bullet_nose"))
+    b.append(box(-71, -17, -8, -64, -12, 8, "bullet_skirt"))  # the plough under the tip
+    # The windscreen slopes back from the nose in three steps of glass (open, so the driver sees out), over the front of
+    # the cab (its top, under the glass, is the dark dashboard)
+    b.append(box(-44, -31, -15, -38, -17, 15, "bullet_dash"))
+    for i, top in enumerate((-34, -37, -40)):
+        b.append(box(-44 + 2 * i, top, -14, -42 + 2 * i, -31, 14, "bullet_glass"))
+    # The cab, a dark bulkhead behind the driver, and the roof rising in steps to the body's
+    b.append(box(-38, -41, -15, -28, -17, 15, "bullet_cab"))
+    b.append(box(-38, -42, -14, -28, -41, 14, "bullet_roof"))
+    b.append(box(-35, -44, -13, -28, -42, 13, "bullet_roof"))
+    b.append(box(-32, -45, -11, -28, -44, 11, "bullet_roof"))
+    b.append(box(-38, -26, -8, -36, -17, 8, "bullet_console"))
+    b.append(box(-36, -20, -4, -30, -17, 4, "bullet_seat"))
+    b.append(box(-30, -33, -4, -28, -17, 4, "bullet_seat"))
+    # The passenger section, its roof, and the gangway at the back
+    b.append(box(-28, -42, -15, 71, -17, 15, "bullet_body_cab"))
+    b += bullet_roof(-28, 71)
+    b.append(box(71, -41, -11, 72, -18, 11, "bellows"))
+    # Underframe and skirts (the bogies show between them), and a charging socket each side
+    b.append(box(-28, -17, -13, 71, -12, 13, "frame"))
+    b += mirrored(-32, -17, 14, 32, -11, 15, "bullet_skirt")
+    b += mirrored(64, -17, 14, 71, -11, 15, "bullet_skirt")
+    b += mirrored(-2, -26, 15, 2, -22, 16, "socket")
+    b += bullet_seats(BULLET_ROWS)
+    return [body]
+
+
+def bullet_coach():
+    """
+    A Bullet Train coach, eight blocks long: the same white body with the windows in a blue band and a door at each
+    end, twelve seats inside, a gangway at each end and skirts between the bogies.
+    """
+    body = Part("body")
+    b = body.boxes
+    b.append(box(-63, -42, -15, 63, -17, 15, "bullet_body_coach"))
+    b += bullet_roof(-63, 63)
+    b.append(box(-64, -41, -11, -63, -18, 11, "bellows"))
+    b.append(box(63, -41, -11, 64, -18, 11, "bellows"))
+    b.append(box(-63, -17, -13, 63, -12, 13, "frame"))
+    b += mirrored(-30, -17, 14, 30, -11, 15, "bullet_skirt")
+    b += mirrored(-63, -17, 14, -58, -11, 15, "bullet_skirt")
+    b += mirrored(58, -17, 14, 63, -11, 15, "bullet_skirt")
+    b += bullet_seats(BULLET_COACH_ROWS)
+    return [body]
+
+
 def diesel_bogie():
     """A two-axle bogie for the diesel: deeper sideframes with a spring pack, bigger wheels."""
     frame = Part("frame")
@@ -948,6 +1033,145 @@ def socket(t):
     return jitter((236, 150, 30), (t.x, t.y, t.z), 0.04)
 
 
+BULLET_WHITE = (238, 240, 238)
+BULLET_BLUE = (26, 64, 150)
+BULLET_GREY = (180, 182, 186)
+BULKHEAD = (28, 28, 32)
+UNDERSIDE = (60, 62, 68)
+
+
+def bullet_white(t):
+    # Keyed on where it is, not which face: faces that meet in the same place match, so they can't flicker.
+    return jitter(BULLET_WHITE, (t.x, t.y, t.z), 0.02)
+
+
+def bullet_nose(t):
+    """The nose: white, the blue stripe along its sides, and a white headlight and a red tail lamp each side of the tip."""
+    if t.face == "up":
+        return jitter(UNDERSIDE, (t.x, t.z), 0.04)
+    if t.face == "west" and -20 <= t.y < -18:
+        az = abs(t.z)
+        if 2.5 <= az < 5.5:
+            return (255, 252, 232)
+        if 6.5 <= az < 8.5:
+            return (226, 38, 32)
+    if t.side and -21 <= t.y < -19:
+        return BULLET_BLUE
+    return bullet_white(t)
+
+
+def bullet_cab(t):
+    """
+    The cab: the top of the windscreen in front (open, framed in black), side windows in the blue band, and a dark
+    bulkhead behind the driver (what shows through the windscreen).
+    """
+    if t.face == "up":
+        return jitter(UNDERSIDE, (t.x, t.z), 0.04)
+    if t.face == "east":
+        return BULKHEAD
+    if t.face == "west":
+        return windscreen(t) if t.y < -31 else bullet_white(t)
+    if t.face == "down":
+        return bullet_white(t)
+    if -37 <= t.x < -29 and -40 <= t.y < -33:
+        return shade(GLASS, 1.15) if t.y < -39 else GLASS
+    if -41 <= t.y < -30 or -21 <= t.y < -19:
+        return BULLET_BLUE
+    return bullet_white(t)
+
+
+def windscreen(t):
+    """Open glass with a thin black frame round the edge."""
+    return TRANSPARENT if abs(t.z) < 13 else (34, 34, 38)
+
+
+def bullet_glass(t):
+    """The windscreen's sloping steps: glass on top and in front, the cab's side windows at the sides, dark underneath."""
+    if t.face == "up":
+        return TRANSPARENT  # open onto the dashboard below
+    if t.side:
+        return shade(GLASS, 1.15) if t.j == 0 else GLASS
+    return windscreen(t)
+
+
+def bullet_dash(t):
+    """The front of the cab under the windscreen: white, the stripe along its sides, and the dashboard on top."""
+    if t.face == "down":
+        return (40, 42, 48)
+    if t.face == "up":
+        return jitter(UNDERSIDE, (t.x, t.z), 0.04)
+    if t.side and -21 <= t.y < -19:
+        return BULLET_BLUE
+    return bullet_white(t)
+
+
+def bullet_body(rows, doors, bulkhead):
+    """
+    The body: white, with the windows (open, to see in and out) in a blue band, a thin blue stripe low down, a grey
+    line along the bottom, a door near each end, and a gangway door in each end (or, behind the cab, the bulkhead).
+    """
+    def paint(t):
+        if t.face == "up":
+            return jitter(UNDERSIDE, (t.x, t.z), 0.04)  # the floor
+        if t.face == "down":
+            return bullet_white(t)
+        if t.end:
+            if bulkhead and t.face == "west":
+                return BULKHEAD
+            if abs(t.z) < 5 and t.y >= -38:
+                return (40, 40, 44)
+            return bullet_white(t)
+        x, y = t.x, t.y
+        band = -41 <= y < -30
+        for d in doors:
+            if d <= x < d + 6:
+                if x < d + 0.6 or x > d + 5.4 or y < -39.4:
+                    return shade(BULLET_BLUE if band else BULLET_WHITE, 0.62)  # the door's seams
+                if d + 1.5 <= x < d + 4.5 and -38 <= y < -32:
+                    return GLASS
+                break
+        else:
+            for c in rows:
+                if c - 4 <= x < c + 6 and -39 <= y < -31:
+                    return TRANSPARENT
+        if band or -21 <= y < -19:
+            return BULLET_BLUE
+        if y >= -19:
+            return jitter(BULLET_GREY, (t.x, t.y, t.z), 0.03)
+        return bullet_white(t)
+    return paint
+
+
+def bullet_roof_paint(t):
+    c = jitter((206, 208, 210), (t.x, t.y, t.z), 0.03)
+    return shade(c, 0.9) if t.edge and t.side else c
+
+
+def bullet_skirt(t):
+    c = jitter(BULLET_GREY, (t.x, t.y, t.z), 0.04)
+    return shade(c, 0.8) if t.edge else c
+
+
+def bullet_seat(t):
+    """Blue seats with a white cover over the headrest."""
+    if t.y < -30:
+        return jitter((232, 232, 226), (t.x, t.y, t.z), 0.03)
+    c = jitter((40, 72, 150), (t.x, t.y, t.z), 0.05)
+    return shade(c, 0.8) if t.edge else c
+
+
+def bullet_console(t):
+    """The driver's desk: dark grey, with two lit screens on top."""
+    if t.face == "down" and 1 <= t.i < t.fw - 1 and 1 <= t.j < t.fh - 1 and abs(t.z) > 1:
+        return (90, 200, 230) if int(t.z + 8) % 7 else (60, 150, 190)
+    return jitter((44, 46, 52), (t.x, t.y, t.z), 0.05)
+
+
+def bellows(t):
+    """The gangway's rubber bellows: dark, in folds."""
+    return (36, 36, 40) if int(math.floor(t.y)) % 2 == 0 else (52, 52, 58)
+
+
 STOCK = (124, 84, 50)
 
 
@@ -1098,6 +1322,17 @@ MATERIALS = {
     "roof_box": roof_box,
     "battery_box": battery_box,
     "socket": socket,
+    "bullet_nose": bullet_nose,
+    "bullet_cab": bullet_cab,
+    "bullet_glass": bullet_glass,
+    "bullet_dash": bullet_dash,
+    "bullet_body_cab": bullet_body(BULLET_ROWS, [-26, 62], True),
+    "bullet_body_coach": bullet_body(BULLET_COACH_ROWS, [-61, 55], False),
+    "bullet_roof": bullet_roof_paint,
+    "bullet_skirt": bullet_skirt,
+    "bullet_seat": bullet_seat,
+    "bullet_console": bullet_console,
+    "bellows": bellows,
     "stock_side": stock_side,
     "stock_end": stock_end,
     "straw": straw,
@@ -1241,6 +1476,8 @@ def main():
     build("diesel_locomotive", "DieselLocomotiveGeometry", diesel_locomotive(), 512)
     build("diesel_bogie", "DieselBogieGeometry", diesel_bogie(), 128)
     build("electric_locomotive", "ElectricLocomotiveGeometry", electric_locomotive(), 512)
+    build("bullet_train", "BulletTrainGeometry", bullet_train(), 512)
+    build("bullet_coach", "BulletCoachGeometry", bullet_coach(), 512)
     build("tank_wagon", "TankWagonGeometry", tank_wagon(), 512,
           "    /** The gauge's lit quarters, one to four as it fills. */\n"
           '    public static final String[] LEVEL = {"level_0", "level_1", "level_2", "level_3"};\n')

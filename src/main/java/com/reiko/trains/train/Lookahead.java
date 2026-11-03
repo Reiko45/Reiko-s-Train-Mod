@@ -20,8 +20,10 @@ import net.minecraft.world.phys.Vec3;
  * the next station, the stop it's heading for, the speed signs, and the end of the line.
  */
 final class Lookahead {
-    /** How far ahead a train looks, in blocks. */
+    /** How far ahead a train looks, in blocks: at least this, ... */
     static final double RANGE = 80;
+    /** ... and further going fast (enough to stop in), up to this. */
+    static final double MAX_RANGE = 240;
     /** How far short of a red signal trains stop. */
     static final double SIGNAL_MARGIN = 1.0;
 
@@ -64,7 +66,13 @@ final class Lookahead {
         return direction * signs[index] > 0 ? car.front : car.rear;
     }
 
-    static Lookahead look(List<TrainCarEntity> cars, int[] signs, int direction, TrackPos.Chooser chooser, @Nullable BlockPos target) {
+    /** How far a train going {@code speed} looks ahead: far enough to stop from that speed, and a bit. */
+    static double range(double speed) {
+        return Math.max(RANGE, Math.min(MAX_RANGE, speed * speed / (2 * Drive.SERVICE_BRAKE) + 24));
+    }
+
+    static Lookahead look(List<TrainCarEntity> cars, int[] signs, int direction, TrackPos.Chooser chooser, @Nullable BlockPos target,
+            double speed) {
         Lookahead look = new Lookahead();
         int index = leadIndex(cars, direction);
         TrainCarEntity car = cars.get(index);
@@ -81,7 +89,7 @@ final class Lookahead {
             }
             return way;
         };
-        TrackScanner.End end = TrackScanner.scan(level, bogie, carDirection, RANGE, watching, (node, arrivedSide, distance) -> {
+        TrackScanner.End end = TrackScanner.scan(level, bogie, carDirection, range(speed), watching, (node, arrivedSide, distance) -> {
             double buffer = distance - overhang;
             look.lastBuffer = buffer;
             if (target != null && node.equals(target)) {

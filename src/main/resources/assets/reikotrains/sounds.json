@@ -66,5 +66,14 @@
       }
     ],
     "subtitle": "subtitles.reikotrains.electric_motor"
+  },
+  "bullet_horn": {
+    "sounds": [
+      {
+        "name": "reikotrains:bullet_horn",
+        "attenuation_distance": 64
+      }
+    ],
+    "subtitle": "subtitles.reikotrains.bullet_horn"
   }
 }

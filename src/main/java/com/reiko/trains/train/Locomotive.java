@@ -384,7 +384,7 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
         int direction = Math.abs(speed) > 1.0E-4 ? (speed > 0 ? 1 : -1) : throttle != 0 ? Integer.signum(throttle) * signs[index] : 1;
         int steer = getSteer();
         TrackPos.Chooser chooser = (node, side, options, heading) -> TrackSide.wayOn(level(), node, side, options, heading, steer);
-        Lookahead look = Lookahead.look(cars, signs, direction, chooser, null);
+        Lookahead look = Lookahead.look(cars, signs, direction, chooser, null, speed);
         showLookahead(look);
         updateAutoDisplay();
         double limit = TrainsConfig.SIGNALS_STOP_DRIVERS.getAsBoolean() ? Drive.stoppingSpeed(look.signalStop) : Double.POSITIVE_INFINITY;

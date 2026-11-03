@@ -7,6 +7,7 @@ import com.reiko.trains.item.TrainCarItem;
 import com.reiko.trains.track.TrackItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Rarity;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -25,6 +26,10 @@ public final class ModItems {
             () -> new TrainCarItem(ModEntities.DIESEL_LOCOMOTIVE, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<TrainCarItem> ELECTRIC_LOCOMOTIVE = ITEMS.register("electric_locomotive",
             () -> new TrainCarItem(ModEntities.ELECTRIC_LOCOMOTIVE, new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<TrainCarItem> BULLET_TRAIN = ITEMS.register("bullet_train",
+            () -> new TrainCarItem(ModEntities.BULLET_TRAIN, new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
+    public static final DeferredItem<TrainCarItem> BULLET_COACH = ITEMS.register("bullet_coach",
+            () -> new TrainCarItem(ModEntities.BULLET_COACH, new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
     public static final DeferredItem<TrainCarItem> TENDER = ITEMS.register("tender",
             () -> new TrainCarItem(ModEntities.TENDER, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<TrainCarItem> TANK_WAGON = ITEMS.register("tank_wagon",

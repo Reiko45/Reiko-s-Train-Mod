@@ -1,0 +1,181 @@
+{
+  "parent": "block/block",
+  "render_type": "minecraft:cutout",
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "reikotrains:block/signal_metal",
+    "metal": "reikotrains:block/signal_metal",
+    "face": "reikotrains:block/speed_sign_70",
+    "back": "reikotrains:block/speed_sign_back"
+  },
+  "elements": [
+    {
+      "from": [
+        5,
+        0,
+        5
+      ],
+      "to": [
+        11,
+        1,
+        11
+      ],
+      "faces": {
+        "north": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ]
+        },
+        "south": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ]
+        },
+        "east": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ]
+        },
+        "west": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ]
+        },
+        "up": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ]
+        },
+        "down": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        7,
+        1,
+        7
+      ],
+      "to": [
+        9,
+        22,
+        9
+      ],
+      "faces": {
+        "north": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#metal",
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        2,
+        14,
+        6.5
+      ],
+      "to": [
+        14,
+        26,
+        7
+      ],
+      "faces": {
+        "north": {
+          "texture": "#face",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#back",
+          "uv": [
+            16,
+            0,
+            0,
+            16
+          ]
+        }
+      }
+    }
+  ]
+}

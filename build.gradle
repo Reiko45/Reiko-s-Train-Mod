@@ -38,6 +38,8 @@ neoForge {
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
             // ./gradlew runClient -Pshowcase builds a test scene, drives a train and saves screenshots (see DevShowcase).
             systemProperty 'reikotrains.showcase', project.hasProperty('showcase') ? 'true' : 'false'
+            // -PshowcaseFrom=<tick>: skip to the showcase's steps from that tick, to check one scene.
+            systemProperty 'reikotrains.showcaseFrom', (project.findProperty('showcaseFrom') ?: '0').toString()
             // -PwindowSize=1280x720: a bigger window, for bigger screenshots.
             def windowSize = project.findProperty('windowSize')
             if (windowSize) {

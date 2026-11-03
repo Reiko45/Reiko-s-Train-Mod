@@ -19,6 +19,7 @@ import javax.annotation.Nullable;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.TicketType;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -43,7 +44,7 @@ public final class Trains {
     private static final double DRAG = 0.0012;
     private static final double BRAKE = 0.015;
     /** No train goes faster than this, even downhill: blocks per tick. */
-    private static final double HARD_LIMIT = 1.5;
+    public static final double HARD_LIMIT = 1.5;
     public static final TicketType<ChunkPos> TICKET = TicketType.create(ReikoTrains.MODID + ":train", Comparator.comparingLong(ChunkPos::toLong), 60);
 
     private static final Map<Level, Set<TrainCarEntity>> LOADED = new WeakHashMap<>();
@@ -247,6 +248,7 @@ public final class Trains {
         }
         if (head.tickCount % 10 == 0 && (Math.abs(head.speed) > 0.001 || hasDriver(cars))) {
             keepLoaded(cars);
+            keepLoadedAhead(cars, head.speed);
         }
     }
 
@@ -409,6 +411,27 @@ public final class Trains {
             car.updatePose();
         }
         return moved;
+    }
+
+    /**
+     * Going fast, loads the chunks the train's heading for a second or two before it gets there, so it doesn't catch
+     * them still loading (at 100 km/h it crosses a chunk in well under a second).
+     */
+    private static void keepLoadedAhead(List<TrainCarEntity> cars, double speed) {
+        if (Math.abs(speed) < 0.5 || !(cars.getFirst().level() instanceof ServerLevel level)) {
+            return;
+        }
+        TrainCarEntity lead = speed > 0 ? cars.getFirst() : cars.getLast();
+        Vec3 heading = new Vec3(lead.getX() - lead.xo, 0, lead.getZ() - lead.zo);
+        if (heading.lengthSqr() < 1.0E-6) {
+            return;
+        }
+        heading = heading.normalize();
+        for (int seconds = 1; seconds <= 3; seconds++) {
+            Vec3 at = lead.position().add(heading.scale(Math.abs(speed) * 20 * seconds));
+            ChunkPos chunk = new ChunkPos(BlockPos.containing(at));
+            level.getChunkSource().addRegionTicket(TICKET, chunk, 2, chunk);
+        }
     }
 
     private static long routeKey(long node, int side) {

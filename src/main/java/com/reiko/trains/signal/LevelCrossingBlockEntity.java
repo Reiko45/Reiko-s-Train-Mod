@@ -7,6 +7,7 @@ import com.reiko.trains.registry.ModSounds;
 import com.reiko.trains.track.EdgeRef;
 import com.reiko.trains.track.TrackGraph;
 import com.reiko.trains.track.TrackPos;
+import com.reiko.trains.train.BulletTrain;
 import com.reiko.trains.train.TrainCarEntity;
 import com.reiko.trains.train.Trains;
 import java.util.ArrayDeque;
@@ -118,7 +119,9 @@ public class LevelCrossingBlockEntity extends BlockEntity {
 
     /** How far either way along the track it looks: far enough to see the fastest train in time. */
     private static double lookAhead() {
-        return Math.min(1024, ON_CROSSING + 32 + warningTicks() * TrainsConfig.MAX_SPEED.get() * 1.5);
+        // As far as the fastest train (the Bullet Train) goes in the warning time.
+        double fastest = Math.min(Trains.HARD_LIMIT, TrainsConfig.MAX_SPEED.get() * BulletTrain.SPEED_FACTOR);
+        return Math.min(1024, ON_CROSSING + 32 + warningTicks() * fastest);
     }
 
     private record Step(BlockPos node, int side, double distance) {

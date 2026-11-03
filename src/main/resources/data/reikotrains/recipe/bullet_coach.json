@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "M": {
+      "item": "minecraft:minecart"
+    },
+    "P": {
+      "item": "minecraft:glass_pane"
+    },
+    "Q": {
+      "item": "minecraft:quartz_block"
+    },
+    "W": {
+      "item": "minecraft:blue_wool"
+    }
+  },
+  "pattern": [
+    "PPP",
+    "QWQ",
+    "IMI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "reikotrains:bullet_coach"
+  }
+}

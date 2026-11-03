@@ -206,7 +206,7 @@ public final class Autopilot {
             chooseDirection = false;
         }
         TrackPos.Chooser chooser = (node, side, options, heading) -> choose(level, node, side, options, heading, true);
-        Lookahead look = Lookahead.look(cars, signs, direction, chooser, stop.track());
+        Lookahead look = Lookahead.look(cars, signs, direction, chooser, stop.track(), speed);
         loco.showLookahead(look);
         // Picking up wagons: if they're waiting around the station, it runs up to them instead of to the nameboard.
         Trains.Ahead waiting = stop.picksUpWagons() && look.targetFound ? waitingWagons(level, cars, signs, look.targetDistance) : null;

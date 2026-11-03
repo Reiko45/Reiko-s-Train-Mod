@@ -60,6 +60,9 @@ PALETTE = {
     "E": (176, 36, 34, 255),    # electric red
     "z": (120, 24, 24, 255),    # electric red, dark
     "u": (236, 150, 30, 255),   # charging plug
+    "v": (240, 242, 240, 255),  # bullet train white
+    "B": (26, 64, 150, 255),    # bullet train blue
+    "i": (186, 188, 192, 255),  # light grey
 }
 
 ICONS = {
@@ -350,6 +353,42 @@ ICONS = {
         ".......SS.......",
         ".......SS.......",
         "....SSSSSSSS....",
+    ],
+    "bullet_train": [
+        "................",
+        "................",
+        "................",
+        "................",
+        "........iiiiiiii",
+        "......vvvvvvvvvv",
+        "....vllBBBBBBBBB",
+        "...vvllBlBlBlBlB",
+        "..vvvvvBBBBBBBBB",
+        ".vvvvvvvvvvvvvvv",
+        "vvvvvvvvvvvvvvvv",
+        "vBBBBBBBBBBBBBBB",
+        "iiiiiiiiiiiiiiii",
+        "..SwwS.....SwwS.",
+        "...ww.......ww..",
+        "................",
+    ],
+    "bullet_coach": [
+        "................",
+        "................",
+        "................",
+        "................",
+        "..iiiiiiiiiiii..",
+        ".vvvvvvvvvvvvvv.",
+        ".BBBBBBBBBBBBBB.",
+        ".BlBlBlBlBlBlBB.",
+        ".BBBBBBBBBBBBBB.",
+        ".vvvvvvvvvvvvvv.",
+        ".vvvvvvvvvvvvvv.",
+        ".BBBBBBBBBBBBBB.",
+        ".iiiiiiiiiiiiii.",
+        "..SwwS....SwwS..",
+        "...ww......ww...",
+        "................",
     ],
     "tank_wagon": [
         "................",

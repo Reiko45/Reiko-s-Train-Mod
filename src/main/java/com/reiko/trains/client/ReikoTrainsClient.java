@@ -7,6 +7,8 @@ import com.reiko.trains.ReikoTrains;
 import com.reiko.trains.client.model.geometry.BogieGeometry;
 import com.reiko.trains.client.model.geometry.DieselBogieGeometry;
 import com.reiko.trains.client.model.geometry.DieselLocomotiveGeometry;
+import com.reiko.trains.client.model.geometry.BulletCoachGeometry;
+import com.reiko.trains.client.model.geometry.BulletTrainGeometry;
 import com.reiko.trains.client.model.geometry.ElectricLocomotiveGeometry;
 import com.reiko.trains.client.model.geometry.ExpressLocomotiveGeometry;
 import com.reiko.trains.client.model.geometry.GuardsVanGeometry;
@@ -70,6 +72,8 @@ public final class ReikoTrainsClient {
     static final ModelLayerLocation DIESEL_BOGIE_LAYER = new ModelLayerLocation(ReikoTrains.id("diesel_bogie"), "main");
     static final ModelLayerLocation ELECTRIC_LAYER = new ModelLayerLocation(ReikoTrains.id("electric_locomotive"), "main");
     static final ModelLayerLocation LIVESTOCK_LAYER = new ModelLayerLocation(ReikoTrains.id("livestock_wagon"), "main");
+    static final ModelLayerLocation BULLET_LAYER = new ModelLayerLocation(ReikoTrains.id("bullet_train"), "main");
+    static final ModelLayerLocation BULLET_COACH_LAYER = new ModelLayerLocation(ReikoTrains.id("bullet_coach"), "main");
 
     /** Ticks until a held throttle key moves another notch. */
     private static int throttleRepeat;
@@ -105,6 +109,8 @@ public final class ReikoTrainsClient {
         event.registerLayerDefinition(DIESEL_BOGIE_LAYER, DieselBogieGeometry::create);
         event.registerLayerDefinition(ELECTRIC_LAYER, ElectricLocomotiveGeometry::create);
         event.registerLayerDefinition(LIVESTOCK_LAYER, LivestockWagonGeometry::create);
+        event.registerLayerDefinition(BULLET_LAYER, BulletTrainGeometry::create);
+        event.registerLayerDefinition(BULLET_COACH_LAYER, BulletCoachGeometry::create);
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -130,6 +136,13 @@ public final class ReikoTrainsClient {
                 c -> TrainModel.simple(c.bakeLayer(ELECTRIC_LAYER), new String[0], new float[0]),
                 c -> TrainModel.simple(c.bakeLayer(DIESEL_BOGIE_LAYER), DieselBogieGeometry.WHEELS, DieselBogieGeometry.WHEEL_RADII),
                 ReikoTrains.id("textures/entity/electric_locomotive.png"), ReikoTrains.id("textures/entity/diesel_bogie.png")));
+        event.registerEntityRenderer(ModEntities.BULLET_TRAIN.get(), context -> new TrainCarRenderer<>(context,
+                c -> TrainModel.simple(c.bakeLayer(BULLET_LAYER), new String[0], new float[0]),
+                c -> TrainModel.simple(c.bakeLayer(DIESEL_BOGIE_LAYER), DieselBogieGeometry.WHEELS, DieselBogieGeometry.WHEEL_RADII),
+                ReikoTrains.id("textures/entity/bullet_train.png"), ReikoTrains.id("textures/entity/diesel_bogie.png")));
+        event.registerEntityRenderer(ModEntities.BULLET_COACH.get(), context -> new TrainCarRenderer<>(context,
+                c -> TrainModel.simple(c.bakeLayer(BULLET_COACH_LAYER), new String[0], new float[0]),
+                bogie, ReikoTrains.id("textures/entity/bullet_coach.png")));
         event.registerEntityRenderer(ModEntities.TANK_WAGON.get(), context -> new TrainCarRenderer<>(context,
                 c -> new TrainModel(c.bakeLayer(TANK_WAGON_LAYER), new String[0], new float[0], new String[0], 0.0F, 1.0F, TankWagonGeometry.LEVEL),
                 bogie, ReikoTrains.id("textures/entity/tank_wagon.png")));

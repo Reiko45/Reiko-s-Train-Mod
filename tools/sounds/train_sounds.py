@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Synthesises the mod's sounds (a three-chime steam whistle, exhaust chuffs, a coupling clank, a diesel's two-tone horn,
-the loop of its engine running, a level crossing's bell, and an electric's horn and the loop of its motors) and
+the loop of its engine running, a level crossing's bell, an electric's horn and the loop of its motors, and the
+Bullet Train's horn) and
 encodes them as mono Ogg Vorbis (mono, so Minecraft plays them from where they happen). Needs numpy and ffmpeg. Run
 from the repository root, naming the sounds to make (all of them, if none are named; Vorbis encoding isn't
 byte-for-byte repeatable, so remaking one that hasn't changed just churns the file):
@@ -180,6 +181,26 @@ def bell():
     return out
 
 
+def bullet_horn():
+    """
+    The Bullet Train's horn: an electronic call rather than an air horn, a short note and then a longer one a fourth
+    higher, clear and smooth, with a touch of vibrato as the long note holds.
+    """
+    duration = 1.5
+    n = int(duration * RATE)
+    t = np.arange(n) / RATE
+    out = np.zeros(n)
+    for start, length, freq in ((0.0, 0.22, 587.3), (0.30, 1.15, 784.0)):
+        a, b = int(start * RATE), int((start + length) * RATE)
+        tt = t[a:b] - start
+        vibrato = 1 + 0.004 * np.sin(2 * np.pi * 5.5 * tt) * np.clip((tt - 0.25) / 0.3, 0, 1)
+        phase = 2 * np.pi * np.cumsum(freq * vibrato) / RATE
+        tone = sum(np.sin(k * phase) / k ** 1.6 for k in range(1, 6))
+        out[a:b] += tone * envelope(b - a, 0.025, min(0.12, length / 3))
+    out = np.tanh(out * 1.2)
+    return out
+
+
 def write(name, samples, peak=0.85):
     samples = samples / np.max(np.abs(samples)) * peak
     pcm = (samples * 32767).astype(np.int16)
@@ -209,6 +230,7 @@ SOUNDS = {
     "crossing_bell": (bell, 0.8),
     "electric_horn": (lambda: horn((440.0, 523.3)), 0.85),
     "electric_motor": (motor, 0.6),
+    "bullet_horn": (bullet_horn, 0.85),
 }
 
 

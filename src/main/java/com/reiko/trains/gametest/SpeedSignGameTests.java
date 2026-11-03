@@ -215,15 +215,14 @@ public final class SpeedSignGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         BlockPos pos = sign.getBlockPos();
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.NORTH, pos, false);
-        for (int kmh : new int[] {30, 40, 50, 0, 10, 20}) {
+        for (int kmh : new int[] {30, 40, 50, 60, 70, 80, 90, 0, 10, 20}) {
             helper.getLevel().getBlockState(pos).useWithoutItem(helper.getLevel(), player, hit);
             helper.assertTrue(sign.limitKmh() == kmh, "the sign should show " + (kmh == 0 ? "the end of the limit" : kmh + " km/h") + ", not " + sign.limitKmh());
         }
         helper.assertTrue(sign.limit() == blocksPerTick(20), "a 20 km/h sign should limit trains to 20 km/h");
-        helper.getLevel().getBlockState(pos).useWithoutItem(helper.getLevel(), player, hit);
-        helper.getLevel().getBlockState(pos).useWithoutItem(helper.getLevel(), player, hit);
-        helper.getLevel().getBlockState(pos).useWithoutItem(helper.getLevel(), player, hit);
-        helper.getLevel().getBlockState(pos).useWithoutItem(helper.getLevel(), player, hit);
+        for (int i = 0; i < 8; i++) {
+            helper.getLevel().getBlockState(pos).useWithoutItem(helper.getLevel(), player, hit);
+        }
         helper.assertTrue(sign.limit() == Double.POSITIVE_INFINITY, "an end of limit sign shouldn't limit anything");
         helper.succeed();
     }

@@ -2,6 +2,24 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.19.0
+
+The Bullet Train.
+
+- New: the **Bullet Train**, the top-tier train. A set rather than a locomotive: a streamlined driving car at each
+  end, noses out, and new **Bullet Train Coaches** between. About 100 km/h at the default settings, white with a blue
+  stripe. Drive it from either end; both driving cars pull, and on a timetable it shuttles back and forth without
+  turning. Each driving car seats the driver and eight more, a coach twelve, and the windscreen and windows are open,
+  so you can see out.
+- It runs on batteries (1,500,000 MJ in each driving car), charged at a charging point like the electric; both
+  driving cars charge at once. It has its own horn.
+- Fast trains look further ahead (as far as they need to stop, up to 240 blocks), so they brake steadily for red
+  signals, stations and speed limits instead of all at once; level crossings look far enough out to warn in time
+  for the Bullet Train; and fast trains load the chunks a few seconds ahead of them.
+- Speed signs now go up to 90 km/h (10 to 90 in tens, then the end of a limit). Existing signs keep their limits.
+- Train car items can have a tooltip; the Bullet Train's say how to make up a set.
+- Six new game tests (121 in all), and the recipe test now checks every recipe.
+
 ## 0.18.0
 
 Trains on Xaero's Minimap.

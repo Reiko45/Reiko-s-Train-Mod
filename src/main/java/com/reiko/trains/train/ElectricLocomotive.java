@@ -65,6 +65,11 @@ public class ElectricLocomotive extends Locomotive {
         return BATTERY_CAPACITY;
     }
 
+    /** What its batteries hold, in MJ. */
+    public double batteryCapacity() {
+        return tankCapacity();
+    }
+
     /** About 60 km/h at the default settings. */
     @Override
     protected double speedFactor() {
@@ -100,7 +105,7 @@ public class ElectricLocomotive extends Locomotive {
 
     /** Puts up to {@code mj} MJ into its batteries; returns how much went in. */
     public double charge(double mj) {
-        double taken = Math.max(0, Math.min(mj, BATTERY_CAPACITY - fuel()));
+        double taken = Math.max(0, Math.min(mj, tankCapacity() - fuel()));
         if (taken > 0) {
             setFuel(fuel() + taken);
         }
@@ -109,7 +114,7 @@ public class ElectricLocomotive extends Locomotive {
 
     /** Room left in its batteries, in MJ. */
     public double room() {
-        return Math.max(0, BATTERY_CAPACITY - fuel());
+        return Math.max(0, tankCapacity() - fuel());
     }
 
     /** Clicking it with something it can't use tells you how charged it is, and where to charge it. */

@@ -89,6 +89,66 @@
     "facing=west,limit=5": {
       "model": "reikotrains:block/speed_sign_end",
       "y": 270
+    },
+    "facing=north,limit=6": {
+      "model": "reikotrains:block/speed_sign_60"
+    },
+    "facing=east,limit=6": {
+      "model": "reikotrains:block/speed_sign_60",
+      "y": 90
+    },
+    "facing=south,limit=6": {
+      "model": "reikotrains:block/speed_sign_60",
+      "y": 180
+    },
+    "facing=west,limit=6": {
+      "model": "reikotrains:block/speed_sign_60",
+      "y": 270
+    },
+    "facing=north,limit=7": {
+      "model": "reikotrains:block/speed_sign_70"
+    },
+    "facing=east,limit=7": {
+      "model": "reikotrains:block/speed_sign_70",
+      "y": 90
+    },
+    "facing=south,limit=7": {
+      "model": "reikotrains:block/speed_sign_70",
+      "y": 180
+    },
+    "facing=west,limit=7": {
+      "model": "reikotrains:block/speed_sign_70",
+      "y": 270
+    },
+    "facing=north,limit=8": {
+      "model": "reikotrains:block/speed_sign_80"
+    },
+    "facing=east,limit=8": {
+      "model": "reikotrains:block/speed_sign_80",
+      "y": 90
+    },
+    "facing=south,limit=8": {
+      "model": "reikotrains:block/speed_sign_80",
+      "y": 180
+    },
+    "facing=west,limit=8": {
+      "model": "reikotrains:block/speed_sign_80",
+      "y": 270
+    },
+    "facing=north,limit=9": {
+      "model": "reikotrains:block/speed_sign_90"
+    },
+    "facing=east,limit=9": {
+      "model": "reikotrains:block/speed_sign_90",
+      "y": 90
+    },
+    "facing=south,limit=9": {
+      "model": "reikotrains:block/speed_sign_90",
+      "y": 180
+    },
+    "facing=west,limit=9": {
+      "model": "reikotrains:block/speed_sign_90",
+      "y": 270
     }
   }
 }

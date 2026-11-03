@@ -32,6 +32,9 @@ give them a timetable and let them run between the stations on their own.
   Fuel), the same as the car mod's diesel trucks, and pulls harder than either steam engine.
 - **Electric Locomotive**: a red box-cab electric, 7½ blocks long, with a cab at each end. It runs on BuildCraft
   power (MJ) from its batteries: the fastest and strongest engine, and nearly silent, but it needs charging often.
+- **Bullet Train**: the top of the line. A white, blue-striped high-speed train with a long streamlined nose,
+  about 100 km/h: a driving car at each end and **Bullet Train Coaches** between, so it runs both ways without
+  turning. It runs on batteries, like the electric.
 - **Charging Point**: charges the batteries of an electric standing beside it, from BuildCraft engines, kinesis pipes
   or other mods' cables.
 - **Passenger Coach**: 6½ blocks long, eight seats in four rows.
@@ -93,6 +96,8 @@ or ramp can cross gaps between them, so bridges are just long curves. Leave thre
 | Tender | Iron ingot, cauldron, iron ingot; iron ingot, minecart, iron ingot |
 | Diesel Locomotive | Three iron ingots; iron ingot, blast furnace, iron ingot; copper ingot, minecart, copper ingot |
 | Electric Locomotive | Three iron ingots; copper ingot, block of redstone, copper ingot; iron ingot, minecart, iron ingot |
+| Bullet Train | Quartz block, glass, quartz block; diamond, electric locomotive, diamond; iron ingot, block of redstone, iron ingot |
+| Bullet Train Coach | Three glass panes; quartz block, blue wool, quartz block; iron ingot, minecart, iron ingot |
 | Passenger Coach | Glass panes on top; planks, wool, planks; iron ingot, minecart, iron ingot |
 | Freight Wagon | Planks around a chest (top middle open); iron ingot, minecart, iron ingot |
 | Tank Wagon | Three iron ingots; iron ingot, bucket, iron ingot; iron ingot, minecart, iron ingot |
@@ -140,7 +145,7 @@ empty hand to climb into the cab.
 The gauges, bottom right, show the next signal (and how far), the next switch (which way it's set, and how far), the
 next station, the throttle notch (R2, R1, N, 1-4),
 the speed and the speed limit, which way you're steering, the brake and the firebox (or tender, or fuel tank). Top speed is 43 km/h for the
-tank engine, 52 km/h for the diesel and 58 km/h for the express; a heavy train takes longer to get going, and slows (or stalls) going uphill.
+tank engine, 52 km/h for the diesel, 58 km/h for the express, 60 km/h for the electric and 100 km/h for the Bullet Train; a heavy train takes longer to get going, and slows (or stalls) going uphill.
 Cars roll downhill on their own. At the end of the line a train stops dead. If the track under a car is broken, the
 car comes off and drops as an item. With nobody at the controls the handbrake holds the train, and the fire only
 burns while someone's driving. A moving train keeps the chunks around it loaded, so it doesn't stop at the edge of
@@ -210,6 +215,31 @@ sides, batteries slung between its bogies and a charging socket on each side. Yo
 ![An electric charging: the charging point's bars show its store, and its lamp is lit](docs/screenshots/electric_charging.jpg)
 
 ![The electric away with two coaches](docs/screenshots/electric.jpg)
+
+### The Bullet Train
+
+The **Bullet Train** is the fastest thing on the line: about 100 km/h at the default settings, nearly twice the
+electric. It's a set, not a locomotive and coaches: a **driving car** at each end, noses out, with **Bullet Train
+Coaches** between them (as many as you like, up to the server's train length). White, with the windows in a blue
+band and a blue stripe low down.
+
+- Each driving car has a long streamlined nose, the driver's cab behind a sloping windscreen you can see out of, and
+  seats for eight more. A coach seats twelve, and there's a gangway between the cars.
+- Drive it from either end: climb into the cab at the end you want to lead. Both driving cars pull, so it gets away
+  briskly for its size. On a timetable it shuttles back and forth without ever turning round.
+- It runs on **batteries**, like the electric, charged at a **Charging Point**: each driving car holds 1,500,000 MJ,
+  and both charge at once when the train stands at one. It won't take coal or diesel.
+- It has its own horn, a clear two-note call (the whistle key), and its motors whine like the electric's.
+- Signals, stations, speed signs and level crossings all look further ahead for it, so it slows in time at full speed;
+  and it loads the chunks ahead of it a few seconds early, so it doesn't catch them still loading.
+
+![The Bullet Train standing at the station](docs/screenshots/bullet_train.jpg)
+
+![Its nose and windscreen](docs/screenshots/bullet_nose.jpg)
+
+![The view from the cab at speed](docs/screenshots/bullet_cab.jpg)
+
+![Coming back the other way, the other driving car leading](docs/screenshots/bullet_running.jpg)
 
 ### Tank wagons and guard's vans
 
@@ -297,8 +327,8 @@ when it's clear. Its lamps face the trains coming towards it.
 ## Speed limits
 
 Put a **Speed Limit Sign** beside the track (up to three blocks away), looking along the line the way the trains will
-go, like a signal: its face is towards the trains coming up to it. **Click** it to change its limit: 10, 20, 30, 40 or
-50 km/h, or the **end of a limit** (white, crossed with black lines). A new one says 20.
+go, like a signal: its face is towards the trains coming up to it. **Click** it to change its limit: 10 to 90
+km/h in tens, or the **end of a limit** (white, crossed with black lines). A new one says 20.
 
 - Trains going towards its face slow down in time to pass it at the limit, and keep to it from there until the next
   speed sign their way. An end-of-limit sign lifts it. A higher limit takes over as soon as the train reaches it.
@@ -498,7 +528,7 @@ So one station can load iron into one train and coal into another, or unload jus
 
 With **Xaero's Minimap** installed, every train in your dimension shows on the minimap, however far away: a marker at
 its leading locomotive, coloured and lettered by the kind of engine (**St** steam, **Ex** express, **Di** diesel,
-**El** electric). Its name says how many cars it has and, on a timetable, where it's going or which station it's at:
+**El** electric, **Bu** Bullet Train). Its name says how many cars it has and, on a timetable, where it's going or which station it's at:
 *Express Locomotive · 4 cars · to Riverside*. Trains far off move every couple of seconds; nearby ones move with the
 train. They're marked in the world too, like Xaero's waypoints, but they don't go in your waypoint list. The train
 you're on isn't shown.
@@ -577,6 +607,11 @@ hoppers going through the loader, moving trains being left alone, and a timetabl
 its store and only as much as fits, its bars, lamp and comparator, taking BuildCraft power and handing back what won't
 fit, leaving moving trains alone, redstone, and a timetabled electric waiting until it's charged).
 
+`BulletGameTests` covers the Bullet Train: getting up to 100 km/h with both driving cars pulling, braking steadily
+from speed to stop short of a red signal, a timetabled set running out and back without turning (the other car
+leading home), driving it from the back car, both driving cars charging at once, and its seats. Some run on
+`long_line`, a 256-block test track.
+
 `TrainMapGameTests` covers the map of trains for minimaps: a train on it once, at its leading locomotive, with its
 kind and length, a timetabled train's next stop, a broken locomotive coming off it (and the other engine taking
 over), players being sent the other trains nearest first and not their own, dropping trains that aren't where the
@@ -584,7 +619,7 @@ map says, and saving it with the world.
 
 `./gradlew runClient -Pshowcase -PwindowSize=1280x720` builds a test railway, runs trains round it and saves
 screenshots to `run/screenshots/` (that's where the pictures above come from). Add `-PxaeroJars=/path/to/folder` for
-the minimap shot.
+the minimap shot, and `-PshowcaseFrom=<tick>` to skip to the scene starting at that tick (`2202` for the Bullet Train).
 
 ### Models, textures and sounds
 
@@ -623,8 +658,9 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
   loaded loaders, so a timetabled train can ask whether any is still busy with it. A charging point (`power/`) works
   the same way with electrics, taking BuildCraft power in through `MjAPI`'s capabilities into a store kept in
   micro-MJ, as BuildCraft counts it.
-- **Driving** (`train/Lookahead`, `Autopilot`): every tick a train looks 80 blocks down the line for signals,
-  stations, speed signs and the end of the track, and slows to stop in time for a red signal (or its station). The
+- **Driving** (`train/Lookahead`, `Autopilot`): every tick a train looks down the line (80 blocks, or as far as it
+  takes to stop from its speed, up to 240) for signals, stations, speed signs and the end of the track, and slows to
+  stop in time for a red signal (or its station). Going fast it also puts chunk tickets one to three seconds ahead. The
   locomotive keeps the limit of the last speed sign it passed going its way, and caps its speed at that and at what it
   takes to brake down to each lower limit ahead (`Locomotive.speedLimit`). A timetabled train's
   `Autopilot` searches the track for the way to its next station. Leaving wagons, it works out which way it'll set

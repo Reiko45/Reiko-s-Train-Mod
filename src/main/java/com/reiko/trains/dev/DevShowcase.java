@@ -65,6 +65,11 @@ import net.neoforged.neoforge.client.event.ScreenEvent;
 @EventBusSubscriber(modid = ReikoTrains.MODID, value = Dist.CLIENT)
 public final class DevShowcase {
     private static final boolean ENABLED = Boolean.getBoolean("reikotrains.showcase");
+    /**
+     * {@code -PshowcaseFrom=<tick>}: after building the world, skip straight to the steps from that tick (they run from
+     * tick 100), to check one scene without waiting through the rest.
+     */
+    private static final int FROM = Integer.getInteger("reikotrains.showcaseFrom", 0);
     /** The flat world's ground is at y = -61, so track goes at -60. */
     private static final int Y = -60;
     private static final Vec3 EAST = new Vec3(1, 0, 0);
@@ -79,7 +84,11 @@ public final class DevShowcase {
     }
 
     private static void at(int time, Consumer<Minecraft> action) {
-        STEPS.add(new Step(time, action));
+        if (FROM <= 0 || time < 60) {
+            STEPS.add(new Step(time, action));
+        } else if (time >= FROM) {
+            STEPS.add(new Step(time - FROM + 100, action));
+        }
     }
 
     @SubscribeEvent
@@ -163,6 +172,8 @@ public final class DevShowcase {
     private static final int STOCK_LINE = -90;
     /** The line with speed limit signs on it, along x at this z. */
     private static final int SPEED_LINE = -104;
+    /** The Bullet Train's line, along x at this z, from Capital (x = 10) to Coast (x = 180). */
+    private static final int BULLET_LINE = -120;
     /** The switch stand for the junction at x = 52. */
     private static final BlockPos SWITCH = new BlockPos(52, Y, -2);
 
@@ -336,6 +347,21 @@ public final class DevShowcase {
         TestTracks.speedSign(level, new BlockPos(40, Y, SPEED_LINE + 2), new BlockPos(40, Y, SPEED_LINE), 1, 1);
         TestTracks.speedSign(level, new BlockPos(64, Y, SPEED_LINE + 2), new BlockPos(64, Y, SPEED_LINE), 1, 5);
         TestTracks.station(level, new BlockPos(84, Y, SPEED_LINE - 3), new BlockPos(84, Y, SPEED_LINE), "Far End", 10);
+        // A ninth line: the Bullet Train, two driving cars and two coaches, standing at Capital.
+        TestTracks.line(level, new BlockPos(0, Y, BULLET_LINE), TrackAxis.X, 192);
+        TestTracks.station(level, new BlockPos(14, Y, BULLET_LINE - 3), new BlockPos(14, Y, BULLET_LINE), "Capital", 3);
+        TestTracks.station(level, new BlockPos(180, Y, BULLET_LINE - 3), new BlockPos(180, Y, BULLET_LINE), "Coast", 3);
+        com.reiko.trains.train.BulletTrain bulletFront = TestTracks.car(level, ModEntities.BULLET_TRAIN.get(), new BlockPos(40, Y, BULLET_LINE), EAST);
+        com.reiko.trains.train.BulletCoach bulletCoach1 = TestTracks.car(level, ModEntities.BULLET_COACH.get(), new BlockPos(31, Y, BULLET_LINE), EAST);
+        com.reiko.trains.train.BulletCoach bulletCoach2 = TestTracks.car(level, ModEntities.BULLET_COACH.get(), new BlockPos(23, Y, BULLET_LINE), EAST);
+        com.reiko.trains.train.BulletTrain bulletBack = TestTracks.car(level, ModEntities.BULLET_TRAIN.get(), new BlockPos(14, Y, BULLET_LINE),
+                new Vec3(-1, 0, 0));
+        Trains.couple(bulletFront, bulletCoach1);
+        Trains.couple(bulletCoach1, bulletCoach2);
+        Trains.couple(bulletCoach2, bulletBack);
+        bulletFront.setFuel(com.reiko.trains.train.BulletTrain.BATTERY_CAPACITY);
+        bulletBack.setFuel(com.reiko.trains.train.BulletTrain.BATTERY_CAPACITY);
+
         Locomotive limited = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(24, Y, SPEED_LINE), EAST);
         PassengerCoach limitedCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(17, Y, SPEED_LINE), EAST);
         Trains.couple(limited, limitedCoach);
@@ -615,6 +641,52 @@ public final class DevShowcase {
         // out over the crossing line to the main line and the loop
         at(2152, mc -> look(mc, 22.0, Y + 12.0, -52.0, -35.0F, 22.0F));
         at(2200, mc -> shot(mc, "36_trains_on_minimap"));
-        at(2210, Minecraft::stop);
+        // The Bullet Train: standing at Capital, then its nose close up
+        at(2202, mc -> look(mc, 52.0, Y + 3.0, BULLET_LINE + 6.0, 116.0F, 12.0F));
+        at(2245, mc -> shot(mc, "37_bullet_train"));
+        at(2247, mc -> look(mc, 48.0, Y + 1.3, BULLET_LINE + 3.0, 130.0F, 6.0F));
+        at(2287, mc -> shot(mc, "38_bullet_nose"));
+        // In its cab, off to Coast on a timetable; then from beside the line as it comes back, the other car leading
+        at(2289, mc -> server(mc, player -> {
+            ServerLevel level = player.serverLevel();
+            com.reiko.trains.train.BulletTrain front = find(level, com.reiko.trains.train.BulletTrain.class, 40.5, BULLET_LINE + 0.5);
+            player.getAbilities().flying = false;
+            player.onUpdateAbilities();
+            player.teleportTo(level, front.getX(), front.getY(), front.getZ(), -90.0F, 8.0F);
+            player.startRiding(front);
+            if (level.getBlockEntity(new BlockPos(14, Y, BULLET_LINE - 3)) instanceof StationBlockEntity capital
+                    && level.getBlockEntity(new BlockPos(180, Y, BULLET_LINE - 3)) instanceof StationBlockEntity coast) {
+                front.autopilot().start(List.of(TestTracks.stop(coast), TestTracks.stop(capital)));
+            }
+        }));
+        at(2295, mc -> {
+            mc.player.setYRot(-90.0F);
+            mc.player.setXRot(8.0F);
+        });
+        at(2400, mc -> shot(mc, "39_bullet_cab"));
+        at(2402, mc -> {
+            look(mc, 90.0, Y + 1.8, BULLET_LINE + 5.5, -104.0F, 3.0F);
+            mc.options.fov().set(30); // a long lens, to fill the picture with the train
+        });
+        boolean[] bulletShot = {false};
+        for (int time = 2450; time <= 2800; time++) {
+            boolean last = time == 2800;
+            at(time, mc -> {
+                if (bulletShot[0]) {
+                    return;
+                }
+                List<com.reiko.trains.train.BulletTrain> cars = mc.level.getEntitiesOfClass(com.reiko.trains.train.BulletTrain.class,
+                        new AABB(0, Y - 2, BULLET_LINE - 4, 200, Y + 4, BULLET_LINE + 4));
+                double west = cars.stream().mapToDouble(car -> car.getX() - car.halfLength()).min().orElse(1000);
+                boolean back = cars.stream().anyMatch(car -> car.getX() - car.xo < -0.2);
+                if (last || (back && west <= 112)) {
+                    bulletShot[0] = true;
+                    ReikoTrains.LOGGER.info("Showcase: Bullet Train shot at x = {} (moving back: {}, last: {})", west, back, last);
+                    shot(mc, "40_bullet_running");
+                }
+            });
+        }
+        at(2805, mc -> mc.options.fov().set(70));
+        at(2810, Minecraft::stop);
     }
 }

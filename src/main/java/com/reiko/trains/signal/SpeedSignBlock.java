@@ -32,13 +32,15 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 /**
  * A speed limit sign, beside the track (up to three blocks away), put up like a signal: looking along the line the way
  * the trains will go, its face towards them. Trains going that way slow down in time to pass it at its limit, and
- * keep to it until the next speed sign their way; an end-of-limit sign lifts it. Click it to change its limit: 10, 20,
- * 30, 40 or 50 km/h, or the end of a limit.
+ * keep to it until the next speed sign their way; an end-of-limit sign lifts it. Click it to change its limit: 10 to 90
+ * km/h in tens, or the end of a limit.
  */
 public class SpeedSignBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public static final com.mojang.serialization.MapCodec<SpeedSignBlock> CODEC = simpleCodec(SpeedSignBlock::new);
-    /** The limits it can show, in km/h; 0 is the end of a limit. */
-    public static final int[] LIMITS = {10, 20, 30, 40, 50, 0};
+    /** The limits it can show, in km/h; 0 is the end of a limit. (60-90 came later, so they're after it.) */
+    public static final int[] LIMITS = {10, 20, 30, 40, 50, 0, 60, 70, 80, 90};
+    /** The order clicks go round them: up from 10 km/h, then the end of a limit. */
+    private static final int[] ORDER = {0, 1, 2, 3, 4, 6, 7, 8, 9, 5};
     /** Which of {@link #LIMITS} it shows. */
     public static final IntegerProperty LIMIT = IntegerProperty.create("limit", 0, LIMITS.length - 1);
     /** A new sign's limit: 20 km/h. */
@@ -105,13 +107,23 @@ public class SpeedSignBlock extends HorizontalDirectionalBlock implements Entity
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
-        BlockState next = state.setValue(LIMIT, (state.getValue(LIMIT) + 1) % LIMITS.length);
+        BlockState next = state.setValue(LIMIT, next(state.getValue(LIMIT)));
         level.setBlock(pos, next, 3);
         int kmh = kmh(next);
         player.displayClientMessage(kmh > 0 ? Component.translatable("message.reikotrains.speed_sign.limit", kmh)
                 : Component.translatable("message.reikotrains.speed_sign.end"), true);
         level.playSound(null, pos, SoundEvents.WOOD_HIT, SoundSource.BLOCKS, 0.6F, 1.2F);
         return InteractionResult.CONSUME;
+    }
+
+    /** The limit after this one, clicking. */
+    static int next(int limit) {
+        for (int i = 0; i < ORDER.length; i++) {
+            if (ORDER[i] == limit) {
+                return ORDER[(i + 1) % ORDER.length];
+            }
+        }
+        return DEFAULT;
     }
 
     @Override

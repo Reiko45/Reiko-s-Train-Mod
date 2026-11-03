@@ -83,6 +83,7 @@ final class TrainsXaero {
             case "express_locomotive" -> WaypointColor.DARK_RED;
             case "diesel_locomotive" -> WaypointColor.BLUE;
             case "electric_locomotive" -> WaypointColor.RED;
+            case "bullet_train" -> WaypointColor.AQUA;
             default -> WaypointColor.WHITE;
         };
     }
