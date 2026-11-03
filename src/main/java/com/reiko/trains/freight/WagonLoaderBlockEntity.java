@@ -5,6 +5,7 @@ import com.reiko.trains.registry.ModBlockEntities;
 import com.reiko.trains.track.TrackGraph;
 import com.reiko.trains.train.DieselLocomotive;
 import com.reiko.trains.train.FreightWagon;
+import com.reiko.trains.train.LivestockWagon;
 import com.reiko.trains.train.TankWagon;
 import com.reiko.trains.train.Tender;
 import com.reiko.trains.train.TrainCarEntity;
@@ -18,6 +19,12 @@ import java.util.WeakHashMap;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.vehicle.DismountHelper;
+import net.minecraft.world.item.SpawnEggItem;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -43,13 +50,19 @@ import net.neoforged.neoforge.items.wrapper.InvWrapper;
  * full the train's wagons are. Hoppers (or pipes) can also put goods into the train through it, or take them out,
  * whichever way it's working. Trains on a timetable don't leave a station while a loader's still busy with them.
  * <p>
+ * Livestock wagons too: loading, it puts animals standing around it (within four blocks) into them, a stall at a time;
+ * unloading, it lets them out behind it, on the side away from the track.
+ * <p>
  * Its filter (nine items, set in its screen) limits what it moves for the wagons, both ways: only the items shown, or
- * all but them. A filled bucket (or other fluid container) in the filter stands for its fluid, for tank wagons. An
- * empty filter lets everything through. Engines' fuel (a tender's coal, a diesel's diesel) isn't filtered.
+ * all but them. A filled bucket (or other fluid container) in the filter stands for its fluid, for tank wagons, and a
+ * spawn egg for its animal, for livestock wagons. An empty filter lets everything through. Engines' fuel (a tender's
+ * coal, a diesel's diesel) isn't filtered.
  */
 public class WagonLoaderBlockEntity extends BlockEntity {
     /** How often it works, in ticks. */
     private static final int PERIOD = 2;
+    /** How far from it (blocks, across) animals can be standing to be loaded. */
+    private static final double ANIMAL_REACH = 4;
     /**
      * How much fluid it pumps into (or out of) each diesel locomotive and tank wagon a go, in millibuckets: twenty
      * buckets a second, so a 256-bucket tank wagon fills in about 13 seconds, much as a freight wagon loads.
@@ -107,12 +120,15 @@ public class WagonLoaderBlockEntity extends BlockEntity {
         return mode;
     }
 
-    /** Whether the filter lets this item through. Filled fluid containers in the filter stand for fluids, not items. */
+    /**
+     * Whether the filter lets this item through. Filled fluid containers in the filter stand for fluids, and spawn eggs
+     * for animals, not items.
+     */
     public boolean allows(ItemStack stack) {
         boolean any = false;
         for (int i = 0; i < FILTER_SLOTS; i++) {
             ItemStack entry = filter.getItem(i);
-            if (entry.isEmpty() || FluidUtil.getFluidContained(entry).isPresent()) {
+            if (entry.isEmpty() || FluidUtil.getFluidContained(entry).isPresent() || entry.getItem() instanceof SpawnEggItem) {
                 continue;
             }
             any = true;
@@ -133,6 +149,22 @@ public class WagonLoaderBlockEntity extends BlockEntity {
             }
             any = true;
             if (FluidStack.isSameFluid(entry.get(), fluid)) {
+                return !deny;
+            }
+        }
+        return deny || !any;
+    }
+
+    /** Whether the filter lets this animal through (for livestock wagons): the animals of spawn eggs in the filter. */
+    public boolean allows(EntityType<?> animal) {
+        boolean any = false;
+        for (int i = 0; i < FILTER_SLOTS; i++) {
+            ItemStack entry = filter.getItem(i);
+            if (!(entry.getItem() instanceof SpawnEggItem egg)) {
+                continue;
+            }
+            any = true;
+            if (egg.getType(entry) == animal) {
                 return !deny;
             }
         }
@@ -205,6 +237,7 @@ public class WagonLoaderBlockEntity extends BlockEntity {
         List<IItemHandler> tenders = new ArrayList<>();
         List<DieselLocomotive> diesels = new ArrayList<>();
         List<TankWagon> tanks = new ArrayList<>();
+        List<LivestockWagon> pens = new ArrayList<>();
         for (TrainCarEntity car : train) {
             if (car instanceof FreightWagon wagon) {
                 wagons.add(wagon);
@@ -214,6 +247,8 @@ public class WagonLoaderBlockEntity extends BlockEntity {
                 diesels.add(diesel);
             } else if (car instanceof TankWagon tank) {
                 tanks.add(tank);
+            } else if (car instanceof LivestockWagon pen) {
+                pens.add(pen);
             }
         }
         loader.wagons = wagons;
@@ -273,15 +308,85 @@ public class WagonLoaderBlockEntity extends BlockEntity {
                 loader.moved(train.getFirst());
             }
         }
+        if (!pens.isEmpty() && !level.hasNeighborSignal(pos)) {
+            // Animals, one into (or out of) each livestock wagon a go: in from around the loader, out behind it.
+            int moved = loader.mode() == LoaderMode.LOAD ? loader.loadAnimals(pens) : loader.unloadAnimals(pens);
+            if (moved > 0) {
+                loader.moved(train.getFirst());
+            }
+        }
         boolean active = loader.isBusy();
         if (state.getValue(WagonLoaderBlock.ACTIVE) != active) {
             level.setBlock(pos, state.setValue(WagonLoaderBlock.ACTIVE, active), 3);
         }
-        int signal = wagons.isEmpty() && tanks.isEmpty() ? 0 : redstone(wagons, tanks);
+        int signal = wagons.isEmpty() && tanks.isEmpty() && pens.isEmpty() ? 0 : redstone(wagons, tanks, pens);
         if (signal != loader.comparator) {
             loader.comparator = signal;
             level.updateNeighbourForOutputSignal(pos, level.getBlockState(pos).getBlock());
         }
+    }
+
+    /** Animals standing around it (within {@link #ANIMAL_REACH} blocks) that the filter lets through. */
+    private List<Animal> waitingAnimals() {
+        AABB around = new AABB(worldPosition).inflate(ANIMAL_REACH, 1, ANIMAL_REACH);
+        List<Animal> animals = new ArrayList<>(level.getEntitiesOfClass(Animal.class, around,
+                animal -> LivestockWagon.canCarry(animal) && !animal.isLeashed() && allows(animal.getType())));
+        Vec3 here = Vec3.atCenterOf(worldPosition);
+        animals.sort(java.util.Comparator.comparingDouble(animal -> animal.distanceToSqr(here)));
+        return animals;
+    }
+
+    /** Puts the nearest waiting animal into each livestock wagon with a stall free. Returns how many went in. */
+    private int loadAnimals(List<LivestockWagon> pens) {
+        List<Animal> waiting = waitingAnimals();
+        int moved = 0;
+        for (LivestockWagon pen : pens) {
+            while (pen.hasRoom() && !waiting.isEmpty()) {
+                if (pen.load(waiting.removeFirst())) {
+                    moved++;
+                    break;
+                }
+            }
+        }
+        return moved;
+    }
+
+    /** Lets an animal out of each livestock wagon that has any, behind the loader (away from the track). */
+    private int unloadAnimals(List<LivestockWagon> pens) {
+        int moved = 0;
+        for (LivestockWagon pen : pens) {
+            List<Animal> aboard = pen.livestock();
+            for (int i = aboard.size() - 1; i >= 0; i--) {
+                Animal animal = aboard.get(i);
+                if (!allows(animal.getType())) {
+                    continue;
+                }
+                Vec3 spot = outSpot(animal);
+                if (spot != null) {
+                    pen.unload(animal, spot);
+                    moved++;
+                }
+                break;
+            }
+        }
+        return moved;
+    }
+
+    /** Somewhere an animal let out can stand: behind the loader, or beside that, or further back. */
+    @Nullable
+    private Vec3 outSpot(Animal animal) {
+        Direction back = getBlockState().getValue(WagonLoaderBlock.FACING).getOpposite();
+        BlockPos behind = worldPosition.relative(back);
+        for (BlockPos pos : new BlockPos[]{behind, behind.relative(back.getClockWise()), behind.relative(back.getCounterClockWise()),
+                behind.relative(back), worldPosition.relative(back.getClockWise()), worldPosition.relative(back.getCounterClockWise())}) {
+            for (int dy = 0; dy >= -1; dy--) {
+                Vec3 safe = DismountHelper.findSafeDismountLocation(animal.getType(), level, pos.above(dy), true);
+                if (safe != null) {
+                    return safe;
+                }
+            }
+        }
+        return null;
     }
 
     private void moved(TrainCarEntity car) {
@@ -384,7 +489,7 @@ public class WagonLoaderBlockEntity extends BlockEntity {
      * 0 to 15 for how full the train's wagons are, the way a comparator reads a chest (1 for anything at all): each
      * freight wagon and tank wagon counts the same.
      */
-    private static int redstone(List<FreightWagon> wagons, List<TankWagon> tanks) {
+    private static int redstone(List<FreightWagon> wagons, List<TankWagon> tanks, List<LivestockWagon> pens) {
         float fullness = 0;
         for (FreightWagon wagon : wagons) {
             float used = 0;
@@ -399,7 +504,10 @@ public class WagonLoaderBlockEntity extends BlockEntity {
         for (TankWagon tank : tanks) {
             fullness += tank.tank().getFluidAmount() / (float) TankWagon.CAPACITY;
         }
-        int cars = wagons.size() + tanks.size();
+        for (LivestockWagon pen : pens) {
+            fullness += pen.animals() / (float) LivestockWagon.STALLS;
+        }
+        int cars = wagons.size() + tanks.size() + pens.size();
         return cars == 0 ? 0 : Mth.lerpDiscrete(fullness / cars, 0, 15);
     }
 

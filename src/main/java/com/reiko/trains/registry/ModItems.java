@@ -31,6 +31,8 @@ public final class ModItems {
             () -> new TrainCarItem(ModEntities.TANK_WAGON, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<TrainCarItem> GUARDS_VAN = ITEMS.register("guards_van",
             () -> new TrainCarItem(ModEntities.GUARDS_VAN, new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<TrainCarItem> LIVESTOCK_WAGON = ITEMS.register("livestock_wagon",
+            () -> new TrainCarItem(ModEntities.LIVESTOCK_WAGON, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<TrainCarItem> FREIGHT_WAGON = ITEMS.register("freight_wagon",
             () -> new TrainCarItem(ModEntities.FREIGHT_WAGON, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<CouplerItem> COUPLER = ITEMS.register("coupler",

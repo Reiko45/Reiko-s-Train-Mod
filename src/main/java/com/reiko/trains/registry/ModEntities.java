@@ -6,6 +6,7 @@ import com.reiko.trains.train.ElectricLocomotive;
 import com.reiko.trains.train.ExpressLocomotive;
 import com.reiko.trains.train.FreightWagon;
 import com.reiko.trains.train.GuardsVan;
+import com.reiko.trains.train.LivestockWagon;
 import com.reiko.trains.train.TankWagon;
 import com.reiko.trains.train.PassengerCoach;
 import com.reiko.trains.train.SteamLocomotive;
@@ -36,6 +37,8 @@ public final class ModEntities {
             EntityType.Builder.<TankWagon>of(TankWagon::new, MobCategory.MISC));
     public static final Supplier<EntityType<GuardsVan>> GUARDS_VAN = register("guards_van",
             EntityType.Builder.<GuardsVan>of(GuardsVan::new, MobCategory.MISC));
+    public static final Supplier<EntityType<LivestockWagon>> LIVESTOCK_WAGON = register("livestock_wagon",
+            EntityType.Builder.<LivestockWagon>of(LivestockWagon::new, MobCategory.MISC));
     public static final Supplier<EntityType<FreightWagon>> FREIGHT_WAGON = register("freight_wagon",
             EntityType.Builder.<FreightWagon>of(FreightWagon::new, MobCategory.MISC));
 

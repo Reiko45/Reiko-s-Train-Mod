@@ -37,6 +37,8 @@ give them a timetable and let them run between the stations on their own.
   it, crates pile up in it as it fills, and a full one is heavier to pull.
 - **Tank Wagon**: carries 256 buckets of any fluid: water, lava, oil, BuildCraft's fuels. A gauge on its side shows
   how full it is.
+- **Livestock Wagon**: six stalls for cows, sheep, pigs, horses or any other animal, with slatted sides to see them
+  through. Lead animals to it, or have a wagon loader load them from a pen.
 - **Guard's Van**: for the back of the train. Two seats and a stove inside, tail lamps, and a brake that makes the
   whole train stop quicker.
 - **Wagon Loader**: fills the freight wagons of a train standing beside it from the chests next to it, or empties
@@ -90,6 +92,7 @@ or ramp can cross gaps between them, so bridges are just long curves. Leave thre
 | Passenger Coach | Glass panes on top; planks, wool, planks; iron ingot, minecart, iron ingot |
 | Freight Wagon | Planks around a chest (top middle open); iron ingot, minecart, iron ingot |
 | Tank Wagon | Three iron ingots; iron ingot, bucket, iron ingot; iron ingot, minecart, iron ingot |
+| Livestock Wagon | Three planks; fence, hay bale, fence; iron ingot, minecart, iron ingot |
 | Guard's Van | Planks, lantern, planks; planks, furnace, planks; iron ingot, minecart, iron ingot |
 | Coupler | Iron ingot, chain, iron ingot (a column) |
 | Railway Signal (2) | Redstone lamp, iron ingot, iron ingot (a column) |
@@ -219,6 +222,22 @@ quicker. And a train left with no engine is held by the van's handbrake, so loos
 
 ![A tank wagon and a guard's van on the end of a freight train](docs/screenshots/tank_wagon_and_van.jpg)
 
+### Livestock wagons
+
+The **Livestock Wagon** is a roofed van with slatted sides and a sliding door, and six stalls inside, three rows of
+two, for any animals: cows, sheep, pigs, chickens, goats, horses, llamas... (not tamed pets).
+
+- **Lead** animals up to it and click it: as many as there's room for go in, and you get the leads back.
+- **Sneak-click** it empty-handed to let them all out beside you. Clicking it otherwise says how many stalls are taken.
+- Aboard, the animals ride facing along the wagon, and come to no harm from walls, falls or crowding. They're carried
+  along with the wagon when it's saved and loaded, and a fuller wagon is heavier to pull.
+- People can't ride in it.
+- A **wagon loader** works with it too (see below): loading, it puts the animals standing around it into the train's
+  livestock wagons; unloading, it lets them out behind it. So a timetabled train can take the sheep from the farm to
+  market by itself.
+
+![A livestock wagon loaded from the pen behind the wagon loader, the last two animals still waiting](docs/screenshots/livestock_wagon.jpg)
+
 ### More than one locomotive
 
 A train can have several locomotives, anywhere in it and facing either way: double-head a heavy train, or put a
@@ -312,6 +331,7 @@ A **comparator** next to it reads how many cars the train has (up to 15).
   - a **locomotive, coach or wagon**: only trains with that kind of car (an electric, a tank wagon, a guard's van...);
   - a **timetable**: only trains running that timetable (the same stations in the same order, starting anywhere), or,
     with a blank one, any train on a timetable;
+  - a **spawn egg**: only trains carrying that animal in a livestock wagon;
   - a **filled bucket** (or other mod's fluid container): only trains with a tank wagon of that fluid;
   - **anything else**: only trains carrying it in a freight wagon (or a tender, for coal).
 - **Sneak-click** it empty-handed to sense every train again.
@@ -398,19 +418,22 @@ waiting wagons), then Works (leave all its wagons), collects them and delivers t
 
 Put a **Wagon Loader** beside the track (up to three blocks away, and two is best: its chute reaches over to the
 wagons), and storage next to it on any side: chests, barrels, hoppers, or other mods' storage. When a train stands
-still with a car alongside the loader, the loader works on every freight wagon and tank wagon in the train, front to
-back:
+still with a car alongside the loader, the loader works on every freight wagon, tank wagon and livestock wagon in the
+train, front to back:
 
-- **Loading** (green arrow on top, pointing at the track): it fills the wagons from its storage, and the tank wagons
-  from fluid tanks next to it.
-- **Unloading** (orange arrow, pointing away): it empties them into its storage and tanks.
+- **Loading** (green arrow on top, pointing at the track): it fills the wagons from its storage, the tank wagons
+  from fluid tanks next to it, and the livestock wagons with animals standing around it (within four blocks: build
+  the pen behind it).
+- **Unloading** (orange arrow, pointing away): it empties them into its storage and tanks, and lets the animals out
+  behind it, on the side away from the track.
 
 Sneak-click the loader to switch between the two, or click it to open its screen (below). Its lamp lights while it's
 moving goods. It moves ten stacks a second
 (server setting `loaderSpeed`), so a full wagon takes about 11 seconds; two loaders at one train work twice as fast.
 
 - **Redstone** pauses it.
-- A **comparator** beside it reads how full the train's wagons (and tank wagons) are (0 with no train there).
+- A **comparator** beside it reads how full the train's wagons (tank and livestock wagons too) are (0 with no train
+  there).
 - Hoppers and pipes can also go through it: into the train while it's loading, out of it while it's unloading.
 - Loading, it refuels the engines too: a tender takes coal (and the like) from its chests, and a diesel is pumped
   full of diesel from fluid tanks next to it (a BuildCraft tank, say).
@@ -435,8 +458,9 @@ copy, and the item stays yours. Click a slot empty-handed to clear it. An empty 
 
 A filled bucket (or any mod's fluid container) in the filter stands for its fluid, for tank wagons: put a bucket of
 water in an "only these" filter and the loader fills tank wagons with water only, leaving the lava tank beside it
-alone. Items and fluids are filtered separately: with only items shown, fluids aren't filtered, and the other way
-round. Engines' fuel isn't filtered either, so a loader with an iron-only filter still tops up a tender's coal and a
+alone. A spawn egg stands for its animal, for livestock wagons: a sheep egg in an "only these" filter loads just the
+sheep from a pen of mixed animals. Items, fluids and animals are filtered separately: with only items shown, fluids and
+animals aren't filtered, and so on. Engines' fuel isn't filtered either, so a loader with an iron-only filter still tops up a tender's coal and a
 diesel's diesel. Hoppers going through the loader are filtered too.
 
 So one station can load iron into one train and coal into another, or unload just the logs and leave the rest.
@@ -469,7 +493,10 @@ waiting at a signal, taking a branch to reach its station, handing over to a dri
 sharing a signalled loop without ever meeting. `SwitchGameTests` covers switch stands finding their junction, the marker showing what redstone does,
 clicking and redstone (holding it thrown or straight on), three-way junctions, drivers going the way the switch is set whatever they steer, throwing a
 switch under a train without splitting it, and timetabled trains setting switches their way or obeying a held one.
-`ShuntingGameTests` covers leaving and picking up wagons: leaving the last wagon at a through station, pushing wagons
+`LivestockGameTests` covers the livestock wagon: leading six cows in (the seventh left over, the leads given back,
+people kept out), letting them out, riding safely along, a wagon loader loading only the animals its spawn-egg filter
+picks and letting them out behind it, and a sensor picking out trains carrying sheep. `ShuntingGameTests` covers
+leaving and picking up wagons: leaving the last wagon at a through station, pushing wagons
 into a dead-end siding and leaving them all there, an engine that went in first keeping its wagons, picking up
 wagons waiting past the nameboard and taking them on, a pick-up stop with nothing waiting, and the timetable's clicks
 and saving. `SensorGameTests` covers track sensors: on while a train passes and only then, staying on under a standing train with

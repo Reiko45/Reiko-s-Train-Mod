@@ -159,6 +159,8 @@ public final class DevShowcase {
     private static final int ELECTRIC_LINE = -62;
     /** The line where a goods train leaves wagons at a yard, along x at this z. */
     private static final int GOODS_LINE = -76;
+    /** The line with a livestock wagon loading at a pen, along x at this z. */
+    private static final int STOCK_LINE = -90;
     /** The switch stand for the junction at x = 52. */
     private static final BlockPos SWITCH = new BlockPos(52, Y, -2);
 
@@ -299,6 +301,33 @@ public final class DevShowcase {
             behind = goods;
         }
         shunter.setFuel(DieselLocomotive.FUEL_CAPACITY * 0.5);
+
+        // A seventh line: a tank engine and a livestock wagon at a wagon loader, with a pen of animals behind it.
+        TestTracks.line(level, new BlockPos(0, Y, STOCK_LINE), TrackAxis.X, 40);
+        TestTracks.wagonLoader(level, new BlockPos(20, Y, STOCK_LINE - 3), new BlockPos(20, Y, STOCK_LINE), LoaderMode.LOAD);
+        List<BlockPos> fences = new ArrayList<>();
+        for (int x = 16; x <= 24; x++) {
+            for (int z = STOCK_LINE - 8; z <= STOCK_LINE - 3; z++) {
+                boolean edge = x == 16 || x == 24 || z == STOCK_LINE - 8 || z == STOCK_LINE - 3;
+                if (edge && !(x == 20 && z == STOCK_LINE - 3)) {
+                    fences.add(new BlockPos(x, Y, z));
+                    level.setBlock(new BlockPos(x, Y, z), Blocks.OAK_FENCE.defaultBlockState(), 3);
+                }
+            }
+        }
+        for (BlockPos fence : fences) {
+            level.setBlock(fence, net.minecraft.world.level.block.Block.updateFromNeighbourShapes(level.getBlockState(fence), level, fence), 3);
+        }
+        net.minecraft.world.entity.EntityType<?>[] herd = {net.minecraft.world.entity.EntityType.SHEEP, net.minecraft.world.entity.EntityType.SHEEP,
+                net.minecraft.world.entity.EntityType.COW, net.minecraft.world.entity.EntityType.PIG, net.minecraft.world.entity.EntityType.SHEEP,
+                net.minecraft.world.entity.EntityType.COW, net.minecraft.world.entity.EntityType.PIG, net.minecraft.world.entity.EntityType.SHEEP};
+        for (int i = 0; i < herd.length; i++) {
+            net.minecraft.world.entity.Entity animal = herd[i].create(level);
+            animal.moveTo(17.5 + (i % 4) * 2, Y, STOCK_LINE - 6.5 + (i / 4) * 2, i * 45, 0);
+            level.addFreshEntity(animal);
+        }
+        TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(28, Y, STOCK_LINE), EAST);
+        TestTracks.car(level, ModEntities.LIVESTOCK_WAGON.get(), new BlockPos(20, Y, STOCK_LINE), EAST);
 
         Locomotive a = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(22, Y, 14), EAST);
         PassengerCoach aCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(15, Y, 14), EAST);
@@ -531,6 +560,9 @@ public final class DevShowcase {
         }));
         at(1927, mc -> look(mc, 22.0, Y + 4.0, GOODS_LINE + 9.0, 222.0F, 16.0F));
         at(1975, mc -> shot(mc, "32_wagons_left"));
-        at(1985, Minecraft::stop);
+        // The livestock wagon, loaded from the pen behind the wagon loader
+        at(1977, mc -> look(mc, 14.0, Y + 2.6, STOCK_LINE + 5.0, 232.0F, 14.0F));
+        at(2020, mc -> shot(mc, "33_livestock_wagon"));
+        at(2030, Minecraft::stop);
     }
 }

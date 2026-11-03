@@ -52,6 +52,7 @@ public final class ReikoTrains {
         ModCreativeTabs.TABS.register(modBus);
         container.registerConfig(ModConfig.Type.SERVER, TrainsConfig.SPEC);
         modBus.addListener(ReikoTrains::registerCapabilities);
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(com.reiko.trains.train.LivestockWagon::onDamage);
     }
 
     /** Freight wagons work with other mods' pipes and hoppers; a wagon loader passes goods through to the train. */

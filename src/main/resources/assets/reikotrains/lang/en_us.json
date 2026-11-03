@@ -130,8 +130,8 @@
   "screen.reikotrains.loader.unloading": "Unloading",
   "screen.reikotrains.loader.allow": "Only these",
   "screen.reikotrains.loader.deny": "All but these",
-  "screen.reikotrains.loader.allow.tooltip": "Moves only the items shown (a filled bucket stands for its fluid, for tank wagons). With nothing shown, it moves everything.",
-  "screen.reikotrains.loader.deny.tooltip": "Moves everything except the items shown (a filled bucket stands for its fluid, for tank wagons).",
+  "screen.reikotrains.loader.allow.tooltip": "Moves only the items shown (a filled bucket stands for its fluid, for tank wagons, and a spawn egg for its animal, for livestock wagons). With nothing shown, it moves everything.",
+  "screen.reikotrains.loader.deny.tooltip": "Moves everything except the items shown (a filled bucket stands for its fluid, for tank wagons, and a spawn egg for its animal, for livestock wagons).",
   "screen.reikotrains.loader.slot": "Click with an item to add it to the filter",
   "block.reikotrains.level_crossing": "Level Crossing",
   "block.reikotrains.level_crossing_arm": "Level Crossing Barrier",
@@ -170,5 +170,11 @@
   "timetable.reikotrains.wagons.pick_up": "pick up waiting wagons",
   "message.reikotrains.auto.left_wagons": "Left %s wagons at %s",
   "message.reikotrains.auto.picked_up": "Picked up %s wagons at %s",
-  "message.reikotrains.auto.nothing_to_leave": "No wagons to leave at %s: the locomotive's at that end"
+  "message.reikotrains.auto.nothing_to_leave": "No wagons to leave at %s: the locomotive's at that end",
+  "item.reikotrains.livestock_wagon": "Livestock Wagon",
+  "entity.reikotrains.livestock_wagon": "Livestock Wagon",
+  "message.reikotrains.livestock.in": "%s went in: %s of %s stalls taken",
+  "message.reikotrains.livestock.full": "The livestock wagon's full",
+  "message.reikotrains.livestock.out": "%s animals let out",
+  "message.reikotrains.livestock.stalls": "%s of %s stalls taken. Lead animals here to put them in; sneak-click to let them out"
 }

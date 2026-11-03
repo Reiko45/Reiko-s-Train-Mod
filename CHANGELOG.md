@@ -2,6 +2,19 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.16.0
+
+The livestock wagon.
+
+- New car: the **Livestock Wagon**, a roofed van with slatted sides and six stalls for animals (cows, sheep, pigs,
+  horses and the rest; not tamed pets). Lead animals to it and click it to put them in (you get the leads back);
+  sneak-click it empty-handed to let them out. Aboard, they come to no harm from walls, falls or crowding.
+- Wagon loaders load livestock wagons with the animals standing around them (within four blocks), and unload them
+  behind themselves. Spawn eggs in a loader's filter pick which animals. The comparator counts livestock wagons too,
+  and timetabled trains wait while animals are loaded or let out.
+- Track sensors take spawn eggs too: only trains carrying that animal.
+- Five new game tests: 103 in all.
+
 ## 0.15.0
 
 Leaving wagons at stations and picking them up.

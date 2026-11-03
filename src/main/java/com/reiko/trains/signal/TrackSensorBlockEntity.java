@@ -4,6 +4,7 @@ import com.reiko.trains.item.TimetableItem;
 import com.reiko.trains.item.TrainCarItem;
 import com.reiko.trains.registry.ModBlockEntities;
 import com.reiko.trains.track.TrackGraph;
+import com.reiko.trains.train.LivestockWagon;
 import com.reiko.trains.train.Locomotive;
 import com.reiko.trains.train.TankWagon;
 import com.reiko.trains.train.Timetable;
@@ -21,6 +22,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -33,9 +35,9 @@ import net.neoforged.neoforge.fluids.FluidUtil;
  * A track sensor's workings. It's tied to a track block and senses the train over it (moving or standing), if the train
  * is going the way it's set to sense and passes its filter: an item shown on its back. With nothing there, it senses
  * every train; a train car (a locomotive, coach or wagon) means only trains with that kind of car; a timetable, only
- * trains running those stops, in that order round (or, a blank one, any train on a timetable); a filled bucket or other
- * fluid container, only trains with a tank wagon of that fluid; anything else, only trains carrying it in a freight
- * wagon (or tender).
+ * trains running those stops, in that order round (or, a blank one, any train on a timetable); a spawn egg, only trains
+ * with that animal in a livestock wagon; a filled bucket or other fluid container, only trains with a tank wagon of
+ * that fluid; anything else, only trains carrying it in a freight wagon (or tender).
  */
 public class TrackSensorBlockEntity extends BlockEntity {
     @Nullable
@@ -91,6 +93,9 @@ public class TrackSensorBlockEntity extends BlockEntity {
             return stops.isEmpty() ? Component.translatable("message.reikotrains.sensor.filter.any_timetable")
                     : Component.translatable("message.reikotrains.sensor.filter.timetable", stops.size());
         }
+        if (filter.getItem() instanceof SpawnEggItem egg) {
+            return Component.translatable("message.reikotrains.sensor.filter.carrying", egg.getType(filter).getDescription());
+        }
         Optional<FluidStack> fluid = FluidUtil.getFluidContained(filter);
         if (fluid.isPresent()) {
             return Component.translatable("message.reikotrains.sensor.filter.carrying", fluid.get().getHoverName());
@@ -123,6 +128,14 @@ public class TrackSensorBlockEntity extends BlockEntity {
             for (TrainCarEntity car : train) {
                 if (car instanceof Locomotive loco && loco.autopilot().isOn()
                         && (wanted.isEmpty() || sameStations(wanted, loco.autopilot().stops()))) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        if (filter.getItem() instanceof SpawnEggItem egg) {
+            for (TrainCarEntity car : train) {
+                if (car instanceof LivestockWagon pen && pen.livestock().stream().anyMatch(animal -> animal.getType() == egg.getType(filter))) {
                     return true;
                 }
             }

@@ -365,6 +365,27 @@ def freight_wagon():
     return parts
 
 
+def livestock_wagon():
+    """
+    A livestock wagon: a roofed van with slatted sides, so the animals get air and you can see them, a sliding door in
+    the middle of each side, solid ends and a straw-strewn floor. It rides on two bogies.
+    """
+    body = Part("body")
+    b = body.boxes
+    b.append(box(-40, -16, -12, 40, -12, 12, "frame"))
+    b += buffers(44)
+    b.append(box(-44, -18, -14, -42, -10, 14, "beam_dark"))
+    b.append(box(42, -18, -14, 44, -10, 14, "beam_dark"))
+    b.append(box(-42, -17, -15, 42, -16, 15, "straw"))
+    # Slatted sides, solid ends, roof
+    b += mirrored(-42, -45, 15, 42, -17, 16, "stock_side")
+    b.append(box(-42, -45, -15, -41, -17, 15, "stock_end"))
+    b.append(box(41, -45, -15, 42, -17, 15, "stock_end"))
+    b.append(box(-43, -47, -17, 43, -45, 17, "roof"))
+    b.append(box(-43, -48, -13, 43, -47, 13, "roof"))
+    return [body]
+
+
 def tank_wagon():
     """A tank wagon: a silver barrel on saddles, with a filler dome, ladders and a gauge on each side (drawn lit a
     quarter at a time as it fills: the level_ parts)."""
@@ -927,6 +948,52 @@ def socket(t):
     return jitter((236, 150, 30), (t.x, t.y, t.z), 0.04)
 
 
+STOCK = (124, 84, 50)
+
+
+def stock_side(t):
+    """
+    The sides: planks in rows with gaps between (open to the air, and to see in), on dark iron posts, a solid board
+    along the bottom, and a solid sliding door in the middle, braced corner to corner.
+    """
+    if t.face in ("down", "up"):
+        return jitter(shade(STOCK, 0.8), (t.x, t.z), 0.05)
+    c = jitter(STOCK, (t.x, t.y, t.z, t.face), 0.07)
+    x = int(math.floor(t.x))
+    if t.y < -44:
+        return shade(c, 0.75)  # the rail along the top
+    if abs(t.x) < 8:
+        # The door: vertical boards, a frame, and a diagonal brace.
+        if abs(t.x) > 7 or t.y > -18:
+            return (54, 54, 58)
+        u, v = (t.x + 7) / 14, (t.y + 44) / 26
+        if abs(u - v) < 0.06 or abs(u + v - 1) < 0.06:
+            return shade(c, 0.7)
+        return shade(c, 0.85) if x % 3 == 0 else c
+    if (x + 42) % 14 in (0, 1):
+        return (54, 54, 58)  # iron posts
+    if t.y > -23:
+        return shade(c, 0.9)  # the solid bottom board
+    # Slats: three pixels of plank, then two of gap.
+    if (int(math.floor(t.y)) + 45) % 5 in (3, 4):
+        return TRANSPARENT
+    return shade(c, 0.85) if (int(math.floor(t.y)) + 45) % 5 == 0 else c
+
+
+def stock_end(t):
+    c = jitter(STOCK, (t.x, t.y, t.z, t.face), 0.07)
+    if t.end and int(math.floor(t.z)) % 4 == 0:
+        return shade(c, 0.82)
+    return shade(c, 0.8) if t.edge else c
+
+
+def straw(t):
+    if t.face == "down":
+        v = noise("straw", t.x, t.z)
+        return (214, 182, 92) if v > 0.2 else (186, 152, 70) if v > -0.4 else (160, 126, 58)
+    return jitter((40, 40, 44), (t.x, t.y, t.z))
+
+
 def tank_barrel(t):
     """A silver barrel with a red band round its middle, and darker weld seams."""
     c = jitter((178, 182, 188), (t.x, t.y, t.z, t.face), 0.04)
@@ -1031,6 +1098,9 @@ MATERIALS = {
     "roof_box": roof_box,
     "battery_box": battery_box,
     "socket": socket,
+    "stock_side": stock_side,
+    "stock_end": stock_end,
+    "straw": straw,
 }
 
 
@@ -1175,6 +1245,7 @@ def main():
           "    /** The gauge's lit quarters, one to four as it fills. */\n"
           '    public static final String[] LEVEL = {"level_0", "level_1", "level_2", "level_3"};\n')
     build("guards_van", "GuardsVanGeometry", guards_van(), 512)
+    build("livestock_wagon", "LivestockWagonGeometry", livestock_wagon(), 512)
     build("tender", "TenderGeometry", tender(), 512,
           "    /** The coal, in three layers: as much shows as the tender has. */\n"
           '    public static final String[] CARGO = {"coal_0", "coal_1", "coal_2"};\n')
