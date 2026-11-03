@@ -48,6 +48,8 @@ give them a timetable and let them run between the stations on their own.
 - **Switch Stand**: sets which way trains go at a junction. Flip it by hand, or set and hold it with redstone.
 - **Track Sensor**: gives a redstone signal while a train is over the track beside it: any train, or only trains
   going one way, with a certain kind of car, carrying something, or running a certain timetable.
+- **Speed Limit Sign**: 10 to 50 km/h, or the end of a limit. Trains slow down in time for it and keep to it until
+  the next sign.
 - **Level Crossing**: where a road crosses the line, lamps that flash, a bell that rings and a barrier arm that comes
   down across the road while a train goes by. Cars from Reiko's Car Mod can't get through it.
 - **Station**: a nameboard beside the track. Trains stop with their front level with it.
@@ -99,6 +101,7 @@ or ramp can cross gaps between them, so bridges are just long curves. Leave thre
 | Switch Stand | Lever, iron ingot, iron ingot (a column) |
 | Station | Any sign, iron ingot, iron ingot (a column) |
 | Track Sensor (2) | Observer, redstone, iron ingot (a column) |
+| Speed Limit Sign (4) | Red dye, white dye, red dye; white dye, black dye, white dye; an iron ingot in the bottom middle |
 | Level Crossing | Redstone lamps in the top corners; red dye, iron ingot, white dye; a bell in the bottom middle |
 | Timetable | Two paper and a clock |
 | Wagon Loader | Iron ingot, hopper, iron ingot; iron ingot, chest, iron ingot |
@@ -134,7 +137,7 @@ empty hand to climb into the cab.
 
 The gauges, bottom right, show the next signal (and how far), the next switch (which way it's set, and how far), the
 next station, the throttle notch (R2, R1, N, 1-4),
-the speed, which way you're steering, the brake and the firebox (or tender, or fuel tank). Top speed is 43 km/h for the
+the speed and the speed limit, which way you're steering, the brake and the firebox (or tender, or fuel tank). Top speed is 43 km/h for the
 tank engine, 52 km/h for the diesel and 58 km/h for the express; a heavy train takes longer to get going, and slows (or stalls) going uphill.
 Cars roll downhill on their own. At the end of the line a train stops dead. If the track under a car is broken, the
 car comes off and drops as an item. With nobody at the controls the handbrake holds the train, and the fire only
@@ -259,6 +262,7 @@ In `serverconfig/reikotrains-server.toml` in each world:
 | `maxSpeed` | `0.6` | Top speed in blocks per tick (0.6 is 12 blocks a second) |
 | `acceleration` | `0.004` | How quickly a locomotive with two coaches picks up speed |
 | `signalsStopDrivers` | `true` | Whether trains people drive stop for red signals by themselves |
+| `speedLimitsForDrivers` | `true` | Whether trains people drive keep to speed limit signs by themselves |
 | `maxTrainLength` | `16` | The most cars in one train |
 | `loaderSpeed` | `640` | How many items a wagon loader moves a second (640 fills a wagon in about 11 seconds) |
 | `fallbackDieselEnergyPerBucket` | `96000` | MJ in a bucket of a diesel fluid BuildCraft has no fuel value for |
@@ -286,6 +290,26 @@ when it's clear. Its lamps face the trains coming towards it.
   round is run that way round.
 
 ![A signal turns red behind a train](docs/screenshots/signals.jpg)
+
+## Speed limits
+
+Put a **Speed Limit Sign** beside the track (up to three blocks away), looking along the line the way the trains will
+go, like a signal: its face is towards the trains coming up to it. **Click** it to change its limit: 10, 20, 30, 40 or
+50 km/h, or the **end of a limit** (white, crossed with black lines). A new one says 20.
+
+- Trains going towards its face slow down in time to pass it at the limit, and keep to it from there until the next
+  speed sign their way. An end-of-limit sign lifts it. A higher limit takes over as soon as the train reaches it.
+- Trains going the other way take no notice, and a train that sets off back the way it came leaves its limit behind.
+  So put up signs for each way the trains run.
+- Trains on a timetable always keep to the limits, and trains you're driving do too (the server can leave it to the
+  drivers with `speedLimitsForDrivers`). The cab gauges show the limit beside the speed, yellow while the train is
+  slowing for a lower one ahead.
+
+Use them for sharp curves, junctions, stations trains run through, or a level crossing in a village.
+
+![A train on a timetable slows for a 20 km/h sign; the end of the limit is further on](docs/screenshots/speed_sign.jpg)
+
+![The gauges: 20 km/h, in a 20 km/h limit](docs/screenshots/speed_limit_gauges.png)
 
 ## Switches
 
@@ -503,6 +527,9 @@ and saving. `SensorGameTests` covers track sensors: on while a train passes and 
 a comparator counting its cars, sensing only trains going its way, filters by kind of car, cargo, fluid and timetable
 (the same stations round from either end, or a blank one), clicking to set and clear them, and, wired to a switch
 stand at a junction, sending goods trains down the branch while other trains go straight on.
+`SpeedSignGameTests` covers speed limit signs: a driven train slowing in time for one and keeping to it after, a
+timetabled train keeping to one all the way to its station, an end-of-limit sign lifting it, trains going away from
+a sign's face taking no notice, a train backing away leaving the limit behind, and clicking to change the limit.
 `CrossingGameTests` covers level crossings: a train on the crossing setting the lamps going, then the arm and its
 barrier (too tall to drive over) coming down and going up again, the redstone signal, warning ahead of an
 approaching train and opening once it's past, ignoring a train going away, leaving a gap for something under the arm,
@@ -534,7 +561,7 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
 - `tools/models/train_models.py`: the train models (locomotive, coach, wagon, bogie). One part list per model makes
   both the Java geometry (`client/model/geometry/`, don't edit those by hand) and the matching texture.
 - `tools/blocks/track_assets.py`: the track's textures and block models (and the signals', switch stands', level
-  crossings' and wagon loader's), and the screens.
+  crossings', speed signs' and wagon loader's), and the screens.
 - `tools/items/item_icons.py`: the item icons and the mod list logo.
 - `tools/sounds/train_sounds.py`: the whistle, the chuffs, the coupling clank, the diesel's horn and engine, and the
   level crossing's bell, synthesised. Name the ones to remake (`python3 tools/sounds/train_sounds.py crossing_bell`):
@@ -565,7 +592,9 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
   the same way with electrics, taking BuildCraft power in through `MjAPI`'s capabilities into a store kept in
   micro-MJ, as BuildCraft counts it.
 - **Driving** (`train/Lookahead`, `Autopilot`): every tick a train looks 80 blocks down the line for signals,
-  stations and the end of the track, and slows to stop in time for a red signal (or its station). A timetabled train's
+  stations, speed signs and the end of the track, and slows to stop in time for a red signal (or its station). The
+  locomotive keeps the limit of the last speed sign it passed going its way, and caps its speed at that and at what it
+  takes to brake down to each lower limit ahead (`Locomotive.speedLimit`). A timetabled train's
   `Autopilot` searches the track for the way to its next station. Leaving wagons, it works out which way it'll set
   off and splits the train at the other end (`Trains.split`); picking them up, it looks along its way for cars with
   no locomotive near the station (`Trains.nearestAlong`), stops short of them and couples on.

@@ -61,9 +61,18 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
     private static final EntityDataAccessor<Boolean> DATA_AUTO = SynchedEntityData.defineId(Locomotive.class, EntityDataSerializers.BOOLEAN);
     /** The next switch ahead: (turn + 2) * 10000 + distance, or 0 if there's none in sight. */
     private static final EntityDataAccessor<Integer> DATA_POINTS = SynchedEntityData.defineId(Locomotive.class, EntityDataSerializers.INT);
+    /** For the gauges: the speed limit in km/h (0 if none), plus 1000 while it's slowing for a lower one ahead. */
+    private static final EntityDataAccessor<Integer> DATA_LIMIT = SynchedEntityData.defineId(Locomotive.class, EntityDataSerializers.INT);
 
     private double fuel;
     private final Autopilot autopilot = new Autopilot(this);
+    /** The speed limit the train's in, in blocks per tick (infinite if none), and which way it's going in it. */
+    private double sectionLimit = Double.POSITIVE_INFINITY;
+    private int limitWay;
+    /** The nearest speed sign ahead last tick, and how far it was, to notice passing it. */
+    @Nullable
+    private Lookahead.SpeedSign nextSign;
+    private double nextSignDistance = Double.POSITIVE_INFINITY;
     /** When it's one of several locomotives in a train and another is in charge: that one, and until when (game time). */
     @Nullable
     private Locomotive helping;
@@ -90,6 +99,7 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
         builder.define(DATA_STATUS, Component.empty());
         builder.define(DATA_AUTO, false);
         builder.define(DATA_POINTS, 0);
+        builder.define(DATA_LIMIT, 0);
     }
 
     @Override
@@ -368,7 +378,7 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
      */
     Drive plan(List<TrainCarEntity> cars, int[] signs, int index, double speed) {
         if (autopilot.isOn()) {
-            return autopilot.plan(cars, signs, speed);
+            return autopilot.plan(cars, signs, index, speed);
         }
         int throttle = getThrottle();
         int direction = Math.abs(speed) > 1.0E-4 ? (speed > 0 ? 1 : -1) : throttle != 0 ? Integer.signum(throttle) * signs[index] : 1;
@@ -378,7 +388,82 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
         showLookahead(look);
         updateAutoDisplay();
         double limit = TrainsConfig.SIGNALS_STOP_DRIVERS.getAsBoolean() ? Drive.stoppingSpeed(look.signalStop) : Double.POSITIVE_INFINITY;
+        double speedLimit = speedLimit(look, signs[index], speed);
+        if (TrainsConfig.SPEED_LIMITS_FOR_DRIVERS.getAsBoolean()) {
+            limit = Math.min(limit, speedLimit);
+        }
         return new Drive(direction, null, limit, false, 0);
+    }
+
+    /**
+     * Keeps track of the speed limits, run each tick with what's ahead ({@code sign} is which way this locomotive faces
+     * in its train). A train takes the limit of each speed sign it passes, and keeps to it until the next one, or until
+     * it sets off the other way. Returns the fastest it may go now: within the limit it's in, and slowing in time to
+     * pass a sign ahead at its lower limit.
+     */
+    double speedLimit(Lookahead look, int sign, double speed) {
+        if (Math.abs(speed) > 1.0E-4) {
+            // Which way it's going, as this locomotive faces (which doesn't change when cars are coupled on).
+            int way = (speed > 0 ? 1 : -1) * sign;
+            if (way != limitWay) {
+                limitWay = way;
+                sectionLimit = Double.POSITIVE_INFINITY;
+                nextSign = null;
+            }
+        }
+        Lookahead.SpeedSign passed = null;
+        Lookahead.SpeedSign ahead = null;
+        for (Lookahead.SpeedSign speedSign : look.speedSigns) {
+            if (speedSign.distance() <= 0) {
+                passed = speedSign;
+            } else if (ahead == null) {
+                ahead = speedSign;
+            }
+        }
+        if (passed == null && nextSign != null && nextSignDistance <= Math.abs(speed) + 1.0
+                && (ahead == null || !ahead.pos().equals(nextSign.pos()))) {
+            // Gone by between looks: the sign it was about to pass isn't ahead any more.
+            passed = nextSign;
+        }
+        if (passed != null) {
+            sectionLimit = passed.limit();
+        }
+        nextSign = ahead;
+        nextSignDistance = ahead == null ? Double.POSITIVE_INFINITY : ahead.distance();
+        double cap = sectionLimit;
+        double slowingFor = Double.POSITIVE_INFINITY;
+        for (Lookahead.SpeedSign speedSign : look.speedSigns) {
+            if (speedSign.distance() > 0 && speedSign.limit() < cap) {
+                // Braking in time to be down to it half a block before the sign.
+                double reach = Math.max(0, speedSign.distance() - 0.5);
+                double approach = Math.sqrt(speedSign.limit() * speedSign.limit() + 2 * Drive.SERVICE_BRAKE * reach);
+                if (approach < cap) {
+                    cap = approach;
+                    if (approach < maxSpeed()) {
+                        slowingFor = speedSign.limit();
+                    }
+                }
+            }
+        }
+        int shown = slowingFor < Double.POSITIVE_INFINITY ? 1000 + kmh(slowingFor) : kmh(sectionLimit);
+        if (entityData.get(DATA_LIMIT) != shown) {
+            entityData.set(DATA_LIMIT, shown);
+        }
+        return cap;
+    }
+
+    private static int kmh(double blocksPerTick) {
+        return blocksPerTick == Double.POSITIVE_INFINITY ? 0 : (int) Math.round(blocksPerTick * 72);
+    }
+
+    /** For the gauges: the speed limit, in km/h (0 if there's none), or the lower one it's slowing for. */
+    public int speedLimitKmh() {
+        return entityData.get(DATA_LIMIT) % 1000;
+    }
+
+    /** For the gauges: whether it's slowing for a lower speed limit ahead (shown by {@link #speedLimitKmh()}). */
+    public boolean isSlowingForLimit() {
+        return entityData.get(DATA_LIMIT) >= 1000;
     }
 
     /** Puts what's ahead on the gauges: the next signal, and (when not on a timetable) the next station. */
@@ -583,6 +668,10 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
         super.addAdditionalSaveData(tag);
         tag.putDouble("Fuel", fuel);
         autopilot.save(tag);
+        if (sectionLimit < Double.POSITIVE_INFINITY) {
+            tag.putDouble("SpeedLimit", sectionLimit);
+            tag.putByte("SpeedLimitWay", (byte) limitWay);
+        }
     }
 
     @Override
@@ -590,6 +679,10 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
         super.readAdditionalSaveData(tag);
         setFuel(tag.getDouble("Fuel"));
         autopilot.load(tag);
+        if (tag.contains("SpeedLimit")) {
+            sectionLimit = tag.getDouble("SpeedLimit");
+            limitWay = tag.getByte("SpeedLimitWay");
+        }
         updateAutoDisplay();
     }
 }

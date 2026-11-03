@@ -8,6 +8,7 @@
     "reikotrains:wagon_loader",
     "reikotrains:level_crossing",
     "reikotrains:charging_point",
-    "reikotrains:track_sensor"
+    "reikotrains:track_sensor",
+    "reikotrains:speed_sign"
   ]
 }

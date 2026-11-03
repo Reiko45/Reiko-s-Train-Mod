@@ -161,6 +161,8 @@ public final class DevShowcase {
     private static final int GOODS_LINE = -76;
     /** The line with a livestock wagon loading at a pen, along x at this z. */
     private static final int STOCK_LINE = -90;
+    /** The line with speed limit signs on it, along x at this z. */
+    private static final int SPEED_LINE = -104;
     /** The switch stand for the junction at x = 52. */
     private static final BlockPos SWITCH = new BlockPos(52, Y, -2);
 
@@ -328,6 +330,16 @@ public final class DevShowcase {
         }
         TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(28, Y, STOCK_LINE), EAST);
         TestTracks.car(level, ModEntities.LIVESTOCK_WAGON.get(), new BlockPos(20, Y, STOCK_LINE), EAST);
+
+        // An eighth line: a 20 km/h speed limit from x = 40 to the end sign at x = 64, and a train to run through it.
+        TestTracks.line(level, new BlockPos(0, Y, SPEED_LINE), TrackAxis.X, 90);
+        TestTracks.speedSign(level, new BlockPos(40, Y, SPEED_LINE + 2), new BlockPos(40, Y, SPEED_LINE), 1, 1);
+        TestTracks.speedSign(level, new BlockPos(64, Y, SPEED_LINE + 2), new BlockPos(64, Y, SPEED_LINE), 1, 5);
+        TestTracks.station(level, new BlockPos(84, Y, SPEED_LINE - 3), new BlockPos(84, Y, SPEED_LINE), "Far End", 10);
+        Locomotive limited = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(24, Y, SPEED_LINE), EAST);
+        PassengerCoach limitedCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(17, Y, SPEED_LINE), EAST);
+        Trains.couple(limited, limitedCoach);
+        limited.setFuel(32000);
 
         Locomotive a = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(22, Y, 14), EAST);
         PassengerCoach aCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(15, Y, 14), EAST);
@@ -563,6 +575,42 @@ public final class DevShowcase {
         // The livestock wagon, loaded from the pen behind the wagon loader
         at(1977, mc -> look(mc, 14.0, Y + 2.6, STOCK_LINE + 5.0, 232.0F, 14.0F));
         at(2020, mc -> shot(mc, "33_livestock_wagon"));
-        at(2030, Minecraft::stop);
+        // A train on a timetable slowing for a 20 km/h speed sign (taken as it comes up to it); then in its cab, the
+        // limit on the gauges
+        at(2022, mc -> {
+            look(mc, 36.0, Y + 2.2, SPEED_LINE + 7.0, -139.0F, 10.0F);
+            server(mc, player -> {
+                ServerLevel level = player.serverLevel();
+                Locomotive loco = find(level, Locomotive.class, 24.5, SPEED_LINE + 0.5);
+                if (level.getBlockEntity(new BlockPos(84, Y, SPEED_LINE - 3)) instanceof StationBlockEntity far) {
+                    loco.autopilot().start(List.of(TestTracks.stop(far)));
+                }
+            });
+        });
+        boolean[] signShot = {false};
+        for (int time = 2062; time <= 2120; time++) {
+            boolean last = time == 2120;
+            at(time, mc -> {
+                List<Locomotive> locos = mc.level.getEntitiesOfClass(Locomotive.class, new AABB(20, Y - 2, SPEED_LINE - 4, 90, Y + 4, SPEED_LINE + 4));
+                if (!signShot[0] && (last || (!locos.isEmpty() && locos.getFirst().getX() + locos.getFirst().halfLength() >= 37.5))) {
+                    signShot[0] = true;
+                    shot(mc, "34_speed_sign");
+                }
+            });
+        }
+        at(2122, mc -> server(mc, player -> {
+            Locomotive loco = player.serverLevel().getEntitiesOfClass(Locomotive.class,
+                    new AABB(20, Y - 2, SPEED_LINE - 4, 90, Y + 4, SPEED_LINE + 4)).getFirst();
+            player.getAbilities().flying = false;
+            player.onUpdateAbilities();
+            player.teleportTo(player.serverLevel(), loco.getX(), loco.getY(), loco.getZ(), -90.0F, 6.0F);
+            player.startRiding(loco);
+        }));
+        at(2128, mc -> {
+            mc.player.setYRot(-90.0F);
+            mc.player.setXRot(6.0F);
+        });
+        at(2150, mc -> shot(mc, "35_cab_speed_limit"));
+        at(2160, Minecraft::stop);
     }
 }

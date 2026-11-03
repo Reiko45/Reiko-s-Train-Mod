@@ -15,8 +15,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Things beside the track (signals and stations): finding the track block one goes with when it's placed, and
- * knowing which ones are at which track block, so trains can look them up as they go.
+ * Things beside the track (signals, stations, switch stands and speed signs): finding the track block one goes with
+ * when it's placed, and knowing which ones are at which track block, so trains can look them up as they go.
  */
 public final class TrackSide {
     /** How far (blocks, sideways) from the track a signal or station can be. */
@@ -25,6 +25,7 @@ public final class TrackSide {
     private static final Map<Level, Map<Long, List<SignalBlockEntity>>> SIGNALS = new WeakHashMap<>();
     private static final Map<Level, Map<Long, List<StationBlockEntity>>> STATIONS = new WeakHashMap<>();
     private static final Map<Level, Map<Long, List<SwitchBlockEntity>>> SWITCHES = new WeakHashMap<>();
+    private static final Map<Level, Map<Long, List<SpeedSignBlockEntity>>> SPEED_SIGNS = new WeakHashMap<>();
 
     /** A junction: a track block with more than one way out of its side {@code side}. */
     public record Junction(BlockPos node, int side) {
@@ -133,6 +134,36 @@ public final class TrackSide {
         if (map != null && map.containsKey(node.asLong())) {
             map.get(node.asLong()).remove(stand);
         }
+    }
+
+    static synchronized void add(SpeedSignBlockEntity sign) {
+        SPEED_SIGNS.computeIfAbsent(sign.getLevel(), l -> new HashMap<>()).computeIfAbsent(sign.node().asLong(), k -> new ArrayList<>()).add(sign);
+    }
+
+    static synchronized void remove(SpeedSignBlockEntity sign, BlockPos node) {
+        Map<Long, List<SpeedSignBlockEntity>> map = SPEED_SIGNS.get(sign.getLevel());
+        if (map != null && map.containsKey(node.asLong())) {
+            map.get(node.asLong()).remove(sign);
+        }
+    }
+
+    /** The speed sign at this track block for trains leaving it by {@code side}, if there is one (and it's loaded). */
+    @Nullable
+    public static synchronized SpeedSignBlockEntity speedSign(Level level, BlockPos node, int side) {
+        Map<Long, List<SpeedSignBlockEntity>> map = SPEED_SIGNS.get(level);
+        if (map == null) {
+            return null;
+        }
+        List<SpeedSignBlockEntity> here = map.get(node.asLong());
+        if (here == null) {
+            return null;
+        }
+        for (SpeedSignBlockEntity sign : here) {
+            if (!sign.isRemoved() && sign.side() == side) {
+                return sign;
+            }
+        }
+        return null;
     }
 
     /** The switch working the junction at this track block where the ways leave by {@code side}, if any (and loaded). */

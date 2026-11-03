@@ -5,6 +5,7 @@ import com.reiko.trains.freight.WagonLoaderBlockEntity;
 import com.reiko.trains.power.ChargingPointBlockEntity;
 import com.reiko.trains.signal.LevelCrossingBlockEntity;
 import com.reiko.trains.signal.SignalBlockEntity;
+import com.reiko.trains.signal.SpeedSignBlockEntity;
 import com.reiko.trains.signal.TrackSensorBlockEntity;
 import com.reiko.trains.signal.StationBlockEntity;
 import com.reiko.trains.signal.SwitchBlockEntity;
@@ -39,6 +40,10 @@ public final class ModBlockEntities {
     @SuppressWarnings("DataFlowIssue")
     public static final Supplier<BlockEntityType<ChargingPointBlockEntity>> CHARGING_POINT = BLOCK_ENTITIES.register("charging_point",
             () -> BlockEntityType.Builder.of(ChargingPointBlockEntity::new, ModBlocks.CHARGING_POINT.get()).build(null));
+
+    @SuppressWarnings("DataFlowIssue")
+    public static final Supplier<BlockEntityType<SpeedSignBlockEntity>> SPEED_SIGN = BLOCK_ENTITIES.register("speed_sign",
+            () -> BlockEntityType.Builder.of(SpeedSignBlockEntity::new, ModBlocks.SPEED_SIGN.get()).build(null));
 
     @SuppressWarnings("DataFlowIssue")
     public static final Supplier<BlockEntityType<TrackSensorBlockEntity>> TRACK_SENSOR = BLOCK_ENTITIES.register("track_sensor",

@@ -177,8 +177,8 @@ public final class Autopilot {
         return chosen;
     }
 
-    /** Run by the train each tick before it moves. */
-    Drive plan(List<TrainCarEntity> cars, int[] signs, double speed) {
+    /** Run by the train each tick before it moves (the locomotive is car {@code index}). */
+    Drive plan(List<TrainCarEntity> cars, int[] signs, int index, double speed) {
         Level level = loco.level();
         Timetable.Stop stop = current();
         if (stop == null) {
@@ -213,7 +213,7 @@ public final class Autopilot {
         double targetStop = waiting != null ? waiting.distance() - PICK_UP_SHORT
                 : look.targetFound ? look.targetDistance : Double.POSITIVE_INFINITY;
         double stopAt = Math.min(look.signalStop, Math.min(targetStop, look.endOfLine ? look.endDistance - 0.05 : Double.POSITIVE_INFINITY));
-        double limit = Drive.stoppingSpeed(stopAt);
+        double limit = Math.min(Drive.stoppingSpeed(stopAt), loco.speedLimit(look, signs[index], speed));
         double target = Math.min(loco.maxSpeed(), limit);
         boolean stopped = Math.abs(speed) < 0.002;
         waitingAtSignal = look.signalStop != Double.POSITIVE_INFINITY && look.signalStop <= look.targetDistance;

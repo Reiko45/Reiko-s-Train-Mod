@@ -1,12 +1,14 @@
 package com.reiko.trains.train;
 
 import com.reiko.trains.signal.SignalBlockEntity;
+import com.reiko.trains.signal.SpeedSignBlockEntity;
 import com.reiko.trains.signal.StationBlockEntity;
 import com.reiko.trains.signal.TrackSide;
 import com.reiko.trains.track.EdgeRef;
 import com.reiko.trains.track.TrackGraph;
 import com.reiko.trains.track.TrackPos;
 import com.reiko.trains.track.TrackScanner;
+import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
@@ -15,7 +17,7 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * What's on the track ahead of a train, measured from its leading buffer: the next signal (and whether it's clear),
- * the next station, the stop it's heading for, and the end of the line.
+ * the next station, the stop it's heading for, the speed signs, and the end of the line.
  */
 final class Lookahead {
     /** How far ahead a train looks, in blocks. */
@@ -37,11 +39,17 @@ final class Lookahead {
     /** The next switch: how far, and which way it's set (-1 left, 0 straight on, +1 right). Negative distance if none. */
     double pointsDistance = -1;
     int pointsTurn;
+    /** The speed signs facing the train, nearest first (from just behind its leading buffer). */
+    final List<SpeedSign> speedSigns = new ArrayList<>();
     private double lastBuffer;
     boolean endOfLine;
     double endDistance = Double.POSITIVE_INFINITY;
 
     private Lookahead() {
+    }
+
+    /** A speed sign the train's coming to: where it is, how far ahead, and its limit (infinite at an end of limit). */
+    record SpeedSign(BlockPos pos, double distance, double limit) {
     }
 
     /** The car at the front of the train going {@code direction} (+1 the train's forwards). */
@@ -89,6 +97,10 @@ final class Lookahead {
                         look.signalStop = buffer - SIGNAL_MARGIN;
                     }
                 }
+            }
+            SpeedSignBlockEntity speedSign = TrackSide.speedSign(level, node, -arrivedSide);
+            if (speedSign != null) {
+                look.speedSigns.add(new SpeedSign(speedSign.getBlockPos(), buffer, speedSign.limit()));
             }
             if (look.station == null && buffer > -2.5) {
                 StationBlockEntity station = TrackSide.station(level, node);

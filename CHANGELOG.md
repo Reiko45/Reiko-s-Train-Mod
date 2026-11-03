@@ -2,6 +2,20 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.17.0
+
+Speed limit signs.
+
+- New block: the **Speed Limit Sign**. Put it beside the track like a signal, facing the trains coming up to it, and
+  click it to set its limit: 10, 20, 30, 40 or 50 km/h, or the end of a limit.
+- Trains going towards a sign's face slow down in time to pass it at its limit, and keep to it until the next sign
+  their way (an end-of-limit sign lifts it). Trains going the other way take no notice, and a train that sets off back
+  the way it came leaves its limit behind. The limit is saved with the train.
+- Trains on a timetable always keep to the limits; trains you're driving do too, unless the new server setting
+  `speedLimitsForDrivers` is turned off.
+- The cab gauges show the limit beside the speed, in yellow while the train is slowing for a lower one ahead.
+- Six new game tests: 109 in all.
+
 ## 0.16.0
 
 The livestock wagon.

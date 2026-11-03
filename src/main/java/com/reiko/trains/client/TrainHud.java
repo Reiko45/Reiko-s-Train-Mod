@@ -10,7 +10,8 @@ import net.minecraft.network.chat.Component;
 
 /**
  * The cab gauges, bottom right while you drive a locomotive: the throttle's notch (reverse, neutral, 1-4), the
- * speed, the brake light, which way you'll go at the next junction and how much fuel is in the firebox. Above them,
+ * speed and the speed limit, the brake light, which way you'll go at the next junction and how much fuel is in the
+ * firebox. Above them,
  * when there's anything to show: the next signal, the next switch and which way it's set, and the next station (or
  * what the timetable's doing). Drawn in code, so it needs no textures.
  */
@@ -86,10 +87,22 @@ public final class TrainHud implements LayeredDraw.Layer {
         // Speed, junction steering and brake
         String speed = Math.round(locomotive.speedKmh()) + " km/h";
         graphics.drawString(font, speed, x + 5, y + 19, 0xFFFFFFFF, true);
+        int after = Math.max(x + 46, x + 9 + font.width(speed));
+        int limit = locomotive.speedLimitKmh();
+        if (limit > 0) {
+            // The speed limit, like the sign: red-rimmed, or yellow while slowing for a lower one ahead
+            String number = String.valueOf(limit);
+            int bw = font.width(number) + 9;
+            boolean ahead = locomotive.isSlowingForLimit();
+            graphics.fill(after, y + 17, after + bw, y + 30, 0xFFD02828);
+            graphics.fill(after + 2, y + 19, after + bw - 2, y + 28, ahead ? 0xFFF4C430 : 0xFFFFFFFF);
+            graphics.drawString(font, number, after + (bw - font.width(number)) / 2 + 1, y + 20, 0xFF101010, false);
+            after += bw + 4;
+        }
         int steer = locomotive.getSteer();
         if (steer != 0) {
             String arrow = steer < 0 ? "\u25C0" : "\u25B6";
-            graphics.drawString(font, arrow, x + 58, y + 19, 0xFF4CC266, true);
+            graphics.drawString(font, arrow, after + (limit > 0 ? 0 : 12), y + 19, 0xFF4CC266, true);
         }
         if (locomotive.isBraking()) {
             Component brake = Component.translatable("hud.reikotrains.brake");

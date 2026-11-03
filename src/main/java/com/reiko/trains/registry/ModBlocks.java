@@ -6,6 +6,7 @@ import com.reiko.trains.power.ChargingPointBlock;
 import com.reiko.trains.signal.CrossingArmBlock;
 import com.reiko.trains.signal.LevelCrossingBlock;
 import com.reiko.trains.signal.SignalBlock;
+import com.reiko.trains.signal.SpeedSignBlock;
 import com.reiko.trains.signal.TrackSensorBlock;
 import com.reiko.trains.signal.StationBlock;
 import com.reiko.trains.signal.SwitchBlock;
@@ -37,6 +38,9 @@ public final class ModBlocks {
     public static final DeferredBlock<ChargingPointBlock> CHARGING_POINT = BLOCKS.register("charging_point", () -> new ChargingPointBlock(
             BlockBehaviour.Properties.of().strength(2.5F).sound(SoundType.METAL).requiresCorrectToolForDrops().noOcclusion()
                     .lightLevel(state -> state.getValue(ChargingPointBlock.CHARGING) ? 6 : state.getValue(ChargingPointBlock.LEVEL) > 0 ? 2 : 0)));
+
+    public static final DeferredBlock<SpeedSignBlock> SPEED_SIGN = BLOCKS.register("speed_sign", () -> new SpeedSignBlock(
+            BlockBehaviour.Properties.of().strength(1.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK)));
 
     public static final DeferredBlock<TrackSensorBlock> TRACK_SENSOR = BLOCKS.register("track_sensor", () -> new TrackSensorBlock(
             BlockBehaviour.Properties.of().strength(1.5F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK)

@@ -13,6 +13,8 @@ import com.reiko.trains.signal.SignalBlock;
 import com.reiko.trains.signal.TrackSensorBlock;
 import com.reiko.trains.signal.TrackSensorBlockEntity;
 import com.reiko.trains.signal.SignalBlockEntity;
+import com.reiko.trains.signal.SpeedSignBlock;
+import com.reiko.trains.signal.SpeedSignBlockEntity;
 import com.reiko.trains.signal.StationBlock;
 import com.reiko.trains.signal.StationBlockEntity;
 import com.reiko.trains.signal.SwitchBlock;
@@ -90,6 +92,21 @@ public final class TestTracks {
         SignalBlockEntity signal = (SignalBlockEntity) level.getBlockEntity(pos);
         signal.attach(node, side);
         return signal;
+    }
+
+    /**
+     * A speed sign at {@code pos} by the track block {@code node}, for trains leaving it by {@code side} (facing them),
+     * showing {@code limit} (one of {@link SpeedSignBlock#LIMITS}' places), as if a player had put it there.
+     */
+    public static SpeedSignBlockEntity speedSign(ServerLevel level, BlockPos pos, BlockPos node, int side, int limit) {
+        TrackAxis axis = TrackGraph.axis(level, node);
+        Vec3 out = axis.out(side);
+        level.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 2);
+        level.setBlock(pos, ModBlocks.SPEED_SIGN.get().defaultBlockState().setValue(SpeedSignBlock.FACING, Direction.getNearest(-out.x, 0, -out.z))
+                .setValue(SpeedSignBlock.LIMIT, limit), 3);
+        SpeedSignBlockEntity sign = (SpeedSignBlockEntity) level.getBlockEntity(pos);
+        sign.attach(node, side);
+        return sign;
     }
 
     /** A station at {@code pos} for the track block {@code node}. */

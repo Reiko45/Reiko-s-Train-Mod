@@ -774,6 +774,99 @@ def sensor_models():
         json.dump({"variants": variants}, out, indent=2)
 
 
+# The speed sign's numbers, 6 x 11, drawn bold for the 32 x 32 sign face.
+SIGN_DIGITS = {
+    "0": [".####.", "##..##", "##..##", "##..##", "##..##", "##..##", "##..##", "##..##", "##..##", "##..##", ".####."],
+    "1": ["..##..", ".###..", "####..", "..##..", "..##..", "..##..", "..##..", "..##..", "..##..", "..##..", "######"],
+    "2": [".####.", "##..##", "....##", "....##", "...##.", "..##..", ".##...", "##....", "##....", "##....", "######"],
+    "3": [".####.", "##..##", "....##", "....##", "..###.", "....##", "....##", "....##", "....##", "##..##", ".####."],
+    "4": ["...##.", "..###.", ".####.", "##.##.", "##.##.", "##.##.", "######", "...##.", "...##.", "...##.", "...##."],
+    "5": ["######", "##....", "##....", "#####.", "....##", "....##", "....##", "....##", "....##", "##..##", ".####."],
+}
+SPEED_LIMITS = (10, 20, 30, 40, 50)
+
+
+def speed_sign_textures():
+    """
+    The speed sign's faces, 32 x 32 for crisp numbers: a white disc in a red ring with the limit in black, the end of a
+    limit as a white disc crossed by thin black lines, and the grey back. Round, so clear in the corners (the model is
+    cut out).
+    """
+    def disc(name, paint):
+        img = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+        for y in range(32):
+            for x in range(32):
+                r = math.hypot(x - 15.5, y - 15.5)
+                if r <= 15.6:
+                    img.putpixel((x, y), paint(x, y, r))
+        img.save(f"{ASSETS}/textures/block/{name}.png")
+
+    def limit(kmh):
+        text = str(kmh)
+        lit = set()
+        x0 = 16 - (len(text) * 8 - 2) // 2
+        for i, ch in enumerate(text):
+            for row, line in enumerate(SIGN_DIGITS[ch]):
+                for col, c in enumerate(line):
+                    if c == "#":
+                        lit.add((x0 + i * 8 + col, 10 + row))
+
+        def paint(x, y, r):
+            if r > 15:
+                return shade((150, 24, 20), 1)
+            if r > 11.2:
+                return shade((214, 36, 30), 1 + 0.04 * noise("sign_ring", x, y))
+            if (x, y) in lit:
+                return shade((20, 20, 22), 1)
+            return shade((244, 242, 236), 1 + 0.02 * noise("sign_face", x, y))
+        return paint
+
+    for kmh in SPEED_LIMITS:
+        disc(f"speed_sign_{kmh}", limit(kmh))
+
+    def end(x, y, r):
+        if r > 14.6:
+            return shade((90, 90, 96), 1)
+        if any(abs(x + y - 31 - k * 6) <= 1 for k in (-2, -1, 0, 1, 2)) and r < 13.5:
+            return shade((24, 24, 26), 1)
+        return shade((244, 242, 236), 1 + 0.02 * noise("sign_face", x, y))
+    disc("speed_sign_end", end)
+
+    def back(x, y, r):
+        if r > 14.6:
+            return shade((52, 54, 60), 1)
+        return shade((104, 106, 112), 1 + 0.05 * noise("sign_back", x, y))
+    disc("speed_sign_back", back)
+
+
+def speed_sign_models():
+    """
+    The speed sign (it faces north, its face towards trains coming from -z): a base, a post, and the round sign on top,
+    a thin plate cut out of its texture.
+    """
+    variants = {}
+    for index, kmh in enumerate(SPEED_LIMITS + ("end",)):
+        name = f"speed_sign_{kmh}"
+        tex = {"particle": "reikotrains:block/signal_metal", "metal": "reikotrains:block/signal_metal",
+               "face": f"reikotrains:block/{name}", "back": "reikotrains:block/speed_sign_back"}
+        elements = [
+            element([5, 0, 5], [11, 1, 11], all_faces("#metal", (0, 0, 6, 6))),
+            element([7, 1, 7], [9, 22, 9], all_faces("#metal", (0, 0, 2, 16))),
+            element([2, 14, 6.5], [14, 26, 7], {"north": ("#face", [0, 0, 16, 16]), "south": ("#back", [16, 0, 0, 16])}),
+        ]
+        model = {"parent": "block/block", "render_type": "minecraft:cutout", "ambientocclusion": False,
+                 "textures": tex, "elements": elements}
+        with open(f"{ASSETS}/models/block/{name}.json", "w") as out:
+            json.dump(model, out, indent=2)
+        for facing, y in (("north", 0), ("east", 90), ("south", 180), ("west", 270)):
+            v = {"model": f"reikotrains:block/{name}"}
+            if y:
+                v["y"] = y
+            variants[f"facing={facing},limit={index}"] = v
+    with open(f"{ASSETS}/blockstates/speed_sign.json", "w") as out:
+        json.dump({"variants": variants}, out, indent=2)
+
+
 def signals_and_stations():
     signal_textures()
     signal_models()
@@ -788,6 +881,8 @@ def signals_and_stations():
     charger_models()
     sensor_textures()
     sensor_models()
+    speed_sign_textures()
+    speed_sign_models()
 
 
 if __name__ == "__main__":

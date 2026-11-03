@@ -25,6 +25,10 @@ public final class TrainsConfig {
             .comment("Whether trains people are driving stop for red signals by themselves, like trains on a timetable",
                     "do. Turn off to leave it to the drivers.")
             .define("signalsStopDrivers", true);
+    public static final ModConfigSpec.BooleanValue SPEED_LIMITS_FOR_DRIVERS = BUILDER
+            .comment("Whether trains people are driving keep to speed limit signs by themselves, like trains on a timetable",
+                    "do. Turn off to leave it to the drivers.")
+            .define("speedLimitsForDrivers", true);
     public static final ModConfigSpec.IntValue MAX_TRAIN_LENGTH = BUILDER
             .comment("The most cars (counting the locomotive) one train can have.")
             .defineInRange("maxTrainLength", 16, 2, 64);
