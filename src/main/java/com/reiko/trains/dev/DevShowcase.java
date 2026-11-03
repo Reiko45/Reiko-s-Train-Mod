@@ -611,6 +611,10 @@ public final class DevShowcase {
             mc.player.setXRot(6.0F);
         });
         at(2150, mc -> shot(mc, "35_cab_speed_limit"));
-        at(2160, Minecraft::stop);
+        // With Xaero's Minimap (run with -PxaeroJars=...): the trains on the minimap, and marked in the world, looking
+        // out over the crossing line to the main line and the loop
+        at(2152, mc -> look(mc, 22.0, Y + 12.0, -52.0, -35.0F, 22.0F));
+        at(2200, mc -> shot(mc, "36_trains_on_minimap"));
+        at(2210, Minecraft::stop);
     }
 }

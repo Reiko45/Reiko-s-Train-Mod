@@ -2,6 +2,19 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.18.0
+
+Trains on Xaero's Minimap.
+
+- With Xaero's Minimap installed (optional), every train in your dimension shows on the minimap, however far away:
+  a marker at its leading locomotive, coloured and lettered by the kind of engine, named with its length and, on a
+  timetable, where it's going or which station it's at. They're marked in the world too, but stay out of your
+  waypoint list. The train you're on isn't shown.
+- Trains stay on the map where they last stood when their chunks unload, and come off it when they're broken up.
+- New settings: `trainsOnMinimap` for each player (`reikotrains-client.toml`), and `trainsOnMinimaps` for the server.
+- The mod's network version changes, so clients and servers both need 0.18.0.
+- Six new game tests: 115 in all.
+
 ## 0.17.0
 
 Speed limit signs.

@@ -11,6 +11,13 @@ tasks.named('wrapper', Wrapper).configure {
 version = mod_version
 group = mod_group_id
 
+sourceSets {
+    // Compile-time stand-ins for the few classes of Xaero's Minimap that the minimap support uses (client/TrainsXaero).
+    // Xaero's mod is optional and isn't ours to redistribute, so these are compiled against instead; they never go in
+    // the jar or on the dev runs' classpath, where the real mod is used if it's there.
+    xaeroStubs
+}
+
 base {
     archivesName = mod_id
 }
@@ -63,10 +70,26 @@ neoForge {
     }
 }
 
+neoForge.addModdingDependenciesTo(sourceSets.xaeroStubs)
+
+configurations {
+    localRuntime
+    runtimeClasspath.extendsFrom localRuntime
+}
+
 dependencies {
     // BuildCraft Reborn: its fuels (and their energy values) are what the diesel locomotive runs on. It's required at
     // runtime too, so it goes on the dev runs' classpath, where NeoForge loads it as a mod.
     implementation files("libs/${buildcraft_jar}")
+
+    // Xaero's Minimap is optional: trains show on it. It's compiled against stand-ins (see sourceSets.xaeroStubs); to
+    // try it in a dev run, pass the folder its jar (and World Map's, if you like) is in:
+    // ./gradlew runClient -PxaeroJars=/path/to/folder
+    compileOnly sourceSets.xaeroStubs.output
+    def xaeroJars = project.findProperty('xaeroJars')
+    if (xaeroJars != null) {
+        localRuntime fileTree(xaeroJars.toString()) { include '*.jar' }
+    }
 }
 
 // Fills in the ${...} placeholders in neoforge.mods.toml from gradle.properties.

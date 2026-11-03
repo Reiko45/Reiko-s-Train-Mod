@@ -29,6 +29,9 @@ public final class TrainsConfig {
             .comment("Whether trains people are driving keep to speed limit signs by themselves, like trains on a timetable",
                     "do. Turn off to leave it to the drivers.")
             .define("speedLimitsForDrivers", true);
+    public static final ModConfigSpec.BooleanValue TRAINS_ON_MINIMAPS = BUILDER
+            .comment("Whether players are told where every train is, so minimap mods (Xaero's Minimap) can show them.")
+            .define("trainsOnMinimaps", true);
     public static final ModConfigSpec.IntValue MAX_TRAIN_LENGTH = BUILDER
             .comment("The most cars (counting the locomotive) one train can have.")
             .defineInRange("maxTrainLength", 16, 2, 64);

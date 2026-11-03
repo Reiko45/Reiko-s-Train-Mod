@@ -1,5 +1,7 @@
 package com.reiko.trains.client;
 
+import net.neoforged.fml.config.ModConfig;
+import com.reiko.trains.config.TrainsClientConfig;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.reiko.trains.ReikoTrains;
 import com.reiko.trains.client.model.geometry.BogieGeometry;
@@ -32,6 +34,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
@@ -82,7 +85,9 @@ public final class ReikoTrainsClient {
         modBus.addListener(ReikoTrainsClient::registerKeys);
         modBus.addListener(ReikoTrainsClient::registerHud);
         modBus.addListener(ReikoTrainsClient::registerScreens);
+        container.registerConfig(ModConfig.Type.CLIENT, TrainsClientConfig.SPEC);
         NeoForge.EVENT_BUS.addListener(ReikoTrainsClient::onClientTick);
+        NeoForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> TrainMinimap.reset());
         NeoForge.EVENT_BUS.addListener(ReikoTrainsClient::onEntityJoin);
         NeoForge.EVENT_BUS.addListener(TrackPreview::render);
     }
@@ -174,6 +179,7 @@ public final class ReikoTrainsClient {
     private static void onClientTick(ClientTickEvent.Post event) {
         TrackPreview.tick();
         drive();
+        TrainMinimap.tick(Minecraft.getInstance());
     }
 
     /** Turns the driver's keys into throttle notches, the brake, steering and the whistle. */

@@ -579,6 +579,9 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
             noFuelWarning = 60;
             driver.displayClientMessage(Component.translatable(noFuelMessage()), true);
         }
+        if ((tickCount + getId()) % 20 == 0) {
+            TrainMap.note(this);
+        }
         boolean lit = hasPower() && isDriven();
         if (entityData.get(DATA_RUNNING) != lit) {
             entityData.set(DATA_RUNNING, lit);
@@ -661,6 +664,12 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
         player.level().playSound(null, at.x, at.y, at.z, SoundEvents.FIRECHARGE_USE, SoundSource.NEUTRAL, 0.6F, 0.8F);
         player.displayClientMessage(Component.translatable(fullness, store.fuelPercent()), true);
         return InteractionResult.CONSUME;
+    }
+
+    @Override
+    public void onRemovedFromLevel() {
+        super.onRemovedFromLevel();
+        TrainMap.removed(this);
     }
 
     @Override

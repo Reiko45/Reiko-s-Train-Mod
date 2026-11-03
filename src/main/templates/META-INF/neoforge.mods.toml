@@ -30,6 +30,14 @@ Big steam, diesel and electric trains on their own track. Lay straight track blo
     ordering="NONE"
     side="BOTH"
 
+# Optional: with Xaero's Minimap, trains show on the minimap.
+[[dependencies.${mod_id}]]
+    modId="xaerominimap"
+    type="optional"
+    versionRange="[24,)"
+    ordering="NONE"
+    side="CLIENT"
+
 # The diesel locomotive runs on BuildCraft Reborn's fuels: Dense Fuel and Mixed Heavy Fuels.
 [[dependencies.${mod_id}]]
     modId="buildcraftreborn"

@@ -12,7 +12,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 @EventBusSubscriber(modid = ReikoTrains.MODID)
 public final class ModNetwork {
-    private static final String PROTOCOL_VERSION = "2";
+    private static final String PROTOCOL_VERSION = "3";
 
     private ModNetwork() {
     }
@@ -24,6 +24,8 @@ public final class ModNetwork {
         registrar.playToServer(StationSettingsPayload.TYPE, StationSettingsPayload.STREAM_CODEC, ModNetwork::handleStation);
         registrar.playToClient(OpenStationPayload.TYPE, OpenStationPayload.STREAM_CODEC,
                 (payload, context) -> com.reiko.trains.client.StationScreen.open(payload));
+        registrar.playToClient(TrainMapPayload.TYPE, TrainMapPayload.STREAM_CODEC,
+                (payload, context) -> com.reiko.trains.client.TrainMinimap.receive(payload));
     }
 
     /** Only the driver (the first one aboard) can work the controls. */
