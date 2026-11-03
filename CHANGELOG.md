@@ -2,6 +2,24 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.21.0
+
+Overhead wires.
+
+- New: **Overhead Line Masts**, **Overhead Wire** and **Substations**, to electrify a line. Put masts beside the
+  track (up to three blocks from it, curves too): each one's arm reaches out over the track to hold the contact wire
+  four and a half blocks above the rails. Click mast to mast with overhead wire to string the spans (up to 32 blocks
+  each, four to a mast), drawn with the contact wire, a sagging messenger wire and droppers. Sneak-click a mast with
+  wire to take its spans down; breaking a mast drops its wire.
+- A substation within four blocks of a mast feeds the line BuildCraft power (MJ): each adds room for a million MJ to
+  the line's store. Bars show how full it is, a lamp lights while the line is live, and a comparator reads it.
+- Electric locomotives and the Bullet Train's driving cars now have pantographs. Under a live wire they raise them,
+  run from the line rather than their batteries (so a flat one gets going), and charge at 2,000 MJ a tick. The fuel
+  gauge reads **Wire** while they're on it.
+- New server settings: `substationCapacityMJ` and `wireChargeRateMJ`.
+- The mod's network version changes, so clients and servers both need 0.21.0.
+- Ten new game tests (137 in all).
+
 ## 0.20.0
 
 Car transporters.

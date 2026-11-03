@@ -53,6 +53,12 @@ public final class ModItems {
             () -> new BlockItem(ModBlocks.STATION.get(), new Item.Properties()));
     public static final DeferredItem<BlockItem> CHARGING_POINT = ITEMS.register("charging_point",
             () -> new BlockItem(ModBlocks.CHARGING_POINT.get(), new Item.Properties()));
+    public static final DeferredItem<BlockItem> CATENARY_MAST = ITEMS.register("catenary_mast",
+            () -> new BlockItem(ModBlocks.CATENARY_MAST.get(), new Item.Properties()));
+    public static final DeferredItem<BlockItem> SUBSTATION = ITEMS.register("substation",
+            () -> new BlockItem(ModBlocks.SUBSTATION.get(), new Item.Properties()));
+    public static final DeferredItem<com.reiko.trains.wire.OverheadWireItem> OVERHEAD_WIRE = ITEMS.register("overhead_wire",
+            () -> new com.reiko.trains.wire.OverheadWireItem(new Item.Properties()));
     public static final DeferredItem<BlockItem> SPEED_SIGN = ITEMS.register("speed_sign",
             () -> new BlockItem(ModBlocks.SPEED_SIGN.get(), new Item.Properties()));
     public static final DeferredItem<BlockItem> TRACK_SENSOR = ITEMS.register("track_sensor",

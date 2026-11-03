@@ -9,6 +9,8 @@
     "reikotrains:level_crossing",
     "reikotrains:charging_point",
     "reikotrains:track_sensor",
-    "reikotrains:speed_sign"
+    "reikotrains:speed_sign",
+    "reikotrains:catenary_mast",
+    "reikotrains:substation"
   ]
 }

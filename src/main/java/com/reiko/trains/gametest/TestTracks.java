@@ -25,11 +25,17 @@ import com.reiko.trains.train.Timetable;
 import com.reiko.trains.track.TrackAxis;
 import com.reiko.trains.track.TrackBuilder;
 import com.reiko.trains.train.TrainCarEntity;
+import com.reiko.trains.wire.CatenaryMastBlock;
+import com.reiko.trains.wire.CatenaryMastBlockEntity;
+import com.reiko.trains.wire.OverheadLines;
+import com.reiko.trains.wire.SubstationBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 /** Lays test track and puts trains on it: used by the game tests and the dev showcase. */
@@ -186,6 +192,44 @@ public final class TestTracks {
         TrackSensorBlockEntity sensor = (TrackSensorBlockEntity) level.getBlockEntity(pos);
         sensor.attach(node);
         return sensor;
+    }
+
+    /** An overhead line mast at {@code pos}, by the nearest track, as if a player had put it there. */
+    public static CatenaryMastBlockEntity mast(ServerLevel level, BlockPos pos) {
+        level.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 2);
+        Vec3 wire = CatenaryMastBlock.wireFor(level, pos);
+        if (wire == null) {
+            throw new IllegalStateException("No track near " + pos.toShortString() + " for a mast");
+        }
+        Vec3 out = wire.subtract(Vec3.atCenterOf(pos));
+        BlockState state = ModBlocks.CATENARY_MAST.get().defaultBlockState().setValue(CatenaryMastBlock.FACING,
+                TrackSide.nearestDirection(new Vec3(out.x, 0, out.z)));
+        level.setBlock(pos, state, 3);
+        state.getBlock().setPlacedBy(level, pos, state, null, ItemStack.EMPTY);
+        return (CatenaryMastBlockEntity) level.getBlockEntity(pos);
+    }
+
+    /** A substation at {@code pos}, feeding the nearest mast, as if a player had put it there. */
+    public static SubstationBlockEntity substation(ServerLevel level, BlockPos pos) {
+        level.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 2);
+        BlockState state = ModBlocks.SUBSTATION.get().defaultBlockState();
+        level.setBlock(pos, state, 3);
+        state.getBlock().setPlacedBy(level, pos, state, null, ItemStack.EMPTY);
+        return (SubstationBlockEntity) level.getBlockEntity(pos);
+    }
+
+    /** Strings wire from mast to mast in turn, without a player. Throws if a span can't be strung. */
+    public static void wire(ServerLevel level, BlockPos... masts) {
+        OverheadLines lines = OverheadLines.get(level);
+        for (int i = 1; i < masts.length; i++) {
+            if (!lines.connect(masts[i - 1], masts[i])) {
+                throw new IllegalStateException("Can't wire " + masts[i - 1].toShortString() + " to " + masts[i].toShortString() + ": "
+                        + lines.cantConnect(masts[i - 1], masts[i]));
+            }
+        }
+        for (BlockPos mast : masts) {
+            CatenaryMastBlockEntity.refresh(level, mast);
+        }
     }
 
     /** A timetable stop for a station. */

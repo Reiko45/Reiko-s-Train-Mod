@@ -81,6 +81,12 @@ public class BulletTrain extends ElectricLocomotive {
         return 1.0;
     }
 
+    /** Its pantograph's on the roof behind the cab. */
+    @Override
+    protected double pantographForward() {
+        return -30.0 / 16;
+    }
+
     @Override
     protected Vec3 fuelInlet() {
         return point(0, 0.95, 1.5);

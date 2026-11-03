@@ -42,6 +42,16 @@ public final class ModBlockEntities {
             () -> BlockEntityType.Builder.of(ChargingPointBlockEntity::new, ModBlocks.CHARGING_POINT.get()).build(null));
 
     @SuppressWarnings("DataFlowIssue")
+    public static final Supplier<BlockEntityType<com.reiko.trains.wire.CatenaryMastBlockEntity>> CATENARY_MAST = BLOCK_ENTITIES.register(
+            "catenary_mast", () -> BlockEntityType.Builder.of(com.reiko.trains.wire.CatenaryMastBlockEntity::new, ModBlocks.CATENARY_MAST.get())
+                    .build(null));
+
+    @SuppressWarnings("DataFlowIssue")
+    public static final Supplier<BlockEntityType<com.reiko.trains.wire.SubstationBlockEntity>> SUBSTATION = BLOCK_ENTITIES.register(
+            "substation", () -> BlockEntityType.Builder.of(com.reiko.trains.wire.SubstationBlockEntity::new, ModBlocks.SUBSTATION.get())
+                    .build(null));
+
+    @SuppressWarnings("DataFlowIssue")
     public static final Supplier<BlockEntityType<SpeedSignBlockEntity>> SPEED_SIGN = BLOCK_ENTITIES.register("speed_sign",
             () -> BlockEntityType.Builder.of(SpeedSignBlockEntity::new, ModBlocks.SPEED_SIGN.get()).build(null));
 

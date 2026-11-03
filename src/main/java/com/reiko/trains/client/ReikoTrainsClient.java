@@ -168,6 +168,7 @@ public final class ReikoTrainsClient {
         event.registerBlockEntityRenderer(ModBlockEntities.STATION.get(), StationRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.LEVEL_CROSSING.get(), LevelCrossingRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.TRACK_SENSOR.get(), TrackSensorRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.CATENARY_MAST.get(), CatenaryMastRenderer::new);
     }
 
     private static void registerKeys(RegisterKeyMappingsEvent event) {

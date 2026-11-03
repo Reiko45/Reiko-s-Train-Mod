@@ -284,6 +284,14 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
         }
     }
 
+    /** Uses {@code amount} of its fuel (in its fuel's units), running. */
+    protected void burn(double amount) {
+        FuelStore store = fuelStore();
+        if (store != null && store.fuel() > 0) {
+            store.setFuel(store.fuel() - amount);
+        }
+    }
+
     boolean hasPower() {
         if (!TrainsConfig.NEEDS_FUEL.getAsBoolean()) {
             return true;
@@ -586,10 +594,9 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
         if (entityData.get(DATA_RUNNING) != lit) {
             entityData.set(DATA_RUNNING, lit);
         }
-        FuelStore store = fuelStore();
-        if (lit && store != null && store.fuel() > 0 && TrainsConfig.NEEDS_FUEL.getAsBoolean()) {
+        if (lit && TrainsConfig.NEEDS_FUEL.getAsBoolean()) {
             double rate = 0.1 * idleAppetite() + 0.35 * appetite() * Math.abs(workingThrottle()) / (double) MAX_THROTTLE;
-            store.setFuel(store.fuel() - rate * burnScale() * TrainsConfig.FUEL_USE.get());
+            burn(rate * burnScale() * TrainsConfig.FUEL_USE.get());
         }
         showFuel();
         if (whistleCooldown > 0) {

@@ -22,6 +22,10 @@ public final class ModDataComponents {
     public static final Supplier<DataComponentType<BlockPos>> TRACK_START = COMPONENTS.registerComponentType("track_start",
             builder -> builder.persistent(BlockPos.CODEC).networkSynchronized(BlockPos.STREAM_CODEC));
 
+    /** On overhead wire: the mast it's being strung from. */
+    public static final Supplier<DataComponentType<BlockPos>> WIRE_FROM = COMPONENTS.registerComponentType("wire_from",
+            builder -> builder.persistent(BlockPos.CODEC).networkSynchronized(BlockPos.STREAM_CODEC));
+
     /** On a timetable: the stations to call at. */
     public static final Supplier<DataComponentType<List<Timetable.Stop>>> TIMETABLE = COMPONENTS.registerComponentType("timetable",
             builder -> builder.persistent(Timetable.CODEC).networkSynchronized(Timetable.STREAM_CODEC));

@@ -63,6 +63,11 @@ PALETTE = {
     "v": (240, 242, 240, 255),  # bullet train white
     "B": (26, 64, 150, 255),    # bullet train blue
     "i": (186, 188, 192, 255),  # light grey
+    "I": (128, 128, 124, 255),  # dark concrete
+    "j": (196, 120, 64, 255),   # copper wire
+    "J": (140, 82, 44, 255),    # copper wire, dark
+    "Q": (138, 66, 40, 255),    # porcelain insulator
+    "U": (86, 112, 90, 255),    # substation green
 }
 
 ICONS = {
@@ -461,6 +466,60 @@ ICONS = {
         "................",
         "................",
         "................",
+    ],
+    "catenary_mast": [
+        "................",
+        "...........SS...",
+        "...........sS...",
+        ".ssssssssQQsS...",
+        "jjss.......sS...",
+        "....ss.....sS...",
+        "......ss...sS...",
+        "........sQQsS...",
+        "...........sS...",
+        "...ssssssQQsS...",
+        "..s........sS...",
+        "jj.........sS...",
+        "...........sS...",
+        "..........SsSS..",
+        ".........iiiiii.",
+        ".........IIIIII.",
+    ],
+    "overhead_wire": [
+        "................",
+        "................",
+        ".....jjjjjj.....",
+        "...jjJJJJJJjj...",
+        "..jJj......jJj..",
+        ".jJ..jjjjjj..Jj.",
+        ".jJ.jJJJJJJj.Jj.",
+        ".jJ.jJ....Jj.Jj.",
+        ".jJ.jJ....Jj.Jj.",
+        ".jJ.jJJJJJJj.Jj.",
+        ".jJ..jjjjjj..Jj.",
+        "..jJj......jJj..",
+        "...jjJJJJJJjj...",
+        ".....jjjjjjJj...",
+        "...........Jjj..",
+        ".............jj.",
+    ],
+    "substation": [
+        "................",
+        "...j...j...j....",
+        "...Q...Q...Q....",
+        "..QQQ.QQQ.QQQ...",
+        "...Q...Q...Q....",
+        "..QQQ.QQQ.QQQ...",
+        ".KKKKKKKKKKKKK..",
+        "SKUUUUUUUUUUUKS.",
+        ".KUkkkkkkkkkUK..",
+        "SKUkGkGkGkGkUKS.",
+        ".KUkkkkkkkkkUK..",
+        "SKUUUUUUUUUUUKS.",
+        ".KUUUUYYUUUUUK..",
+        "SKUUUUUUUUUUUKS.",
+        "iiiiiiiiiiiiiii.",
+        "IIIIIIIIIIIIIII.",
     ],
     "coupler": [
         "................",

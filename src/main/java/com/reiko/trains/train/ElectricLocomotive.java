@@ -1,5 +1,14 @@
 package com.reiko.trains.train;
 
+import com.reiko.trains.config.TrainsConfig;
+import com.reiko.trains.wire.OverheadLines;
+import javax.annotation.Nullable;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import com.reiko.trains.registry.ModItems;
 import com.reiko.trains.registry.ModSounds;
 import net.minecraft.core.particles.ParticleTypes;
@@ -19,6 +28,8 @@ import net.minecraft.world.phys.Vec3;
  * (MJ), kept in its batteries and charged at a charging point beside the track (which engines, kinesis pipes or other
  * mods' cables feed). The quickest and strongest engine there is, quiet but for the hum of its motors, and it uses
  * next to nothing standing still; but its batteries hold far less than a diesel's tank, so it needs charging often.
+ * Under a live overhead line it raises its pantograph and runs from the wire instead, charging its batteries as it
+ * goes (see {@link OverheadLines}).
  */
 public class ElectricLocomotive extends Locomotive {
     /** What its batteries hold, in MJ: about twenty minutes at full power. */
@@ -28,16 +39,91 @@ public class ElectricLocomotive extends Locomotive {
     /** The driver and the second man, side by side in the front cab. */
     private static final Seat[] SEATS = {new Seat(2.8, -0.45, 1.0), new Seat(2.8, 0.45, 1.0)};
 
+    private static final EntityDataAccessor<Boolean> DATA_WIRED = SynchedEntityData.defineId(ElectricLocomotive.class,
+            EntityDataSerializers.BOOLEAN);
+    /** The live overhead line it's under (the line's first mast), or null. */
+    @Nullable
+    private BlockPos line;
+
     // client
     private int spark;
+    /** How far up its pantograph is, 0 (down) to 1 (up against the wire), now and last tick. */
+    private float pantograph;
+    private float pantographO;
 
     public ElectricLocomotive(EntityType<? extends ElectricLocomotive> type, Level level) {
         super(type, level);
     }
 
     @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_WIRED, false);
+    }
+
+    @Override
     public double halfLength() {
         return 3.75;
+    }
+
+    /** How far forwards of its middle its pantograph is, in blocks. */
+    protected double pantographForward() {
+        return 23.0 / 16;
+    }
+
+    /** Whether it's under a live overhead line, running from the wire. */
+    public boolean isOnWire() {
+        return entityData.get(DATA_WIRED);
+    }
+
+    /** Client: how far up its pantograph is, 0 to 1. */
+    public float pantograph(float partialTick) {
+        return Mth.lerp(partialTick, pantographO, pantograph);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (level().isClientSide) {
+            pantographO = pantograph;
+            pantograph = Mth.clamp(pantograph + (isOnWire() ? 0.08F : -0.08F), 0.0F, 1.0F);
+            return;
+        }
+        if (!(level() instanceof ServerLevel server)) {
+            return;
+        }
+        OverheadLines lines = OverheadLines.get(server);
+        if ((tickCount + getId()) % 5 == 0) {
+            line = lines.lineAbove(position().add(flatForward().scale(pantographForward())));
+        }
+        boolean live = line != null && lines.energy(line) >= 1.0;
+        if (live) {
+            // Charging from the wire as it goes.
+            double want = Math.min(TrainsConfig.WIRE_CHARGE_RATE.get(), room());
+            if (want > 0) {
+                setFuel(fuel() + lines.take(line, want));
+            }
+        }
+        if (entityData.get(DATA_WIRED) != live) {
+            entityData.set(DATA_WIRED, live);
+        }
+    }
+
+    /** Under a live wire, it runs from the wire (its batteries make up any shortfall). */
+    @Override
+    protected void burn(double amount) {
+        if (line != null && level() instanceof ServerLevel server) {
+            amount -= OverheadLines.get(server).take(line, amount);
+        }
+        if (amount > 1.0E-9) {
+            super.burn(amount);
+        }
+    }
+
+    /** Flat batteries don't stop it under a live wire. */
+    @Override
+    boolean hasPower() {
+        return super.hasPower() || (line != null && level() instanceof ServerLevel server && OverheadLines.get(server).energy(line) >= 1.0);
     }
 
     @Override
@@ -132,7 +218,7 @@ public class ElectricLocomotive extends Locomotive {
 
     @Override
     public String fuelLabel() {
-        return "hud.reikotrains.charge";
+        return isOnWire() ? "hud.reikotrains.wire" : "hud.reikotrains.charge";
     }
 
     @Override

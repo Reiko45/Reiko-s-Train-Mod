@@ -39,6 +39,15 @@ public final class ModBlocks {
             BlockBehaviour.Properties.of().strength(2.5F).sound(SoundType.METAL).requiresCorrectToolForDrops().noOcclusion()
                     .lightLevel(state -> state.getValue(ChargingPointBlock.CHARGING) ? 6 : state.getValue(ChargingPointBlock.LEVEL) > 0 ? 2 : 0)));
 
+    public static final DeferredBlock<com.reiko.trains.wire.CatenaryMastBlock> CATENARY_MAST = BLOCKS.register("catenary_mast",
+            () -> new com.reiko.trains.wire.CatenaryMastBlock(BlockBehaviour.Properties.of().strength(2.0F).sound(SoundType.METAL)
+                    .requiresCorrectToolForDrops().noOcclusion().pushReaction(PushReaction.BLOCK)));
+
+    public static final DeferredBlock<com.reiko.trains.wire.SubstationBlock> SUBSTATION = BLOCKS.register("substation",
+            () -> new com.reiko.trains.wire.SubstationBlock(BlockBehaviour.Properties.of().strength(2.5F).sound(SoundType.METAL)
+                    .requiresCorrectToolForDrops().noOcclusion()
+                    .lightLevel(state -> state.getValue(com.reiko.trains.wire.SubstationBlock.LIVE) ? 5 : 0)));
+
     public static final DeferredBlock<SpeedSignBlock> SPEED_SIGN = BLOCKS.register("speed_sign", () -> new SpeedSignBlock(
             BlockBehaviour.Properties.of().strength(1.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK)));
 

@@ -1,0 +1,154 @@
+{
+  "variants": {
+    "facing=north,level=0,live=false": {
+      "model": "reikotrains:block/substation_0"
+    },
+    "facing=north,level=0,live=true": {
+      "model": "reikotrains:block/substation_0_live"
+    },
+    "facing=north,level=1,live=false": {
+      "model": "reikotrains:block/substation_1"
+    },
+    "facing=north,level=1,live=true": {
+      "model": "reikotrains:block/substation_1_live"
+    },
+    "facing=north,level=2,live=false": {
+      "model": "reikotrains:block/substation_2"
+    },
+    "facing=north,level=2,live=true": {
+      "model": "reikotrains:block/substation_2_live"
+    },
+    "facing=north,level=3,live=false": {
+      "model": "reikotrains:block/substation_3"
+    },
+    "facing=north,level=3,live=true": {
+      "model": "reikotrains:block/substation_3_live"
+    },
+    "facing=north,level=4,live=false": {
+      "model": "reikotrains:block/substation_4"
+    },
+    "facing=north,level=4,live=true": {
+      "model": "reikotrains:block/substation_4_live"
+    },
+    "facing=east,level=0,live=false": {
+      "model": "reikotrains:block/substation_0",
+      "y": 90
+    },
+    "facing=east,level=0,live=true": {
+      "model": "reikotrains:block/substation_0_live",
+      "y": 90
+    },
+    "facing=east,level=1,live=false": {
+      "model": "reikotrains:block/substation_1",
+      "y": 90
+    },
+    "facing=east,level=1,live=true": {
+      "model": "reikotrains:block/substation_1_live",
+      "y": 90
+    },
+    "facing=east,level=2,live=false": {
+      "model": "reikotrains:block/substation_2",
+      "y": 90
+    },
+    "facing=east,level=2,live=true": {
+      "model": "reikotrains:block/substation_2_live",
+      "y": 90
+    },
+    "facing=east,level=3,live=false": {
+      "model": "reikotrains:block/substation_3",
+      "y": 90
+    },
+    "facing=east,level=3,live=true": {
+      "model": "reikotrains:block/substation_3_live",
+      "y": 90
+    },
+    "facing=east,level=4,live=false": {
+      "model": "reikotrains:block/substation_4",
+      "y": 90
+    },
+    "facing=east,level=4,live=true": {
+      "model": "reikotrains:block/substation_4_live",
+      "y": 90
+    },
+    "facing=south,level=0,live=false": {
+      "model": "reikotrains:block/substation_0",
+      "y": 180
+    },
+    "facing=south,level=0,live=true": {
+      "model": "reikotrains:block/substation_0_live",
+      "y": 180
+    },
+    "facing=south,level=1,live=false": {
+      "model": "reikotrains:block/substation_1",
+      "y": 180
+    },
+    "facing=south,level=1,live=true": {
+      "model": "reikotrains:block/substation_1_live",
+      "y": 180
+    },
+    "facing=south,level=2,live=false": {
+      "model": "reikotrains:block/substation_2",
+      "y": 180
+    },
+    "facing=south,level=2,live=true": {
+      "model": "reikotrains:block/substation_2_live",
+      "y": 180
+    },
+    "facing=south,level=3,live=false": {
+      "model": "reikotrains:block/substation_3",
+      "y": 180
+    },
+    "facing=south,level=3,live=true": {
+      "model": "reikotrains:block/substation_3_live",
+      "y": 180
+    },
+    "facing=south,level=4,live=false": {
+      "model": "reikotrains:block/substation_4",
+      "y": 180
+    },
+    "facing=south,level=4,live=true": {
+      "model": "reikotrains:block/substation_4_live",
+      "y": 180
+    },
+    "facing=west,level=0,live=false": {
+      "model": "reikotrains:block/substation_0",
+      "y": 270
+    },
+    "facing=west,level=0,live=true": {
+      "model": "reikotrains:block/substation_0_live",
+      "y": 270
+    },
+    "facing=west,level=1,live=false": {
+      "model": "reikotrains:block/substation_1",
+      "y": 270
+    },
+    "facing=west,level=1,live=true": {
+      "model": "reikotrains:block/substation_1_live",
+      "y": 270
+    },
+    "facing=west,level=2,live=false": {
+      "model": "reikotrains:block/substation_2",
+      "y": 270
+    },
+    "facing=west,level=2,live=true": {
+      "model": "reikotrains:block/substation_2_live",
+      "y": 270
+    },
+    "facing=west,level=3,live=false": {
+      "model": "reikotrains:block/substation_3",
+      "y": 270
+    },
+    "facing=west,level=3,live=true": {
+      "model": "reikotrains:block/substation_3_live",
+      "y": 270
+    },
+    "facing=west,level=4,live=false": {
+      "model": "reikotrains:block/substation_4",
+      "y": 270
+    },
+    "facing=west,level=4,live=true": {
+      "model": "reikotrains:block/substation_4_live",
+      "y": 270
+    }
+  }
+}

@@ -176,6 +176,10 @@ public final class DevShowcase {
     private static final int SPEED_LINE = -104;
     /** The Bullet Train's line, along x at this z, from Capital (x = 10) to Coast (x = 180). */
     private static final int BULLET_LINE = -120;
+    /** The overhead line for the electric (along x at this z, curving away south-east at its east end) ... */
+    private static final int WIRE_LINE = -156;
+    /** ... and the one for a Bullet Train, beside it. */
+    private static final int BULLET_WIRE_LINE = -170;
     /** The switch stand for the junction at x = 52. */
     private static final BlockPos SWITCH = new BlockPos(52, Y, -2);
 
@@ -369,6 +373,38 @@ public final class DevShowcase {
             CarShowcase.build(level, Y);
         }
 
+        // An eleventh line, under overhead wires: masts on its north side (the outside of the curve at its east end), a
+        // substation feeding it, and an electric with a coach, its batteries flat, running from the wire.
+        TestTracks.line(level, new BlockPos(0, Y, WIRE_LINE), TrackAxis.X, 60);
+        BlockPos bend = new BlockPos(59, Y, WIRE_LINE);
+        TestTracks.connect(level, bend, bend.offset(14, 0, 6));
+        TestTracks.line(level, bend.offset(15, 0, 7), TrackAxis.SE, 10);
+        List<BlockPos> wireMasts = new ArrayList<>();
+        for (BlockPos mast : new BlockPos[]{new BlockPos(4, Y, WIRE_LINE - 2), new BlockPos(22, Y, WIRE_LINE - 2), new BlockPos(40, Y, WIRE_LINE - 2),
+                new BlockPos(56, Y, WIRE_LINE - 2), new BlockPos(67, Y, WIRE_LINE - 1), new BlockPos(80, Y, WIRE_LINE + 10)}) {
+            wireMasts.add(TestTracks.mast(level, mast).getBlockPos());
+        }
+        TestTracks.wire(level, wireMasts.toArray(BlockPos[]::new));
+        TestTracks.substation(level, new BlockPos(22, Y, WIRE_LINE - 5)).addMj(1_000_000);
+        TestTracks.station(level, new BlockPos(52, Y, WIRE_LINE + 3), new BlockPos(52, Y, WIRE_LINE), "Wire End", 10);
+        ElectricLocomotive wired = TestTracks.car(level, ModEntities.ELECTRIC_LOCOMOTIVE.get(), new BlockPos(30, Y, WIRE_LINE), EAST);
+        PassengerCoach wiredCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(22, Y, WIRE_LINE), EAST);
+        Trains.couple(wired, wiredCoach);
+        // And a twelfth beside it, for a Bullet Train: a driving car at each end, a coach between, under the wire.
+        TestTracks.line(level, new BlockPos(0, Y, BULLET_WIRE_LINE), TrackAxis.X, 90);
+        List<BlockPos> bulletMasts = new ArrayList<>();
+        for (int x = 4; x <= 84; x += 20) {
+            bulletMasts.add(TestTracks.mast(level, new BlockPos(x, Y, BULLET_WIRE_LINE + 2)).getBlockPos());
+        }
+        TestTracks.wire(level, bulletMasts.toArray(BlockPos[]::new));
+        TestTracks.substation(level, new BlockPos(64, Y, BULLET_WIRE_LINE + 5)).addMj(1_000_000);
+        com.reiko.trains.train.BulletTrain wiredFront = TestTracks.car(level, ModEntities.BULLET_TRAIN.get(), new BlockPos(40, Y, BULLET_WIRE_LINE), EAST);
+        com.reiko.trains.train.BulletCoach wiredMiddle = TestTracks.car(level, ModEntities.BULLET_COACH.get(), new BlockPos(31, Y, BULLET_WIRE_LINE), EAST);
+        com.reiko.trains.train.BulletTrain wiredBack = TestTracks.car(level, ModEntities.BULLET_TRAIN.get(), new BlockPos(22, Y, BULLET_WIRE_LINE),
+                new Vec3(-1, 0, 0));
+        Trains.couple(wiredFront, wiredMiddle);
+        Trains.couple(wiredMiddle, wiredBack);
+
         Locomotive limited = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(24, Y, SPEED_LINE), EAST);
         PassengerCoach limitedCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(17, Y, SPEED_LINE), EAST);
         Trains.couple(limited, limitedCoach);
@@ -420,6 +456,53 @@ public final class DevShowcase {
                 if (!passing[0] && (last || east >= 66)) {
                     passing[0] = true;
                     shot(mc, "43_cars_by_rail");
+                }
+            });
+        }
+    }
+
+    /**
+     * Overhead wires: looking back along the electric's line from beyond its curve, the masts' arms reaching over the
+     * track; its pantograph up against the wire, from beside it; the substation feeding the line; the Bullet Train's
+     * pantographs up under its wire; and the electric setting off, running from the wire.
+     */
+    private static void wireScene() {
+        at(3112, mc -> {
+            mc.options.setCameraType(CameraType.FIRST_PERSON);
+            mc.options.fov().set(70);
+            look(mc, 72.0, Y + 4.5, WIRE_LINE + 12.0, 128.0F, 10.0F);
+        });
+        at(3160, mc -> shot(mc, "44_overhead_line"));
+        at(3200, mc -> look(mc, 33.0, Y + 2.0, WIRE_LINE + 6.5, 172.0F, -8.0F));
+        at(3238, mc -> shot(mc, "45_pantograph"));
+        at(3240, mc -> look(mc, 24.2, Y + 1.5, WIRE_LINE - 8.2, 26.0F, 24.0F));
+        at(3278, mc -> shot(mc, "46_substation"));
+        at(3280, mc -> look(mc, 48.0, Y + 3.0, BULLET_WIRE_LINE - 7.0, 55.0F, 2.0F));
+        at(3318, mc -> shot(mc, "47_bullet_under_wire"));
+        at(3320, mc -> {
+            look(mc, 62.0, Y + 2.6, WIRE_LINE + 4.5, 105.0F, 6.0F);
+            server(mc, player -> {
+                ServerLevel level = player.serverLevel();
+                ElectricLocomotive electric = find(level, ElectricLocomotive.class, 30.5, WIRE_LINE + 0.5);
+                if (level.getBlockEntity(new BlockPos(52, Y, WIRE_LINE + 3)) instanceof StationBlockEntity end) {
+                    electric.autopilot().start(List.of(TestTracks.stop(end)));
+                }
+            });
+        });
+        boolean[] running = {false};
+        for (int time = 3360; time <= 3500; time++) {
+            boolean last = time == 3500;
+            at(time, mc -> {
+                if (running[0]) {
+                    return;
+                }
+                List<ElectricLocomotive> engines = mc.level.getEntitiesOfClass(ElectricLocomotive.class,
+                        new AABB(0, Y - 2, WIRE_LINE - 4, 100, Y + 4, WIRE_LINE + 4));
+                double front = engines.stream().mapToDouble(e -> e.getX() + e.halfLength()).max().orElse(0);
+                if (last || front >= 46) {
+                    running[0] = true;
+                    ReikoTrains.LOGGER.info("Showcase: electric under the wire shot at x = {} (last: {})", front, last);
+                    shot(mc, "48_electric_running_under_wire");
                 }
             });
         }
@@ -736,6 +819,7 @@ public final class DevShowcase {
         if (com.reiko.trains.train.CarCargo.CAR_MOD) {
             carScene();
         }
-        at(3110, Minecraft::stop);
+        wireScene();
+        at(3520, Minecraft::stop);
     }
 }

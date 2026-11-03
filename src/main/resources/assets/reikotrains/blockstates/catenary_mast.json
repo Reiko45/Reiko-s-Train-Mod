@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "reikotrains:block/catenary_mast"
+    },
+    "facing=east": {
+      "model": "reikotrains:block/catenary_mast",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "reikotrains:block/catenary_mast",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "reikotrains:block/catenary_mast",
+      "y": 270
+    }
+  }
+}

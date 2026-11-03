@@ -3,6 +3,8 @@ package com.reiko.trains.signal;
 import com.reiko.trains.track.EdgeRef;
 import com.reiko.trains.track.TrackAxis;
 import com.reiko.trains.track.TrackGraph;
+import com.reiko.trains.track.TrackEdge;
+import com.reiko.trains.track.TrackBuilder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +52,43 @@ public final class TrackSide {
                     if (d < bestDistance) {
                         bestDistance = d;
                         best = at;
+                    }
+                }
+            }
+        }
+        return best;
+    }
+
+    /**
+     * The nearest point on the track's centre line (anywhere along it, curves included) to the middle of {@code pos},
+     * at most {@code reach} blocks away sideways and a couple up or down; null if there's none.
+     */
+    @Nullable
+    public static Vec3 nearestTrackPoint(Level level, BlockPos pos, double reach) {
+        Vec3 at = Vec3.atCenterOf(pos);
+        // A curve can run half its longest length from either end: look that far for its ends.
+        int radius = (int) Math.ceil(TrackBuilder.MAX_LENGTH / 2) + 2;
+        Vec3 best = null;
+        double bestDistance = reach;
+        for (int dy = -2; dy <= 2; dy++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    BlockPos node = pos.offset(dx, dy, dz);
+                    if (TrackGraph.axis(level, node) == null) {
+                        continue;
+                    }
+                    for (int side : new int[] {1, -1}) {
+                        for (EdgeRef edge : TrackGraph.edgesFrom(level, node, side)) {
+                            TrackEdge geometry = edge.geometry();
+                            for (double d = 0; d <= geometry.length() + 1.0E-6; d += 0.25) {
+                                Vec3 p = geometry.point(d);
+                                double distance = Math.hypot(p.x - at.x, p.z - at.z);
+                                if (distance < bestDistance && Math.abs(p.y - at.y) <= 2.5) {
+                                    best = p;
+                                    bestDistance = distance;
+                                }
+                            }
+                        }
                     }
                 }
             }

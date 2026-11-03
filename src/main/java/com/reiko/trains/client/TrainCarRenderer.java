@@ -64,6 +64,7 @@ public class TrainCarRenderer<T extends TrainCarEntity> extends EntityRenderer<T
         poseStack.pushPose();
         poseStack.scale(-1.0F, -1.0F, 1.0F);
         body.setup(rolled, load);
+        body.pantograph(car instanceof com.reiko.trains.train.ElectricLocomotive electric ? electric.pantograph(partialTick) : 0.0F);
         VertexConsumer consumer = buffers.getBuffer(RenderType.entityCutoutNoCull(texture));
         body.render(poseStack, consumer, light, OverlayTexture.NO_OVERLAY);
         poseStack.popPose();

@@ -1,5 +1,6 @@
 package com.reiko.trains.client;
 
+import javax.annotation.Nullable;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.geom.ModelPart;
@@ -7,7 +8,8 @@ import net.minecraft.util.Mth;
 
 /**
  * A train car's model, baked from one of the generated geometry classes, with its moving parts: wheels that turn
- * as the car rolls, coupling rods that follow the driving wheels' crank pins, and crates for a wagon's load.
+ * as the car rolls, coupling rods that follow the driving wheels' crank pins, crates for a wagon's load, and an
+ * electric's pantograph (parts "panto_up" and "panto_down"), which rises to the wire.
  */
 public final class TrainModel {
     private final ModelPart root;
@@ -20,6 +22,10 @@ public final class TrainModel {
     private final float crankRadius;
     private final float driverRadius;
     private final ModelPart[] cargo;
+    @Nullable
+    private final ModelPart pantographUp;
+    @Nullable
+    private final ModelPart pantographDown;
 
     public TrainModel(ModelPart root, String[] wheels, float[] wheelRadii, String[] rods, float crankRadius, float driverRadius, String[] cargo) {
         this.root = root;
@@ -45,6 +51,19 @@ public final class TrainModel {
         for (int i = 0; i < cargo.length; i++) {
             this.cargo[i] = root.getChild(cargo[i]);
         }
+        this.pantographUp = root.hasChild("panto_up") ? root.getChild("panto_up") : null;
+        this.pantographDown = root.hasChild("panto_down") ? root.getChild("panto_down") : null;
+    }
+
+    /** Raises the pantograph, if it has one: 0 folded down, 1 right up against the wire. */
+    public void pantograph(float raised) {
+        if (pantographUp == null || pantographDown == null) {
+            return;
+        }
+        boolean up = raised > 0.05F;
+        pantographUp.visible = up;
+        pantographUp.yScale = Math.max(0.05F, raised);
+        pantographDown.visible = !up;
     }
 
     public static TrainModel simple(ModelPart root, String[] wheels, float[] wheelRadii) {

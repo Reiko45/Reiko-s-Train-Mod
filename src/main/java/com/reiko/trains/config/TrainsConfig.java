@@ -51,6 +51,14 @@ public final class TrainsConfig {
             .comment("MJ a tick a charging point puts into each electric locomotive standing at it. 5000 charges a flat",
                     "electric in ten seconds, if the store has enough.")
             .defineInRange("chargingPointRateMJ", 5000, 1, 10_000_000);
+    public static final ModConfigSpec.LongValue SUBSTATION_CAPACITY = BUILDER
+            .comment("MJ each substation adds to its overhead line's store. Trains under the line run from the store, and",
+                    "charge their batteries from it, so a line with more substations keeps going longer between top-ups.")
+            .defineInRange("substationCapacityMJ", 1_000_000L, 1_000L, 1_000_000_000L);
+    public static final ModConfigSpec.IntValue WIRE_CHARGE_RATE = BUILDER
+            .comment("MJ a tick an electric under a live overhead line puts into its batteries (on top of what it uses to",
+                    "run). 2000 charges a flat electric in about 25 seconds.")
+            .defineInRange("wireChargeRateMJ", 2000, 0, 10_000_000);
     public static final ModConfigSpec.IntValue CROSSING_WARNING = BUILDER
             .comment("How many seconds before a train gets to a level crossing its lamps start flashing. The barrier comes",
                     "down three seconds after that, taking two seconds over it.")

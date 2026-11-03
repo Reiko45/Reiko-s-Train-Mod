@@ -39,6 +39,9 @@ give them a timetable and let them run between the stations on their own.
   turning. It runs on batteries, like the electric.
 - **Charging Point**: charges the batteries of an electric standing beside it, from BuildCraft engines, kinesis pipes
   or other mods' cables.
+- **Overhead Line Mast**, **Overhead Wire** and **Substation**: electrify a line. Masts stand beside the track with
+  their arms reaching over it; string wire from mast to mast; a substation feeds the line BuildCraft power. Electrics
+  and the Bullet Train raise their pantographs under it and run (and charge) from the wire.
 - **Passenger Coach**: 6½ blocks long, eight seats in four rows.
 - **Freight Wagon**: holds 108 stacks (four chests' worth), all on one screen. Hoppers above or below it fill and empty
   it, crates pile up in it as it fills, and a full one is heavier to pull.
@@ -118,6 +121,9 @@ or ramp can cross gaps between them, so bridges are just long curves. Leave thre
 | Timetable | Two paper and a clock |
 | Wagon Loader | Iron ingot, hopper, iron ingot; iron ingot, chest, iron ingot |
 | Charging Point | Iron ingot, redstone lamp, iron ingot; copper ingot, block of redstone, copper ingot; three iron ingots |
+| Overhead Line Mast (2) | Three iron ingots along the top, an iron ingot under the left one, and smooth stone under that (a pole with its arm) |
+| Overhead Wire (4) | Three copper ingots in a row |
+| Substation | Block of copper, iron ingot, block of copper; iron ingot, block of redstone, iron ingot; three iron ingots |
 
 Everything's also in the **Reiko's Trains** creative tab.
 
@@ -205,6 +211,7 @@ sides, batteries slung between its bogies and a charging socket on each side. Yo
 - It runs on **BuildCraft power** (MJ), stored in its batteries: a million MJ, about twenty minutes at full power.
   Standing with the throttle shut it uses next to nothing (there's no engine to keep running). When the batteries go
   flat it stops, and the gauges say **FLAT**.
+- Under **overhead wires** it runs from the wire instead (see below), charging its batteries as it goes.
 - It's charged at a **Charging Point** beside the track (up to three blocks away, like a wagon loader; its cable
   reaches out towards the track). Feed the charging point from BuildCraft engines or kinesis pipes on any side (or,
   as BuildCraft's config allows, other mods' energy cables): it stores a million MJ, so a few engines can fill it up
@@ -233,7 +240,8 @@ band and a blue stripe low down.
 - Drive it from either end: climb into the cab at the end you want to lead. Both driving cars pull, so it gets away
   briskly for its size. On a timetable it shuttles back and forth without ever turning round.
 - It runs on **batteries**, like the electric, charged at a **Charging Point**: each driving car holds 1,500,000 MJ,
-  and both charge at once when the train stands at one. It won't take coal or diesel.
+  and both charge at once when the train stands at one. Under **overhead wires** both driving cars raise their
+  pantographs and it runs from the wire, charging as it goes. It won't take coal or diesel.
 - It has its own horn, a clear two-note call (the whistle key), and its motors whine like the electric's.
 - Signals, stations, speed signs and level crossings all look further ahead for it, so it slows in time at full speed;
   and it loads the chunks ahead of it a few seconds early, so it doesn't catch them still loading.
@@ -245,6 +253,40 @@ band and a blue stripe low down.
 ![The view from the cab at speed](docs/screenshots/bullet_cab.jpg)
 
 ![Coming back the other way, the other driving car leading](docs/screenshots/bullet_running.jpg)
+
+### Overhead wires
+
+Electrify a line and electrics and Bullet Trains run from the wire, as far as it goes, charging their batteries on
+the way: no more stopping to charge.
+
+- **Masts**: put an **Overhead Line Mast** beside the track, up to three blocks from it (curves too). Its pole goes
+  up, and its arm reaches out over the track to hold the contact wire there, four and a half blocks above the rails.
+  Space them along the line, on either side, up to 32 blocks apart (closer on curves, as the wire runs straight from
+  mast to mast).
+- **Wire**: hold **Overhead Wire**, click a mast, then the next mast along: a span of wire goes up between them (one
+  wire a span), the contact wire with the messenger wire sagging above it and droppers between. You're ready to go on
+  to the next mast straight away; click the same mast twice, or sneak-click the air, to stop. A mast holds up to four
+  spans, so lines can branch at junctions. Sneak-click a mast with wire to take its spans down (you get the wire
+  back). Breaking a mast drops its spans' wire.
+- **Power**: masts wired together make a line. Put a **Substation** within four blocks of one of its masts and feed
+  it from BuildCraft engines, kinesis pipes or other mods' cables, as you would a charging point. Each substation
+  gives its line room to store a million MJ, shared by the whole line, however long. Its bars show how full the
+  line's store is, its lamp lights while the line is live, a comparator reads it, and clicking it says how much the
+  line holds and how many masts it has. Lines joined up share what they had; a line split shares it out by masts.
+- **Trains**: an electric or a Bullet Train under a live wire raises its pantograph against it. While it's up, the
+  train runs from the line's store and leaves its batteries alone, and charges them from it at 2,000 MJ a tick (a flat
+  electric in under half a minute); so it gets going even with flat batteries. The fuel gauge reads **Wire**. Past
+  the end of the wire, or under a dead one, the pantograph comes down and it runs on its batteries again.
+
+![An electrified line, the masts' arms reaching over the track round a curve](docs/screenshots/overhead_line.jpg)
+
+![An electric's pantograph up against the contact wire](docs/screenshots/pantograph.jpg)
+
+![A substation feeding the line, its four bars up and its lamp lit](docs/screenshots/substation.jpg)
+
+![The Bullet Train under its wire, both pantographs up](docs/screenshots/bullet_under_wire.jpg)
+
+![An electric running from the wire](docs/screenshots/electric_under_wire.jpg)
 
 ### Tank wagons and guard's vans
 
@@ -331,6 +373,8 @@ In `serverconfig/reikotrains-server.toml` in each world:
 | `fallbackDieselEnergyPerBucket` | `96000` | MJ in a bucket of a diesel fluid BuildCraft has no fuel value for |
 | `chargingPointCapacityMJ` | `1000000` | MJ a charging point stores |
 | `chargingPointRateMJ` | `5000` | MJ a tick a charging point puts into each electric standing at it |
+| `substationCapacityMJ` | `1000000` | MJ each substation adds to its overhead line's store |
+| `wireChargeRateMJ` | `2000` | MJ a tick an electric (or Bullet Train driving car) charges at under a live wire |
 | `crossingWarningSeconds` | `10` | How long before a train arrives level crossings start warning |
 
 The fuel steam engines take is the item tag `reikotrains:locomotive_fuel`, and the diesel's is the fluid tag
@@ -649,6 +693,13 @@ until a bus won't fit, driving off either end with another car in the way or not
 far transporter and back off over the empty one, a train carrying its cars along (and not taking any more while it's
 moving), and the cars' places saved with it.
 
+`OverheadLineGameTests` covers overhead wires: masts holding the wire over the middle of the track at the right
+height (and not going up too far from it), stringing wire mast to mast with the item (too far, already wired,
+stopping, taking spans down and getting the wire back), four spans to a mast, breaking a mast dropping its wire, a
+substation taking BuildCraft power into its line and only as much as fits (its bars, lamp and comparator), lines
+sharing their power when joined and split, a flat electric running and charging under a live wire and doing nothing
+under a dead one, both of a Bullet Train's driving cars charging from it, and saving the lines.
+
 `TrainMapGameTests` covers the map of trains for minimaps: a train on it once, at its leading locomotive, with its
 kind and length, a timetabled train's next stop, a broken locomotive coming off it (and the other engine taking
 over), players being sent the other trains nearest first and not their own, dropping trains that aren't where the
@@ -657,7 +708,7 @@ map says, and saving it with the world.
 `./gradlew runClient -Pshowcase -PwindowSize=1280x720` builds a test railway, runs trains round it and saves
 screenshots to `run/screenshots/` (that's where the pictures above come from). Add `-PxaeroJars=/path/to/folder` for
 the minimap shot, `-PcarJars=/path/to/folder` for the car transporter scene, and `-PshowcaseFrom=<tick>` to skip to the
-scene starting at that tick (`2202` for the Bullet Train, `2810` for the car transporters).
+scene starting at that tick (`2202` for the Bullet Train, `2810` for the car transporters, `3105` for overhead wires).
 
 ### Models, textures and sounds
 
@@ -666,7 +717,7 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
 - `tools/models/train_models.py`: the train models (locomotive, coach, wagon, bogie). One part list per model makes
   both the Java geometry (`client/model/geometry/`, don't edit those by hand) and the matching texture.
 - `tools/blocks/track_assets.py`: the track's textures and block models (and the signals', switch stands', level
-  crossings', speed signs' and wagon loader's), and the screens.
+  crossings', speed signs', masts', substation's and wagon loader's), and the screens.
 - `tools/items/item_icons.py`: the item icons and the mod list logo.
 - `tools/sounds/train_sounds.py`: the whistle, the chuffs, the coupling clank, the diesel's horn and engine, and the
   level crossing's bell, synthesised. Name the ones to remake (`python3 tools/sounds/train_sounds.py crossing_bell`):
@@ -704,6 +755,12 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
   `Autopilot` searches the track for the way to its next station. Leaving wagons, it works out which way it'll set
   off and splits the train at the other end (`Trains.split`); picking them up, it looks along its way for cars with
   no locomotive near the station (`Trains.nearestAlong`), stops short of them and couples on.
+- **Overhead lines** (`wire/`): `OverheadLines` is a saved record per world of every mast (and where it holds the
+  wire), every span, every substation and the mast it feeds, and each line's store; it works out the lines (masts
+  wired together, named by their first mast) and indexes the spans by the chunks they pass over. An electric looks up
+  every few ticks for a span within a block sideways of its pantograph at the right height (`lineAbove`), and takes
+  its power from that line's store before its batteries. Masts keep a copy of their spans for the client, where
+  `CatenaryMastRenderer` draws the pole above the block, the cantilever and the wire to the next mast.
 - **Car transporters** (`train/CarTransporter`, `CarCargo`): cars ride the wagon as passengers, each with its place
   along the deck (synced to clients, saved with the wagon). The driver's game notices them holding forwards or back
   against a transporter's end (or aboard) and asks the server, which checks it all again and moves the car on, along
@@ -714,7 +771,7 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
   waypoints.
 - **Client** (`client/`): `TrainCarRenderer` draws a car and its swinging bogies, `TrackRenderer` draws curves,
   `TrackPreview` the outline while you lay track, `StationRenderer` the names on the boards, `LevelCrossingRenderer`
-  the crossings' arms and flashing lamps, `TrackSensorRenderer` a sensor's filter item, and `TrainHud` the cab gauges.
+  the crossings' arms and flashing lamps, `CatenaryMastRenderer` the masts' arms and the wires, `TrackSensorRenderer` a sensor's filter item, and `TrainHud` the cab gauges.
 
 ## License
 

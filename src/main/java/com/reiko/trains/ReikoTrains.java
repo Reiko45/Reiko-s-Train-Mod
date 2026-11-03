@@ -73,7 +73,12 @@ public final class ReikoTrains {
         for (BlockCapability<?, Direction> capability : java.util.List.<BlockCapability<?, Direction>>of(MjAPI.CAP_CONNECTOR,
                 MjAPI.CAP_RECEIVER, MjAPI.CAP_REDSTONE_RECEIVER, MjAPI.CAP_READABLE, Capabilities.EnergyStorage.BLOCK)) {
             registerCharger(event, capability);
+            registerSubstation(event, capability);
         }
+    }
+
+    private static <T> void registerSubstation(RegisterCapabilitiesEvent event, BlockCapability<T, Direction> capability) {
+        event.registerBlockEntity(capability, ModBlockEntities.SUBSTATION.get(), (substation, side) -> substation.capabilities().getCapability(capability));
     }
 
     private static <T> void registerCharger(RegisterCapabilitiesEvent event, BlockCapability<T, Direction> capability) {

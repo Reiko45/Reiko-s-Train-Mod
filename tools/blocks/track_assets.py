@@ -873,6 +873,150 @@ def speed_sign_models():
         json.dump({"variants": variants}, out, indent=2)
 
 
+def warning_sign(name, background, key):
+    """A yellow warning triangle with a black lightning flash, on {background} (the 10 x 10 from (3, 5))."""
+    art = ["....KK....",
+           "...KYYK...",
+           "...KYKK...",
+           "..KYYKYK..",
+           "..KYKKYK..",
+           ".KYYYKYYK.",
+           ".KYYKYYYK.",
+           "KYYYKYYYYK",
+           "KYYYYYYYYK",
+           "KKKKKKKKKK"]
+    sign = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            c = shade(background, 1 + 0.05 * noise(key, x, y))
+            if 3 <= x <= 12 and 5 <= y <= 14:
+                ch = art[y - 5][x - 3]
+                c = (24, 24, 26) if ch == "K" else (236, 196, 40) if ch == "Y" else c
+            sign.putpixel((x, y), c)
+    sign.save(f"{ASSETS}/textures/block/{name}.png")
+
+
+def catenary_textures():
+    # Galvanised steel for the masts and their arms; a weathered copper for the wires; brown glazed porcelain for the
+    # insulators (lighter rings round them); concrete for the plinths.
+    solid("mast_steel", (150, 154, 158), noise_amount=0.06)
+    solid("mast_concrete", (168, 166, 158), shade((168, 166, 158), 0.85), 0.07)
+    solid("catenary_wire", (112, 74, 48), noise_amount=0.08)
+    ins = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            ins.putpixel((x, y), shade((128, 62, 36), (1.18 if x % 4 == 0 else 1) + 0.05 * noise("catenary_insulator", x, y)))
+    ins.save(f"{ASSETS}/textures/block/catenary_insulator.png")
+    # The mast's number plate: black on yellow.
+    plate = Image.new("RGBA", (16, 16))
+    digits = ["KKK.K.", "K.K.KK", "K.K..K", "K.K..K", "KKK.KKK"]
+    for y in range(16):
+        for x in range(16):
+            c = shade((232, 196, 48), 1 + 0.04 * noise("mast_plate", x, y))
+            if x in (0, 15) or y in (0, 15):
+                c = shade((24, 24, 26), 1)
+            elif 4 <= y <= 8 and 4 <= x <= 10 and digits[y - 4][x - 4:x - 3] == "K":
+                c = shade((24, 24, 26), 1)
+            plate.putpixel((x, y), c)
+    plate.save(f"{ASSETS}/textures/block/mast_plate.png")
+    # The substation: a green-grey transformer tank, darker lid and fins, a display for its bars, and a warning sign.
+    green = (82, 110, 88)
+    solid("substation_body", green, shade(green, 0.75))
+    solid("substation_dark", shade(green, 0.7)[:3], noise_amount=0.05)
+    display = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            c = shade((20, 22, 26), 1 + 0.05 * noise("substation_display", x, y))
+            if x in (0, 15) or y in (0, 15):
+                c = shade((150, 156, 160), 1)
+            display.putpixel((x, y), c)
+    display.save(f"{ASSETS}/textures/block/substation_display.png")
+    warning_sign("substation_sign", green, "substation_sign")
+
+
+def catenary_models():
+    """
+    The mast: a concrete plinth, a steel flange and the foot of the pole, two blocks of it (the rest of it, and its arm,
+    are drawn by its renderer, reaching up and over the track to wherever the wire is), with a number plate on the side
+    facing the track (north, as modelled).
+    """
+    tex = {"particle": "reikotrains:block/mast_steel", "steel": "reikotrains:block/mast_steel",
+           "concrete": "reikotrains:block/mast_concrete", "plate": "reikotrains:block/mast_plate"}
+    elements = [
+        element([3, 0, 3], [13, 3, 13], all_faces("#concrete", (3, 3, 13, 13))),
+        element([4.5, 3, 4.5], [11.5, 4, 11.5], all_faces("#steel", (0, 0, 7, 7))),
+        element([6, 4, 6], [10, 32, 10], {**all_faces("#steel", (6, 0, 10, 16)), "up": ("#steel", [6, 6, 10, 10]),
+                                           "down": ("#steel", [6, 6, 10, 10])}),
+        element([6.5, 16, 5.5], [9.5, 20, 6], {**all_faces("#plate", (0, 0, 16, 16)), "north": ("#plate", [0, 0, 16, 16])}),
+    ]
+    with open(f"{ASSETS}/models/block/catenary_mast.json", "w") as out:
+        json.dump({"parent": "block/block", "ambientocclusion": False, "textures": tex, "elements": elements}, out, indent=2)
+    variants = {}
+    for facing, y in (("north", 0), ("east", 90), ("south", 180), ("west", 270)):
+        v = {"model": "reikotrains:block/catenary_mast"}
+        if y:
+            v["y"] = y
+        variants[f"facing={facing}"] = v
+    with open(f"{ASSETS}/blockstates/catenary_mast.json", "w") as out:
+        json.dump({"variants": variants}, out, indent=2)
+
+    """
+    The substation (it faces north, towards whoever placed it): a transformer tank on a concrete pad, cooling fins down
+    each side, three porcelain bushings on top with copper terminals, a display on its front with four bars showing how
+    full the line's store is, a warning sign on its back, and a lamp on the lid that lights while the line is live.
+    """
+    for bars in range(5):
+        for live in (False, True):
+            name = f"substation_{bars}{'_live' if live else ''}"
+            tex = {"particle": "reikotrains:block/substation_body", "body": "reikotrains:block/substation_body",
+                   "dark": "reikotrains:block/substation_dark", "pad": "reikotrains:block/mast_concrete",
+                   "sign": "reikotrains:block/substation_sign", "display": "reikotrains:block/substation_display",
+                   "ins": "reikotrains:block/catenary_insulator", "copper": "reikotrains:block/catenary_wire",
+                   "head": "reikotrains:block/signal_head", "on": "reikotrains:block/charge_bar_on",
+                   "off": "reikotrains:block/charge_bar_off",
+                   "lamp": f"reikotrains:block/charger_lamp_{'on' if live else 'off'}"}
+            tank = all_faces("#body", (3, 3, 13, 14))
+            tank["south"] = ("#sign", [3, 4, 13, 15])
+            tank["up"] = ("#body", [3, 3, 13, 13])
+            elements = [
+                element([0, 0, 0], [16, 2, 16], all_faces("#pad", (0, 0, 16, 16))),
+                element([3, 2, 3], [13, 13, 13], tank),
+                element([2.5, 13, 2.5], [13.5, 14, 13.5], all_faces("#dark", (2, 2, 13, 13))),
+                element([4, 3.5, 2.75], [12, 12.5, 3], all_faces("#display", (0, 0, 16, 16))),
+                element([7, 14, 4], [9, 16, 6], all_faces("#lamp", (4, 4, 12, 12)), lit="north" if live else None),
+            ]
+            if live:
+                for f in ("south", "east", "west", "up"):
+                    elements[-1]["faces"][f]["neoforge_data"] = {"block_light": 15, "sky_light": 15}
+            for z in (4, 6, 8, 10, 12):
+                elements.append(element([13, 3, z - 0.5], [15, 12, z + 0.5], all_faces("#dark", (0, 0, 2, 9))))
+                elements.append(element([1, 3, z - 0.5], [3, 12, z + 0.5], all_faces("#dark", (0, 0, 2, 9))))
+            for x in (5, 8, 11):
+                elements.append(element([x - 1, 14, 9], [x + 1, 20, 11], all_faces("#ins", (0, 0, 2, 6))))
+                for y in (15, 17):
+                    elements.append(element([x - 1.5, y, 8.5], [x + 1.5, y + 1, 11.5], all_faces("#ins", (0, 0, 3, 3))))
+                elements.append(element([x - 0.5, 20, 9.5], [x + 0.5, 22, 10.5], all_faces("#copper", (0, 0, 1, 2))))
+            for i in range(4):
+                lit = i < bars
+                y0 = 4.5 + 2 * i
+                faces = {"north": ("#on" if lit else "#off", [0, 0, 6, 1.25]), "up": ("#off", [0, 0, 6, 0.25]),
+                         "down": ("#off", [0, 0, 6, 0.25]), "east": ("#off", [0, 0, 0.25, 1.25]), "west": ("#off", [0, 0, 0.25, 1.25])}
+                elements.append(element([5, y0, 2.5], [11, y0 + 1.25, 2.75], faces, lit="north" if lit else None))
+            model = {"parent": "block/block", "ambientocclusion": False, "textures": tex, "elements": elements}
+            with open(f"{ASSETS}/models/block/{name}.json", "w") as out:
+                json.dump(model, out, indent=2)
+    variants = {}
+    for facing, y in (("north", 0), ("east", 90), ("south", 180), ("west", 270)):
+        for bars in range(5):
+            for live in ("false", "true"):
+                v = {"model": f"reikotrains:block/substation_{bars}{'_live' if live == 'true' else ''}"}
+                if y:
+                    v["y"] = y
+                variants[f"facing={facing},level={bars},live={live}"] = v
+    with open(f"{ASSETS}/blockstates/substation.json", "w") as out:
+        json.dump({"variants": variants}, out, indent=2)
+
+
 def signals_and_stations():
     signal_textures()
     signal_models()
@@ -889,6 +1033,8 @@ def signals_and_stations():
     sensor_models()
     speed_sign_textures()
     speed_sign_models()
+    catenary_textures()
+    catenary_models()
 
 
 if __name__ == "__main__":

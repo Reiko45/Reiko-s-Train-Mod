@@ -20,6 +20,9 @@ public final class ModCreativeTabs {
                 output.accept(ModItems.SWITCH.get());
                 output.accept(ModItems.TRACK_SENSOR.get());
                 output.accept(ModItems.SPEED_SIGN.get());
+                output.accept(ModItems.CATENARY_MAST.get());
+                output.accept(ModItems.OVERHEAD_WIRE.get());
+                output.accept(ModItems.SUBSTATION.get());
                 output.accept(ModItems.STATION.get());
                 output.accept(ModItems.LEVEL_CROSSING.get());
                 output.accept(ModItems.STEAM_LOCOMOTIVE.get());

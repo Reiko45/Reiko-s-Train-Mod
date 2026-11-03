@@ -272,6 +272,42 @@ def diesel_locomotive():
     return [body]
 
 
+def pantograph(px, base_y, height):
+    """
+    A single-arm pantograph on the roof at x = px, its base on the roof at base_y, reaching up `height` pixels to the
+    contact wire. Two parts, pivoted at its base: raised (the game squashes it down towards the base as it lowers) and
+    folded flat; one shows at a time.
+    """
+    up = Part("panto_up", (px, base_y, 0))
+    down = Part("panto_down", (px, base_y, 0))
+    for part in (up, down):
+        # On four insulators, a frame
+        for x in (-6, 4):
+            for z in (-6, 4):
+                part.boxes.append(box(x, -2, z, x + 2, 0, z + 2, "panto_insulator"))
+        part.boxes.append(box(-7, -3, -6, 7, -2, 6, "panto_base"))
+
+    def arm(boxes, x0, y0, x1, y1):
+        steps = max(1, int(round(max(abs(x1 - x0), abs(y1 - y0)) / 2)))
+        for i in range(steps + 1):
+            x = round(x0 + (x1 - x0) * i / steps)
+            y = round(y0 + (y1 - y0) * i / steps)
+            for z in (-5, 4):
+                boxes.append(box(x - 1, y - 1, z, x + 1, y + 1, z + 1, "panto_arm"))
+
+    knee = (5, -3 - (height - 4) // 2)
+    arm(up.boxes, -5, -4, *knee)
+    arm(up.boxes, knee[0], knee[1], -2, -height + 2)
+    up.boxes.append(box(-3, -height, -10, 1, -height + 1, 10, "panto_head"))
+    for z in (-11, 10):
+        up.boxes.append(box(-3, -height + 1, z, 1, -height + 2, z + 1, "panto_head"))
+    # Folded: the arms lie flat along the frame, the head on top
+    for z in (-5, 4):
+        down.boxes.append(box(-6, -4, z, 7, -3, z + 1, "panto_arm"))
+    down.boxes.append(box(-3, -5, -10, 1, -4, 10, "panto_head"))
+    return [up, down]
+
+
 def electric_locomotive():
     """
     A battery-electric locomotive, seven and a half blocks long: a full-width body with a cab at each end (a yellow
@@ -303,7 +339,7 @@ def electric_locomotive():
     b += mirrored(-2, -30, 15, 2, -26, 16, "socket")
     for x in (-44, -36, 35, 43):
         b += mirrored(x, -38, 15, x + 1, -22, 16, "handrail")
-    return [body]
+    return [body] + pantograph(-23, -51, 21)
 
 
 BULLET_ROWS = [-12, 6, 24, 42]
@@ -369,7 +405,7 @@ def bullet_train():
     b += mirrored(64, -17, 14, 71, -11, 15, "bullet_skirt")
     b += mirrored(-2, -26, 15, 2, -22, 16, "socket")
     b += bullet_seats(BULLET_ROWS)
-    return [body]
+    return [body] + pantograph(30, -46, 26)
 
 
 def bullet_coach():
@@ -1236,6 +1272,27 @@ def ct_plate(t):
     return jitter((60, 62, 66), (t.x, t.y, t.z), 0.04)
 
 
+def panto_arm(t):
+    c = jitter((132, 136, 142), (t.x, t.y, t.z, t.face), 0.05)
+    return shade(c, 0.8) if t.edge else c
+
+
+def panto_base(t):
+    return jitter((52, 54, 60), (t.x, t.y, t.z, t.face), 0.05)
+
+
+def panto_insulator(t):
+    """Brown glazed insulators, in ribs."""
+    return (150, 92, 54) if int(math.floor(t.y)) % 2 == 0 else (118, 70, 40)
+
+
+def panto_head(t):
+    """The collector head: dark, with the bright copper of its contact strip along the top."""
+    if t.face == "down":
+        return jitter((206, 128, 72), (t.x, t.z), 0.06)
+    return jitter((40, 40, 44), (t.x, t.y, t.z), 0.05)
+
+
 STOCK = (124, 84, 50)
 
 
@@ -1397,6 +1454,10 @@ MATERIALS = {
     "bullet_seat": bullet_seat,
     "bullet_console": bullet_console,
     "bellows": bellows,
+    "panto_arm": panto_arm,
+    "panto_base": panto_base,
+    "panto_insulator": panto_insulator,
+    "panto_head": panto_head,
     "ct_deck": ct_deck,
     "ct_sill": ct_sill,
     "ct_rail": ct_rail,
