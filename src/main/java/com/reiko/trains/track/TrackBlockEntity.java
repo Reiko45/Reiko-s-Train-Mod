@@ -78,7 +78,8 @@ public class TrackBlockEntity extends BlockEntity {
             if (connection.ownedBy(worldPosition)) {
                 TrackAxis otherAxis = TrackGraph.axis(level, connection.other());
                 if (otherAxis != null) {
-                    edges.add(new EdgeRef(worldPosition, axis, connection.mySide(), connection.other(), otherAxis, connection.otherSide()));
+                    edges.add(new EdgeRef(worldPosition, axis, connection.mySide(), connection.other(), otherAxis, connection.otherSide(),
+                            getBlockState().getBlock() instanceof StreetTrackBlock, TrackGraph.street(level, connection.other())));
                 }
             }
         }

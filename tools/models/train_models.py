@@ -427,6 +427,116 @@ def bullet_coach():
     return [body]
 
 
+# The vintage tram's trolley pole: its wheel's top is this far along it and above it (pixels), and it's raised so
+# that reaches the contact wire, from its pivot on the clerestory roof.
+TROLLEY_PIVOT_Y = -48
+TROLLEY_TIP = (47, 2.5)
+WIRE_Y = -72
+
+
+def trolley_angle():
+    """The angle (radians) the pole is raised to, for its wheel to touch the wire."""
+    rise = TROLLEY_PIVOT_Y - WIRE_Y
+    lo, hi = 0.0, 1.2
+    for _ in range(60):
+        a = (lo + hi) / 2
+        if TROLLEY_TIP[0] * math.sin(a) + TROLLEY_TIP[1] * math.cos(a) < rise:
+            lo = a
+        else:
+            hi = a
+    return (lo + hi) / 2
+
+
+VT_ROWS = [-24, -8, 8, 24]
+
+
+def vintage_tram():
+    """
+    The vintage tram, seven blocks long: a saloon with six windows a side, red below and cream above, a clerestory along
+    its roof, and at each end an open platform with the driver's controller, a dash with a headlamp, three windows over
+    it, a lifeguard underneath and a destination box on the roof. The trolley pole pivots on the clerestory and is its
+    own part, so it can be raised to the wire and swung round to trail either way. It rides on coach bogies.
+    """
+    body = Part("body")
+    b = body.boxes
+    b.append(box(-52, -14, -11, 52, -10, 11, "frame"))
+    b.append(box(-38, -41, -13, 38, -14, 13, "vt_saloon"))
+    b.append(box(-54, -41, -12, -38, -14, 12, "vt_platform"))
+    b.append(box(38, -41, -12, 54, -14, 12, "vt_platform"))
+    b.append(box(-55, -43, -13, 55, -41, 13, "vt_roof"))
+    b.append(box(-36, -46, -8, 36, -43, 8, "vt_clerestory"))
+    b.append(box(-54, -47, -6, -50, -43, 6, "vt_dest"))
+    b.append(box(50, -47, -6, 54, -43, 6, "vt_dest"))
+    b.append(box(-55, -24, -2, -54, -20, 2, "vt_headlamp"))
+    b.append(box(54, -24, -2, 55, -20, 2, "vt_headlamp"))
+    b.append(box(-57, -12, -10, -53, -7, 10, "vt_fender"))
+    b.append(box(53, -12, -10, 57, -7, 10, "vt_fender"))
+    b.append(box(-53, -25, -3, -50, -14, 1, "vt_controller"))
+    b.append(box(50, -25, -1, 53, -14, 3, "vt_controller"))
+    # The pole's base on the clerestory, and a hook at each end of the roof for it to rest on when it's down
+    b.append(box(-3, -48, -3, 3, -46, 3, "trolley_base"))
+    b.append(box(40, -47, -1, 42, -46, 1, "trolley_base"))
+    b.append(box(-42, -47, -1, -40, -46, 1, "trolley_base"))
+    for c in VT_ROWS:
+        b += mirrored(c - 3, -20, 2, c + 5, -17, 11, "vt_seat")
+        b += mirrored(c + 5, -30, 2, c + 7, -17, 11, "vt_seat")
+    # The trolley pole, lying along +x (trailing off the back) from its pivot; the game raises and turns it
+    pole = Part("trolley", (0, TROLLEY_PIVOT_Y, 0))
+    pole.boxes.append(box(-2, -1.5, -1.5, 4, 0.5, 1.5, "trolley_base"))
+    pole.boxes.append(box(0, -1, -0.5, 46, 0, 0.5, "trolley_pole"))
+    pole.boxes.append(box(45, -2.5, -1, 49, -0.5, 1, "trolley_head"))
+    return [body, pole]
+
+
+LF_DOORS_CAB = [-22]
+LF_DOORS_MID = [-6]
+
+
+def lf_seats(rows):
+    out = []
+    for c in rows:
+        out += mirrored(c - 3, -14, 2, c + 5, -11, 11, "lf_seat")
+        out += mirrored(c + 5, -24, 2, c + 7, -11, 11, "lf_seat")
+    return out
+
+
+def tram_cab():
+    """
+    A driving section of the low-floor tram, five blocks long: its floor a step above the rails, skirts down over the
+    wheels, big windows in a dark band over a green one, a pair of doors, a rounded nose under a raked windscreen and
+    a destination display, equipment pods on the roof, a pantograph over its inner end, and bellows there to join the
+    middle section.
+    """
+    body = Part("body")
+    b = body.boxes
+    b.append(box(-32, -40, -13, 40, -6, 13, "lf_body_cab"))
+    b.append(box(-38, -22, -12, -32, -6, 12, "lf_nose"))
+    b.append(box(-40, -18, -10, -38, -6, 10, "lf_nose"))
+    for x0, top, bottom in ((-38, -28, -22), (-36, -34, -28), (-34, -39, -34)):
+        b.append(box(x0, top, -12, -32, bottom, 12, "lf_screen"))
+    b.append(box(-34, -42, -12, -32, -39, 12, "lf_roof"))
+    b.append(box(-33, -41, -8, -32, -39, 8, "lf_dest"))
+    b.append(box(-32, -42, -12, 40, -40, 12, "lf_roof"))
+    b.append(box(-24, -45, -9, 6, -42, 9, "lf_pod"))
+    b.append(box(40, -38, -11, 41, -8, 11, "bellows"))
+    b.append(box(-32, -16, -6, -30, -8, 6, "bullet_console"))
+    b += lf_seats([-6, 14])
+    return [body] + pantograph(22, -42, 30)
+
+
+def tram_middle():
+    """The low-floor tram's middle section, three and a half blocks: windows, a pair of doors, four seats, bellows each end."""
+    body = Part("body")
+    b = body.boxes
+    b.append(box(-27, -40, -13, 27, -6, 13, "lf_body_mid"))
+    b.append(box(-27, -42, -12, 27, -40, 12, "lf_roof"))
+    b.append(box(-14, -45, -9, 14, -42, 9, "lf_pod"))
+    b.append(box(-28, -38, -11, -27, -8, 11, "bellows"))
+    b.append(box(27, -38, -11, 28, -8, 11, "bellows"))
+    b += lf_seats([-18, 10])
+    return [body]
+
+
 def car_transporter():
     """
     The car transporter, twelve blocks long: a long, low steel deck with a pair of tyre tracks along it, a low yellow
@@ -1230,6 +1340,217 @@ def bellows(t):
     return (36, 36, 40) if int(math.floor(t.y)) % 2 == 0 else (52, 52, 58)
 
 
+VT_RED = (150, 30, 28)
+VT_CREAM = (232, 218, 176)
+VT_GOLD = (212, 172, 74)
+VT_WOOD = (122, 78, 44)
+
+
+def vt_saloon(t):
+    """
+    The saloon: red below the windows with a gold line along it, cream above, six open windows a side between pillars,
+    a red letterboard over them; open at the ends onto the platforms; a wooden floor, and a cream ceiling.
+    """
+    if t.face == "up":
+        return shade(jitter(VT_WOOD, (t.x, t.z), 0.06), 0.85 if int(math.floor(t.z)) % 3 == 0 else 1.0)
+    if t.face == "down":
+        return jitter(VT_CREAM, (t.x, t.z), 0.03)
+    if t.end:
+        return TRANSPARENT
+    y = int(math.floor(t.y))
+    if y >= -27:
+        if y in (-26, -16):
+            return VT_GOLD
+        return jitter(VT_RED, (t.x, t.y, t.z), 0.04)
+    if y < -38:
+        return VT_CREAM if y == -39 else jitter(VT_RED, (t.x, t.y, t.z), 0.04)
+    x = int(math.floor(t.x)) + 36
+    if 0 <= x < 72 and 1 <= x % 12 <= 10 and -37 <= y <= -30:
+        return TRANSPARENT
+    return jitter(VT_CREAM, (t.x, t.y, t.z), 0.03)
+
+
+def vt_platform(t):
+    """
+    An open platform: a red dash below with a gold line round it, three windows over it in front (open), open sides over
+    the dash, a wooden floor; open on the saloon side.
+    """
+    if t.face == "up":
+        return jitter(VT_WOOD, (t.x, t.z), 0.06)
+    if t.face == "down":
+        return jitter(VT_CREAM, (t.x, t.z), 0.03)
+    y = int(math.floor(t.y))
+    if t.end and abs(t.x) < 46:
+        return TRANSPARENT
+    if y >= -27:
+        if y in (-26, -15) or (t.end and int(math.floor(t.z)) in (-11, 10)):
+            return VT_GOLD
+        return jitter(VT_RED, (t.x, t.y, t.z), 0.04)
+    if y < -39:
+        return VT_CREAM
+    if t.end:
+        z = int(math.floor(t.z))
+        if -37 <= y <= -29 and z not in (-12, -11, -4, -3, 3, 4, 10, 11):
+            return TRANSPARENT
+        return VT_CREAM
+    x = abs(int(math.floor(t.x)))
+    if -37 <= y <= -28 and 40 <= x <= 51:
+        return TRANSPARENT
+    return VT_CREAM
+
+
+def vt_roof(t):
+    c = jitter((70, 70, 74), (t.x, t.y, t.z, t.face), 0.04)
+    return shade(c, 0.8) if t.edge else c
+
+
+def vt_clerestory(t):
+    """The clerestory: cream sides with a row of little coloured lights, a grey roof."""
+    if t.face == "down":
+        return jitter((76, 76, 80), (t.x, t.z), 0.04)
+    if t.side and int(math.floor(t.y)) == -45 and int(math.floor(t.x)) % 6 in (1, 2, 3):
+        return (176, 140, 60) if int(math.floor(t.x)) % 12 < 6 else (120, 156, 120)
+    c = jitter(VT_CREAM, (t.x, t.y, t.z, t.face), 0.03)
+    return shade(c, 0.85) if t.edge else c
+
+
+def vt_dest(t):
+    """The destination box: white lettering on black, at the ends."""
+    if t.end and 1 <= t.i < t.fw - 1 and 1 <= t.j < t.fh - 1 and noise("vt_dest", t.z, t.y) > 0.1:
+        return (238, 236, 220)
+    return (24, 24, 26)
+
+
+def vt_headlamp(t):
+    if t.end:
+        return (255, 248, 214) if not t.edge else (60, 60, 64)
+    return (40, 40, 44)
+
+
+def vt_fender(t):
+    """The lifeguard: slatted iron."""
+    c = (44, 44, 48)
+    return shade(c, 1.3) if int(math.floor(t.y)) % 2 == 0 else c
+
+
+def vt_seat(t):
+    c = jitter((150, 98, 52), (t.x, t.y, t.z), 0.05)
+    return shade(c, 0.78) if (int(math.floor(t.z)) % 3 == 0 or t.edge) else c
+
+
+def vt_controller(t):
+    """The controller: a dark iron column with a brass handle on top."""
+    if t.face == "down":
+        return VT_GOLD
+    return jitter((40, 40, 44), (t.x, t.y, t.z), 0.05)
+
+
+def trolley_pole(t):
+    return jitter((38, 38, 42), (t.x, t.y, t.z), 0.05)
+
+
+def trolley_head(t):
+    """The harp and its wheel: brass, the wheel's groove dark on top."""
+    if t.face == "down":
+        return (60, 50, 40)
+    return jitter(VT_GOLD, (t.x, t.y, t.z), 0.05)
+
+
+LF_WHITE = (236, 238, 236)
+LF_GREEN = (20, 140, 96)
+LF_DARK = (34, 36, 40)
+
+
+def lf_body(doors, windows, front_open):
+    """
+    A low-floor tram section's sides: white, a dark window band with the windows open in it, a green band under it, a
+    dark skirt low down, and pairs of sliding doors (glazed, with seams); the floor inside; the ends open onto the
+    nose (the driving section's front) or dark round the gangway.
+    """
+    def paint(t):
+        if t.face == "up":
+            return jitter((96, 98, 104), (t.x, t.z), 0.04)
+        if t.face == "down":
+            return jitter((220, 222, 222), (t.x, t.z), 0.03)
+        if t.end:
+            if front_open and t.face == "west":
+                return TRANSPARENT
+            return (40, 40, 44)
+        x, y = t.x, int(math.floor(t.y))
+        for d in doors:
+            if d <= x < d + 12:
+                if abs(x - (d + 6)) < 0.6 or x < d + 0.6 or x > d + 11.4:
+                    return (24, 24, 28)  # the seams
+                if -36 <= y <= -14:
+                    return shade((52, 66, 82), 1.15) if y == -36 else (52, 66, 82)
+                return jitter(LF_GREEN if y >= -12 else LF_WHITE, (t.x, t.y, t.z), 0.03)
+        if -37 <= y <= -21:
+            for w0, w1 in windows:
+                if w0 <= x < w1 and -36 <= y <= -22:
+                    return TRANSPARENT
+            return LF_DARK
+        if -20 <= y <= -14:
+            return jitter(LF_GREEN, (t.x, t.y, t.z), 0.03)
+        if y >= -9:
+            return jitter((70, 72, 78), (t.x, t.y, t.z), 0.04)
+        return jitter(LF_WHITE, (t.x, t.y, t.z), 0.02)
+    return paint
+
+
+def lf_nose(t):
+    """The nose: white, the green band round it, headlights and a dark bumper in front."""
+    if t.face == "down":
+        return jitter(LF_WHITE, (t.x, t.z), 0.02)
+    if t.face == "up":
+        return (50, 52, 58)
+    y = int(math.floor(t.y))
+    if t.face == "west":
+        if -14 <= y <= -12 and 5 <= abs(t.z) <= 9:
+            return (255, 252, 236)
+        if y >= -9:
+            return (40, 40, 44)
+    if -20 <= y <= -14:
+        return jitter(LF_GREEN, (t.x, t.y, t.z), 0.03)
+    if y >= -9:
+        return jitter((70, 72, 78), (t.x, t.y, t.z), 0.04)
+    return jitter(LF_WHITE, (t.x, t.y, t.z), 0.02)
+
+
+def lf_screen(t):
+    """The raked windscreen, in steps: open glass framed in black in front and on top, tinted at the sides."""
+    if t.face == "up":
+        return LF_DARK
+    if t.face == "down":
+        return TRANSPARENT if abs(t.z) < 11 else LF_DARK
+    if t.side:
+        return shade(GLASS, 1.15) if t.j == 0 else GLASS
+    return TRANSPARENT if abs(t.z) < 11 and 0 < t.j < t.fh - 1 else LF_DARK
+
+
+def lf_roof(t):
+    c = jitter((206, 208, 210), (t.x, t.y, t.z), 0.03)
+    return shade(c, 0.88) if t.edge and t.side else c
+
+
+def lf_pod(t):
+    c = jitter((176, 178, 182), (t.x, t.y, t.z, t.face), 0.03)
+    if t.face == "down" and int(math.floor(t.x)) % 4 == 0:
+        return shade(c, 0.78)
+    return shade(c, 0.85) if t.edge else c
+
+
+def lf_dest(t):
+    """The destination display: orange lights on black."""
+    if t.end and 1 <= t.j < t.fh - 1 and noise("lf_dest", t.z, t.y) > 0.0:
+        return (255, 160, 40)
+    return (20, 20, 22)
+
+
+def lf_seat(t):
+    c = jitter((44, 96, 84), (t.x, t.y, t.z), 0.05)
+    return shade(c, 0.8) if t.edge else c
+
+
 TRANSPORTER_STEEL = (70, 78, 90)
 SAFETY_YELLOW = (232, 190, 40)
 
@@ -1464,6 +1785,26 @@ MATERIALS = {
     "ct_plate": ct_plate,
     "stock_side": stock_side,
     "stock_end": stock_end,
+    "vt_saloon": vt_saloon,
+    "vt_platform": vt_platform,
+    "vt_roof": vt_roof,
+    "vt_clerestory": vt_clerestory,
+    "vt_dest": vt_dest,
+    "vt_headlamp": vt_headlamp,
+    "vt_fender": vt_fender,
+    "vt_seat": vt_seat,
+    "vt_controller": vt_controller,
+    "trolley_base": plain((44, 44, 48)),
+    "trolley_pole": trolley_pole,
+    "trolley_head": trolley_head,
+    "lf_body_cab": lf_body(LF_DOORS_CAB, [(-31, -23), (-8, 6), (8, 22), (24, 38)], True),
+    "lf_body_mid": lf_body(LF_DOORS_MID, [(-26, -8), (8, 26)], False),
+    "lf_nose": lf_nose,
+    "lf_screen": lf_screen,
+    "lf_roof": lf_roof,
+    "lf_pod": lf_pod,
+    "lf_dest": lf_dest,
+    "lf_seat": lf_seat,
     "straw": straw,
 }
 
@@ -1608,6 +1949,16 @@ def main():
     build("bullet_train", "BulletTrainGeometry", bullet_train(), 512)
     build("bullet_coach", "BulletCoachGeometry", bullet_coach(), 512)
     build("car_transporter", "CarTransporterGeometry", car_transporter(), 512)
+    angle = trolley_angle()
+    reach = (TROLLEY_TIP[0] * math.cos(angle) - TROLLEY_TIP[1] * math.sin(angle)) / 16
+    build("vintage_tram", "VintageTramGeometry", vintage_tram(), 512,
+          "    /** The trolley pole is raised this far (radians) for its wheel to touch the wire; down, it rests at a slight angle. */\n"
+          f"    public static final float TROLLEY_ANGLE = {angle:.4f}F;\n"
+          "    public static final float TROLLEY_DOWN = 0.044F;\n"
+          f"    /** Raised, its wheel touches the wire this far (blocks) along the car from the pivot. */\n"
+          f"    public static final float TROLLEY_REACH = {reach:.3f}F;\n")
+    build("tram_cab", "TramCabGeometry", tram_cab(), 512)
+    build("tram_middle", "TramMiddleGeometry", tram_middle(), 256)
     build("tank_wagon", "TankWagonGeometry", tank_wagon(), 512,
           "    /** The gauge's lit quarters, one to four as it fills. */\n"
           '    public static final String[] LEVEL = {"level_0", "level_1", "level_2", "level_3"};\n')

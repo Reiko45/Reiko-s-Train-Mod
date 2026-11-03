@@ -27,6 +27,11 @@ public class TrackItem extends BlockItem {
         super(block, properties);
     }
 
+    /** Whether it's street track: its curves' new ends are set into the road, and street corners can be tighter. */
+    public boolean street() {
+        return false;
+    }
+
     @Override
     public InteractionResult useOn(UseOnContext context) {
         Level level = context.getLevel();
@@ -57,14 +62,15 @@ public class TrackItem extends BlockItem {
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
-        BlockPos end = TrackBuilder.endFor(level, clicked, context.getClickedFace());
-        TrackBuilder.Plan plan = TrackBuilder.plan(level, start, end, player.getLookAngle(), player.isSecondaryUseActive());
+        BlockPos end = TrackBuilder.endFor(level, clicked, context.getClickedFace(), street());
+        TrackBuilder.Plan plan = TrackBuilder.plan(level, start, end, player.getLookAngle(), player.isSecondaryUseActive(), street());
         if (!plan.ok()) {
             player.displayClientMessage(plan.problem().copy().withStyle(ChatFormatting.RED), true);
             return InteractionResult.FAIL;
         }
-        if (!player.getAbilities().instabuild && TrackBuilder.carried(player) < plan.cost()) {
-            player.displayClientMessage(Component.translatable("message.reikotrains.track.need", plan.cost()).withStyle(ChatFormatting.RED), true);
+        if (!player.getAbilities().instabuild && TrackBuilder.carried(player, plan.payItem()) < plan.cost()) {
+            player.displayClientMessage(Component.translatable("message.reikotrains.track.need", plan.cost(), plan.payItem().getDescription())
+                    .withStyle(ChatFormatting.RED), true);
             return InteractionResult.FAIL;
         }
         stack.remove(ModDataComponents.TRACK_START.get());
@@ -95,7 +101,7 @@ public class TrackItem extends BlockItem {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("item.reikotrains.track.tooltip").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("item.reikotrains.track.tooltip2").withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.translatable(getDescriptionId() + ".tooltip").withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.translatable(getDescriptionId() + ".tooltip2").withStyle(ChatFormatting.GRAY));
     }
 }

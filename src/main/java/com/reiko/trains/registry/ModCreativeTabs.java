@@ -16,6 +16,7 @@ public final class ModCreativeTabs {
             .icon(() -> new ItemStack(ModItems.STEAM_LOCOMOTIVE.get()))
             .displayItems((parameters, output) -> {
                 output.accept(ModItems.TRACK.get());
+                output.accept(ModItems.STREET_TRACK.get());
                 output.accept(ModItems.SIGNAL.get());
                 output.accept(ModItems.SWITCH.get());
                 output.accept(ModItems.TRACK_SENSOR.get());
@@ -32,6 +33,8 @@ public final class ModCreativeTabs {
                 output.accept(ModItems.ELECTRIC_LOCOMOTIVE.get());
                 output.accept(ModItems.BULLET_TRAIN.get());
                 output.accept(ModItems.BULLET_COACH.get());
+                output.accept(ModItems.VINTAGE_TRAM.get());
+                output.accept(ModItems.LOW_FLOOR_TRAM.get());
                 output.accept(ModItems.PASSENGER_COACH.get());
                 output.accept(ModItems.FREIGHT_WAGON.get());
                 output.accept(ModItems.TANK_WAGON.get());

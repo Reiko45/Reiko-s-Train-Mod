@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "T": {
+      "item": "reikotrains:track"
+    },
+    "S": {
+      "item": "minecraft:stone"
+    },
+    "C": {
+      "tag": "minecraft:coals"
+    }
+  },
+  "pattern": [
+    "TTT",
+    "SCS",
+    "SSS"
+  ],
+  "result": {
+    "count": 6,
+    "id": "reikotrains:street_track"
+  }
+}

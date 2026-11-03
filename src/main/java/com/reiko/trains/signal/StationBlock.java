@@ -80,7 +80,7 @@ public class StationBlock extends HorizontalDirectionalBlock implements EntityBl
 
     /** The board faces the track (its front towards it), so it's read from the train. */
     private static Direction facingTrack(BlockPos pos, BlockPos track, @Nullable Player player) {
-        Vec3 toTrack = TrackEdge.node(track).subtract(Vec3.atCenterOf(pos));
+        Vec3 toTrack = TrackEdge.node(track, false).subtract(Vec3.atCenterOf(pos));
         if (toTrack.horizontalDistanceSqr() < 0.01) {
             return player != null ? player.getDirection().getOpposite() : Direction.NORTH;
         }

@@ -81,7 +81,7 @@ public class SwitchBlock extends HorizontalDirectionalBlock implements EntityBlo
 
     /** The stand's lever moves along the track; it faces the junction it works. */
     public static Direction facing(TrackSide.Junction junction, BlockPos pos) {
-        Vec3 toTrack = TrackEdge.node(junction.node()).subtract(Vec3.atCenterOf(pos));
+        Vec3 toTrack = TrackEdge.node(junction.node(), false).subtract(Vec3.atCenterOf(pos));
         return toTrack.horizontalDistanceSqr() < 0.01 ? Direction.NORTH : TrackSide.nearestDirection(toTrack);
     }
 

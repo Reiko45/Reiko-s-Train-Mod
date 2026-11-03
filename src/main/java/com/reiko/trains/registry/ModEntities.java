@@ -38,6 +38,12 @@ public final class ModEntities {
             EntityType.Builder.<BulletTrain>of(BulletTrain::new, MobCategory.MISC));
     public static final Supplier<EntityType<BulletCoach>> BULLET_COACH = register("bullet_coach",
             EntityType.Builder.<BulletCoach>of(BulletCoach::new, MobCategory.MISC));
+    public static final Supplier<EntityType<com.reiko.trains.train.VintageTram>> VINTAGE_TRAM = register("vintage_tram",
+            EntityType.Builder.<com.reiko.trains.train.VintageTram>of(com.reiko.trains.train.VintageTram::new, MobCategory.MISC));
+    public static final Supplier<EntityType<com.reiko.trains.train.TramCab>> TRAM_CAB = register("tram_cab",
+            EntityType.Builder.<com.reiko.trains.train.TramCab>of(com.reiko.trains.train.TramCab::new, MobCategory.MISC));
+    public static final Supplier<EntityType<com.reiko.trains.train.TramMiddle>> TRAM_MIDDLE = register("tram_middle",
+            EntityType.Builder.<com.reiko.trains.train.TramMiddle>of(com.reiko.trains.train.TramMiddle::new, MobCategory.MISC));
     public static final Supplier<EntityType<CarTransporter>> CAR_TRANSPORTER = register("car_transporter",
             EntityType.Builder.<CarTransporter>of(CarTransporter::new, MobCategory.MISC));
     public static final Supplier<EntityType<Tender>> TENDER = register("tender",

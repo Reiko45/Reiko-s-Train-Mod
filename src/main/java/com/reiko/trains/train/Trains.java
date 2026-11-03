@@ -74,7 +74,7 @@ public final class Trains {
      * that work with it there: wagon loaders, charging points. Empty if there's none.
      */
     public static List<TrainCarEntity> standingAt(Level level, net.minecraft.core.BlockPos node) {
-        Vec3 at = TrackEdge.node(node);
+        Vec3 at = com.reiko.trains.track.TrackGraph.point(level, node);
         for (TrainCarEntity car : loadedCars(level)) {
             if (!car.isOnTrack() || Math.abs(car.trainSpeed()) > 0.005) {
                 continue;
@@ -95,7 +95,7 @@ public final class Trains {
      * buffer, is alongside it). Empty if there's none.
      */
     public static List<TrainCarEntity> over(Level level, net.minecraft.core.BlockPos node) {
-        Vec3 at = TrackEdge.node(node);
+        Vec3 at = com.reiko.trains.track.TrackGraph.point(level, node);
         for (TrainCarEntity car : loadedCars(level)) {
             if (!car.isOnTrack() || car.isRemoved()) {
                 continue;

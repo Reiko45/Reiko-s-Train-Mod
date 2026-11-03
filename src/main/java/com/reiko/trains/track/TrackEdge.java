@@ -11,6 +11,8 @@ import net.minecraft.world.phys.Vec3;
 public final class TrackEdge {
     /** How high the rail tops are above the bottom of a track block. */
     public static final double RAIL_HEIGHT = 0.25;
+    /** ... and of a street track block: right at its top, level with the road. */
+    public static final double STREET_RAIL_HEIGHT = 1.0;
     /** How far out each end's handle reaches, as a share of the distance between the ends. 0.39 makes a 90° bend a good circular arc. */
     private static final double HANDLE = 0.39;
 
@@ -51,13 +53,14 @@ public final class TrackEdge {
         this.length = total;
     }
 
-    /** The middle of the rail tops of a track block. */
-    public static Vec3 node(BlockPos pos) {
-        return new Vec3(pos.getX() + 0.5, pos.getY() + RAIL_HEIGHT, pos.getZ() + 0.5);
+    /** The middle of the rail tops of a track block (or a street track block). */
+    public static Vec3 node(BlockPos pos, boolean street) {
+        return new Vec3(pos.getX() + 0.5, pos.getY() + (street ? STREET_RAIL_HEIGHT : RAIL_HEIGHT), pos.getZ() + 0.5);
     }
 
-    public static TrackEdge between(BlockPos from, TrackAxis fromAxis, int fromSide, BlockPos to, TrackAxis toAxis, int toSide) {
-        return new TrackEdge(node(from), fromAxis.out(fromSide), node(to), toAxis.out(toSide));
+    public static TrackEdge between(BlockPos from, TrackAxis fromAxis, int fromSide, BlockPos to, TrackAxis toAxis, int toSide,
+                                    boolean fromStreet, boolean toStreet) {
+        return new TrackEdge(node(from, fromStreet), fromAxis.out(fromSide), node(to, toStreet), toAxis.out(toSide));
     }
 
     public double length() {

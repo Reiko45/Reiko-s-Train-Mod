@@ -41,10 +41,12 @@ public final class TrackPreview {
             return null;
         }
         BlockPos start = null;
+        boolean street = false;
         for (InteractionHand hand : InteractionHand.values()) {
             ItemStack stack = player.getItemInHand(hand);
-            if (stack.getItem() instanceof TrackItem && stack.has(ModDataComponents.TRACK_START.get())) {
+            if (stack.getItem() instanceof TrackItem track && stack.has(ModDataComponents.TRACK_START.get())) {
                 start = stack.get(ModDataComponents.TRACK_START.get());
+                street = track.street();
                 break;
             }
         }
@@ -52,8 +54,8 @@ public final class TrackPreview {
                 || hit.getBlockPos().equals(start)) {
             return null;
         }
-        BlockPos end = TrackBuilder.endFor(minecraft.level, hit.getBlockPos(), hit.getDirection());
-        return TrackBuilder.plan(minecraft.level, start, end, player.getLookAngle(), player.isShiftKeyDown());
+        BlockPos end = TrackBuilder.endFor(minecraft.level, hit.getBlockPos(), hit.getDirection(), street);
+        return TrackBuilder.plan(minecraft.level, start, end, player.getLookAngle(), player.isShiftKeyDown(), street);
     }
 
     /** Client tick: what the curve would be, on the action bar. */

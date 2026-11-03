@@ -15,12 +15,19 @@ record Drive(int direction, @Nullable TrackPos.Chooser chooser, double limit, bo
 
     /** Deceleration used for stopping at signals and stations, blocks per tick per tick. */
     static final double SERVICE_BRAKE = 0.006;
+    /** ... and for a tram, which brakes harder, as it has to in the street. */
+    static final double TRAM_BRAKE = 0.014;
 
     /** The fastest a train can go and still stop within {@code distance} blocks, braking normally. */
     static double stoppingSpeed(double distance) {
+        return stoppingSpeed(distance, SERVICE_BRAKE);
+    }
+
+    /** The fastest a train braking at {@code brake} can go and still stop within {@code distance} blocks. */
+    static double stoppingSpeed(double distance, double brake) {
         if (distance <= 0.03) {
             return 0;
         }
-        return Math.min(Math.sqrt(2 * SERVICE_BRAKE * distance), distance);
+        return Math.min(Math.sqrt(2 * brake * distance), distance);
     }
 }

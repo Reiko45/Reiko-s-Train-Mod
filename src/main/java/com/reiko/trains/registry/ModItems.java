@@ -16,6 +16,8 @@ public final class ModItems {
 
     public static final DeferredItem<TrackItem> TRACK = ITEMS.register("track",
             () -> new TrackItem(ModBlocks.TRACK.get(), new Item.Properties()));
+    public static final DeferredItem<com.reiko.trains.track.StreetTrackItem> STREET_TRACK = ITEMS.register("street_track",
+            () -> new com.reiko.trains.track.StreetTrackItem(ModBlocks.STREET_TRACK.get(), new Item.Properties()));
     public static final DeferredItem<TrainCarItem> STEAM_LOCOMOTIVE = ITEMS.register("steam_locomotive",
             () -> new TrainCarItem(ModEntities.STEAM_LOCOMOTIVE, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<TrainCarItem> PASSENGER_COACH = ITEMS.register("passenger_coach",
@@ -30,6 +32,10 @@ public final class ModItems {
             () -> new TrainCarItem(ModEntities.BULLET_TRAIN, new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
     public static final DeferredItem<TrainCarItem> BULLET_COACH = ITEMS.register("bullet_coach",
             () -> new TrainCarItem(ModEntities.BULLET_COACH, new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
+    public static final DeferredItem<TrainCarItem> VINTAGE_TRAM = ITEMS.register("vintage_tram",
+            () -> new TrainCarItem(ModEntities.VINTAGE_TRAM, new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<com.reiko.trains.item.LowFloorTramItem> LOW_FLOOR_TRAM = ITEMS.register("low_floor_tram",
+            () -> new com.reiko.trains.item.LowFloorTramItem(new Item.Properties().stacksTo(1)));
     public static final DeferredItem<TrainCarItem> CAR_TRANSPORTER = ITEMS.register("car_transporter",
             () -> new TrainCarItem(ModEntities.CAR_TRANSPORTER, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<TrainCarItem> TENDER = ITEMS.register("tender",

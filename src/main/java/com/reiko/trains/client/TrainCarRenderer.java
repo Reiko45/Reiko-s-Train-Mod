@@ -65,6 +65,11 @@ public class TrainCarRenderer<T extends TrainCarEntity> extends EntityRenderer<T
         poseStack.scale(-1.0F, -1.0F, 1.0F);
         body.setup(rolled, load);
         body.pantograph(car instanceof com.reiko.trains.train.ElectricLocomotive electric ? electric.pantograph(partialTick) : 0.0F);
+        if (car instanceof com.reiko.trains.train.VintageTram tram) {
+            float raised = tram.pantograph(partialTick);
+            body.trolley(net.minecraft.util.Mth.lerp(raised, com.reiko.trains.client.model.geometry.VintageTramGeometry.TROLLEY_DOWN,
+                    com.reiko.trains.client.model.geometry.VintageTramGeometry.TROLLEY_ANGLE), tram.poleTurn(partialTick));
+        }
         VertexConsumer consumer = buffers.getBuffer(RenderType.entityCutoutNoCull(texture));
         body.render(poseStack, consumer, light, OverlayTexture.NO_OVERLAY);
         poseStack.popPose();

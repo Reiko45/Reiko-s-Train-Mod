@@ -12,8 +12,21 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.vehicle.VehicleEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.entity.PartEntity;
 
 /**
  * What's on the track ahead of a train, measured from its leading buffer: the next signal (and whether it's clear),
@@ -47,7 +60,42 @@ final class Lookahead {
     boolean endOfLine;
     double endDistance = Double.POSITIVE_INFINITY;
 
+    /** For a tram ({@link StreetRunning}): where it has to stop short of something on the track ahead (infinite if nothing). */
+    double obstacleStop = Double.POSITIVE_INFINITY;
+    /** ... and for a red traffic light beside the line (Reiko's Car Mod's), facing it. */
+    double lightStop = Double.POSITIVE_INFINITY;
+    /** How hard it brakes to stop for them all: a tram brakes harder than a train. */
+    double brake = Drive.SERVICE_BRAKE;
+
+    /** How far short of something on the track a tram stops, and of a traffic light. */
+    static final double OBSTACLE_MARGIN = 1.0;
+    static final double LIGHT_MARGIN = 1.5;
+    /** How far a tram looks for things on the track: at least this far, more going fast, up to {@link #STREET_RANGE}. */
+    static final double STREET_MIN_RANGE = 16;
+    static final double STREET_RANGE = 48;
+    /** How far to the side of the track (blocks) a traffic light can be and still be for the tram. */
+    static final double LIGHT_REACH = 6.5;
+    /** Half the width of track a tram keeps clear, and how high. */
+    static final double CLEARANCE = 1.05;
+    static final double CLEARANCE_HEIGHT = 2.4;
+    private static final ResourceLocation TRAFFIC_LIGHT = ResourceLocation.fromNamespaceAndPath("reikocars", "traffic_light");
+
     private Lookahead() {
+    }
+
+    /** Whether a train keeps to street rules: it has a tram in it. */
+    static boolean streetRunning(List<TrainCarEntity> cars) {
+        for (TrainCarEntity car : cars) {
+            if (car instanceof StreetRunning) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Where a train has to stop for anything at all ahead (a red signal or light, something on the track), or infinity. */
+    double stopFor() {
+        return Math.min(signalStop, Math.min(lightStop, obstacleStop));
     }
 
     /** A speed sign the train's coming to: where it is, how far ahead, and its limit (infinite at an end of limit). */
@@ -124,7 +172,148 @@ final class Lookahead {
             look.endOfLine = true;
             look.endDistance = end.distance() - overhang;
         }
+        if (streetRunning(cars)) {
+            look.brake = Drive.TRAM_BRAKE;
+            look.streetRules(cars, bogie, carDirection, overhang, chooser, Math.abs(speed));
+        }
         return look;
+    }
+
+    /** A point on the track ahead: how far from the leading buffer, where, and which way the track runs there. */
+    private record Sample(double buffer, Vec3 at, Vec3 heading) {
+    }
+
+    /**
+     * A tram's look along the track ahead, as far as it takes to stop and a bit: the first thing on the track in its
+     * way (a person, an animal, a car or boat, another train), and the first red traffic light beside the line facing
+     * it (or an amber one it can stop for).
+     */
+    private void streetRules(List<TrainCarEntity> cars, TrackPos bogie, int carDirection, double overhang, TrackPos.Chooser chooser, double speed) {
+        Level level = cars.getFirst().level();
+        double reach = Math.min(STREET_RANGE, Math.max(STREET_MIN_RANGE, speed * speed / (2 * Drive.TRAM_BRAKE) + 10));
+        List<Sample> samples = new ArrayList<>();
+        TrackPos probe = bogie.copy();
+        // From the leading buffer on, every half block.
+        double buffer = -overhang;
+        double step = overhang;
+        while (buffer <= reach) {
+            if (step > 0 && probe.walk(level, carDirection * step, chooser) < step - 1.0E-6) {
+                break;
+            }
+            buffer += step;
+            step = 0.5;
+            samples.add(new Sample(buffer, probe.position(), probe.facing().scale(carDirection)));
+        }
+        if (samples.isEmpty()) {
+            return;
+        }
+        AABB around = null;
+        for (Sample sample : samples) {
+            AABB box = clearance(sample.at());
+            around = around == null ? box : around.minmax(box);
+        }
+        for (Entity entity : level.getEntities((Entity) null, around, e -> inTheWay(e, cars))) {
+            AABB body = entity.getBoundingBox();
+            for (Sample sample : samples) {
+                if (sample.buffer() - OBSTACLE_MARGIN >= obstacleStop) {
+                    break;
+                }
+                if (clearance(sample.at()).intersects(body)) {
+                    obstacleStop = Math.max(0, sample.buffer() - OBSTACLE_MARGIN);
+                    break;
+                }
+            }
+        }
+        lights(level, samples, around.inflate(LIGHT_REACH, 4, LIGHT_REACH), speed);
+    }
+
+    private static AABB clearance(Vec3 at) {
+        return new AABB(at.x - CLEARANCE, at.y + 0.05, at.z - CLEARANCE, at.x + CLEARANCE, at.y + CLEARANCE_HEIGHT, at.z + CLEARANCE);
+    }
+
+    /** What a tram stops for: people and animals, cars and boats, and other trains (not its own, or anyone riding). */
+    private static boolean inTheWay(Entity entity, List<TrainCarEntity> cars) {
+        if (!entity.isAlive() || entity.isSpectator() || entity.isPassenger()) {
+            return false;
+        }
+        if (entity instanceof PartEntity<?> part) {
+            return part.getParent() instanceof TrainCarEntity car && !cars.contains(car);
+        }
+        if (entity instanceof TrainCarEntity car) {
+            return !cars.contains(car);
+        }
+        return entity instanceof LivingEntity || entity instanceof VehicleEntity;
+    }
+
+    /**
+     * Traffic lights (Reiko's Car Mod's) beside the track ahead and facing the tram: it stops short of a red one, and of
+     * an amber one if it can stop in time. They show on the gauges like a signal.
+     */
+    private void lights(Level level, List<Sample> samples, AABB area, double speed) {
+        BlockEntityType<?> type = BuiltInRegistries.BLOCK_ENTITY_TYPE.get(TRAFFIC_LIGHT);
+        if (type == null) {
+            return;
+        }
+        for (int cx = ((int) Math.floor(area.minX)) >> 4; cx <= ((int) Math.floor(area.maxX)) >> 4; cx++) {
+            for (int cz = ((int) Math.floor(area.minZ)) >> 4; cz <= ((int) Math.floor(area.maxZ)) >> 4; cz++) {
+                if (!(level.getChunkSource().getChunkNow(cx, cz) instanceof LevelChunk chunk)) {
+                    continue;
+                }
+                for (BlockEntity entity : chunk.getBlockEntities().values()) {
+                    if (entity.getType() == type && area.contains(Vec3.atCenterOf(entity.getBlockPos()))) {
+                        light(entity.getBlockPos(), entity.getBlockState(), samples, speed);
+                    }
+                }
+            }
+        }
+    }
+
+    private void light(BlockPos pos, BlockState state, List<Sample> samples, double speed) {
+        Direction facing = null;
+        String shows = null;
+        for (Property<?> property : state.getProperties()) {
+            if (property.getName().equals("facing") && state.getValue(property) instanceof Direction direction) {
+                facing = direction;
+            } else if (property.getName().equals("signal")) {
+                shows = valueName(state, property);
+            }
+        }
+        if (facing == null || shows == null || shows.equals("green")) {
+            return;
+        }
+        Vec3 at = Vec3.atCenterOf(pos);
+        Sample nearest = null;
+        double best = LIGHT_REACH;
+        for (Sample sample : samples) {
+            double dx = at.x - sample.at().x;
+            double dz = at.z - sample.at().z;
+            double flat = Math.sqrt(dx * dx + dz * dz);
+            double up = at.y - sample.at().y;
+            if (flat < best && up > -1.5 && up < 7) {
+                best = flat;
+                nearest = sample;
+            }
+        }
+        // It has to face the tram coming (its face towards it), and be ahead of it.
+        if (nearest == null || facing.getStepX() * nearest.heading().x + facing.getStepZ() * nearest.heading().z > -0.5) {
+            return;
+        }
+        double stop = nearest.buffer() - LIGHT_MARGIN;
+        if (stop < -0.3) {
+            return;
+        }
+        if (shows.equals("yellow") && speed > Drive.stoppingSpeed(Math.max(0, stop), Drive.TRAM_BRAKE) + 0.02) {
+            return; // too close to stop for it: on through
+        }
+        lightStop = Math.min(lightStop, Math.max(0, stop));
+        if (signalDistance < 0 || nearest.buffer() < signalDistance) {
+            signalDistance = Math.max(0, nearest.buffer());
+            signalClear = false;
+        }
+    }
+
+    private static <T extends Comparable<T>> String valueName(BlockState state, Property<T> property) {
+        return property.getName(state.getValue(property));
     }
 
     /** Which way {@code way} goes, of these: -1 bending left, 0 the straightest, +1 bending right. */

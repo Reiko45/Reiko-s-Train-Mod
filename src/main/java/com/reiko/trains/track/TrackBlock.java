@@ -103,6 +103,14 @@ public class TrackBlock extends Block implements EntityBlock {
         return new TrackBlockEntity(pos, state);
     }
 
+    private static void drop(Level level, BlockPos pos, net.minecraft.world.item.Item item, int amount) {
+        while (amount > 0) {
+            int count = Math.min(64, amount);
+            Containers.dropItemStack(level, pos.getX() + 0.5, pos.getY() + 0.3, pos.getZ() + 0.5, new ItemStack(item, count));
+            amount -= count;
+        }
+    }
+
     /** Track blocks being broken by players in creative mode, whose curves shouldn't drop anything. */
     private static final java.util.Set<BlockPos> CREATIVE_BREAKS = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
@@ -124,23 +132,29 @@ public class TrackBlock extends Block implements EntityBlock {
         if (!state.is(newState.getBlock()) && level instanceof ServerLevel serverLevel
                 && level.getBlockEntity(pos) instanceof TrackBlockEntity track) {
             TrackAxis axis = state.getValue(AXIS);
+            boolean street = this instanceof StreetTrackBlock;
             int refund = 0;
+            int streetRefund = 0;
             for (TrackConnection connection : List.copyOf(track.connections())) {
                 TrackAxis otherAxis = TrackGraph.axis(level, connection.other());
                 if (otherAxis != null) {
-                    refund += TrackBuilder.cost(new EdgeRef(pos, axis, connection.mySide(), connection.other(), otherAxis,
-                            connection.otherSide()).geometry());
+                    boolean otherStreet = TrackGraph.street(level, connection.other());
+                    int cost = TrackBuilder.cost(new EdgeRef(pos, axis, connection.mySide(), connection.other(), otherAxis,
+                            connection.otherSide(), street, otherStreet).geometry());
+                    // Street track between street track blocks was laid with street track, and gives it back.
+                    if (street && otherStreet) {
+                        streetRefund += cost;
+                    } else {
+                        refund += cost;
+                    }
                 }
                 if (level.getBlockEntity(connection.other()) instanceof TrackBlockEntity other) {
                     other.remove(new TrackConnection(pos, connection.otherSide(), connection.mySide()));
                 }
             }
-            if (refund > 0 && !creative && serverLevel.getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_DOBLOCKDROPS)) {
-                while (refund > 0) {
-                    int count = Math.min(64, refund);
-                    Containers.dropItemStack(level, pos.getX() + 0.5, pos.getY() + 0.3, pos.getZ() + 0.5, new ItemStack(ModItems.TRACK.get(), count));
-                    refund -= count;
-                }
+            if (!creative && serverLevel.getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_DOBLOCKDROPS)) {
+                drop(level, pos, ModItems.TRACK.get(), refund);
+                drop(level, pos, ModItems.STREET_TRACK.get(), streetRefund);
             }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);

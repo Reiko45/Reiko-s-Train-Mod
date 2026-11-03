@@ -74,7 +74,7 @@ public class WagonLoaderBlock extends HorizontalDirectionalBlock implements Enti
 
     /** Its chute faces the track. */
     public static Direction facing(BlockPos pos, BlockPos track, @Nullable Player player) {
-        Vec3 toTrack = TrackEdge.node(track).subtract(Vec3.atCenterOf(pos));
+        Vec3 toTrack = TrackEdge.node(track, false).subtract(Vec3.atCenterOf(pos));
         if (toTrack.horizontalDistanceSqr() < 0.01) {
             return player != null ? player.getDirection().getOpposite() : Direction.NORTH;
         }

@@ -11,6 +11,7 @@
     "reikotrains:track_sensor",
     "reikotrains:speed_sign",
     "reikotrains:catenary_mast",
-    "reikotrains:substation"
+    "reikotrains:substation",
+    "reikotrains:street_track"
   ]
 }

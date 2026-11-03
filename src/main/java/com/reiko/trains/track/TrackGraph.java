@@ -32,7 +32,8 @@ public final class TrackGraph {
         synchronized (SHAPES) {
             TrackEdge shape = SHAPES.get(edge);
             if (shape == null) {
-                shape = TrackEdge.between(edge.from(), edge.fromAxis(), edge.fromSide(), edge.to(), edge.toAxis(), edge.toSide());
+                shape = TrackEdge.between(edge.from(), edge.fromAxis(), edge.fromSide(), edge.to(), edge.toAxis(), edge.toSide(),
+                        edge.fromStreet(), edge.toStreet());
                 SHAPES.put(edge, shape);
             }
             return shape;
@@ -49,6 +50,16 @@ public final class TrackGraph {
         return state.getBlock() instanceof TrackBlock ? state.getValue(TrackBlock.AXIS) : null;
     }
 
+    /** Whether the track block here is street track (and so its rails are at the top of the block). */
+    public static boolean street(Level level, BlockPos pos) {
+        return level.isLoaded(pos) && level.getBlockState(pos).getBlock() instanceof StreetTrackBlock;
+    }
+
+    /** The middle of the rail tops of the track block here. */
+    public static Vec3 point(Level level, BlockPos pos) {
+        return TrackEdge.node(pos, street(level, pos));
+    }
+
     /** Every stretch of track leaving this block by this side. */
     public static List<EdgeRef> edgesFrom(Level level, BlockPos node, int side) {
         TrackAxis axis = axis(level, node);
@@ -56,16 +67,18 @@ public final class TrackGraph {
             return List.of();
         }
         List<EdgeRef> edges = new ArrayList<>(2);
+        boolean street = street(level, node);
         BlockPos next = node.offset(side * axis.dx, 0, side * axis.dz);
         if (axis(level, next) == axis) {
-            edges.add(new EdgeRef(node, axis, side, next, axis, -side));
+            edges.add(new EdgeRef(node, axis, side, next, axis, -side, street, street(level, next)));
         }
         if (level.getBlockEntity(node) instanceof TrackBlockEntity track) {
             for (TrackConnection connection : track.connections()) {
                 if (connection.mySide() == side) {
                     TrackAxis otherAxis = axis(level, connection.other());
                     if (otherAxis != null) {
-                        edges.add(new EdgeRef(node, axis, side, connection.other(), otherAxis, connection.otherSide()));
+                        edges.add(new EdgeRef(node, axis, side, connection.other(), otherAxis, connection.otherSide(), street,
+                                street(level, connection.other())));
                     }
                 }
             }
@@ -75,7 +88,8 @@ public final class TrackGraph {
 
     /** Whether this stretch of track is still there. */
     public static boolean exists(Level level, EdgeRef edge) {
-        if (axis(level, edge.from()) != edge.fromAxis() || axis(level, edge.to()) != edge.toAxis()) {
+        if (axis(level, edge.from()) != edge.fromAxis() || axis(level, edge.to()) != edge.toAxis()
+                || street(level, edge.from()) != edge.fromStreet() || street(level, edge.to()) != edge.toStreet()) {
             return false;
         }
         BlockPos next = edge.from().offset(edge.fromSide() * edge.fromAxis().dx, 0, edge.fromSide() * edge.fromAxis().dz);

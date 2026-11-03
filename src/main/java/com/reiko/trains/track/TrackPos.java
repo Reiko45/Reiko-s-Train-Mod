@@ -27,6 +27,11 @@ public final class TrackPos {
         return new TrackPos(edge, distance, facingAlong);
     }
 
+    /** The same place, facing the other way. */
+    public TrackPos turned() {
+        return new TrackPos(edge, distance, !facingAlong);
+    }
+
     public EdgeRef edge() {
         return edge;
     }

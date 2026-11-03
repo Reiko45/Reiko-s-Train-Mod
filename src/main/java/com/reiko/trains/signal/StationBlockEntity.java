@@ -118,7 +118,7 @@ public class StationBlockEntity extends BlockEntity {
         if (!isAttached()) {
             return false;
         }
-        Vec3 at = TrackEdge.node(node);
+        Vec3 at = com.reiko.trains.track.TrackGraph.point(level, node);
         for (TrainCarEntity car : Trains.loadedCars(level)) {
             if (!car.isOnTrack() || Math.abs(car.trainSpeed()) > 0.005) {
                 continue;

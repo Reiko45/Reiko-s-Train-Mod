@@ -18,6 +18,8 @@ public final class ModSounds {
     public static final Supplier<SoundEvent> ELECTRIC_HORN = register("electric_horn");
     public static final Supplier<SoundEvent> ELECTRIC_MOTOR = register("electric_motor");
     public static final Supplier<SoundEvent> BULLET_HORN = register("bullet_horn");
+    public static final Supplier<SoundEvent> TRAM_BELL = register("tram_bell");
+    public static final Supplier<SoundEvent> TRAM_CHIME = register("tram_chime");
 
     private ModSounds() {
     }

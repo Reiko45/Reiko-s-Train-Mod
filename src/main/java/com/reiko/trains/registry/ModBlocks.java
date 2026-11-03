@@ -22,6 +22,9 @@ public final class ModBlocks {
 
     public static final DeferredBlock<TrackBlock> TRACK = BLOCKS.register("track", () -> new TrackBlock(BlockBehaviour.Properties.of()
             .noCollission().strength(0.7F).sound(SoundType.METAL).pushReaction(PushReaction.BLOCK).noOcclusion()));
+    public static final DeferredBlock<com.reiko.trains.track.StreetTrackBlock> STREET_TRACK = BLOCKS.register("street_track",
+            () -> new com.reiko.trains.track.StreetTrackBlock(BlockBehaviour.Properties.of().strength(1.5F, 6.0F).sound(SoundType.STONE)
+                    .requiresCorrectToolForDrops().pushReaction(PushReaction.BLOCK).mapColor(net.minecraft.world.level.material.MapColor.COLOR_GRAY)));
 
     public static final DeferredBlock<SignalBlock> SIGNAL = BLOCKS.register("signal", () -> new SignalBlock(BlockBehaviour.Properties.of()
             .strength(1.5F).sound(SoundType.METAL).noOcclusion().lightLevel(state -> 5).pushReaction(PushReaction.BLOCK)));

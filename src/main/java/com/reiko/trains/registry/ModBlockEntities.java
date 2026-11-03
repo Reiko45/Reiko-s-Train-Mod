@@ -20,7 +20,7 @@ public final class ModBlockEntities {
 
     @SuppressWarnings("DataFlowIssue")
     public static final Supplier<BlockEntityType<TrackBlockEntity>> TRACK = BLOCK_ENTITIES.register("track",
-            () -> BlockEntityType.Builder.of(TrackBlockEntity::new, ModBlocks.TRACK.get()).build(null));
+            () -> BlockEntityType.Builder.of(TrackBlockEntity::new, ModBlocks.TRACK.get(), ModBlocks.STREET_TRACK.get()).build(null));
 
     @SuppressWarnings("DataFlowIssue")
     public static final Supplier<BlockEntityType<SignalBlockEntity>> SIGNAL = BLOCK_ENTITIES.register("signal",

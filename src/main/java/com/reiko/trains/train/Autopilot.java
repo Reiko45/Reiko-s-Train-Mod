@@ -113,7 +113,7 @@ public final class Autopilot {
             return Component.translatable("hud.reikotrains.auto.at", stop.name(), (timer + 19) / 20);
         }
         if (waitingAtSignal) {
-            return Component.translatable("hud.reikotrains.auto.signal");
+            return Component.translatable(waitingFor);
         }
         if (!loco.hasPower()) {
             return Component.translatable(loco.noPowerStatus());
@@ -122,6 +122,9 @@ public final class Autopilot {
     }
 
     private boolean waitingAtSignal;
+    /** What it's waiting for, when it is: a red signal, a red traffic light, or something on the track. */
+    private String waitingFor = "hud.reikotrains.auto.signal";
+    private int ringing;
     /** While it's standing at a station: what a wagon loader's doing with the train, if anything. */
     @Nullable
     private LoaderMode loading;
@@ -212,11 +215,22 @@ public final class Autopilot {
         Trains.Ahead waiting = stop.picksUpWagons() && look.targetFound ? waitingWagons(level, cars, signs, look.targetDistance) : null;
         double targetStop = waiting != null ? waiting.distance() - PICK_UP_SHORT
                 : look.targetFound ? look.targetDistance : Double.POSITIVE_INFINITY;
-        double stopAt = Math.min(look.signalStop, Math.min(targetStop, look.endOfLine ? look.endDistance - 0.05 : Double.POSITIVE_INFINITY));
-        double limit = Math.min(Drive.stoppingSpeed(stopAt), loco.speedLimit(look, signs[index], speed));
+        double stopAt = Math.min(look.stopFor(), Math.min(targetStop, look.endOfLine ? look.endDistance - 0.05 : Double.POSITIVE_INFINITY));
+        double limit = Math.min(Drive.stoppingSpeed(stopAt, look.brake), loco.speedLimit(look, signs[index], speed));
         double target = Math.min(loco.maxSpeed(), limit);
         boolean stopped = Math.abs(speed) < 0.002;
-        waitingAtSignal = look.signalStop != Double.POSITIVE_INFINITY && look.signalStop <= look.targetDistance;
+        waitingAtSignal = look.stopFor() != Double.POSITIVE_INFINITY && look.stopFor() <= look.targetDistance;
+        waitingFor = !waitingAtSignal ? "hud.reikotrains.auto.signal"
+                : look.obstacleStop <= look.stopFor() ? "hud.reikotrains.auto.obstacle"
+                : look.lightStop <= look.stopFor() ? "hud.reikotrains.auto.light" : "hud.reikotrains.auto.signal";
+        // A tram held up by something on the track rings its bell at it now and then.
+        if (stopped && waitingFor.equals("hud.reikotrains.auto.obstacle") && look.obstacleStop < 3) {
+            if (++ringing % 100 == 1) {
+                loco.whistle();
+            }
+        } else {
+            ringing = 0;
+        }
         if (waiting != null && stopped && waiting.distance() <= Trains.COUPLING_REACH && look.signalStop >= waiting.distance()) {
             TrainCarEntity lead = cars.get(Lookahead.leadIndex(cars, direction));
             int before = cars.size();

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Synthesises the mod's sounds (a three-chime steam whistle, exhaust chuffs, a coupling clank, a diesel's two-tone horn,
-the loop of its engine running, a level crossing's bell, an electric's horn and the loop of its motors, and the
-Bullet Train's horn) and
+the loop of its engine running, a level crossing's bell, an electric's horn and the loop of its motors, the Bullet
+Train's horn, and the trams' bells) and
 encodes them as mono Ogg Vorbis (mono, so Minecraft plays them from where they happen). Needs numpy and ffmpeg. Run
 from the repository root, naming the sounds to make (all of them, if none are named; Vorbis encoding isn't
 byte-for-byte repeatable, so remaking one that hasn't changed just churns the file):
@@ -201,6 +201,47 @@ def bullet_horn():
     return out
 
 
+def gong_stroke(n, t, base, seed, decay=1.0):
+    """One stroke on a dished steel gong: inharmonic partials, the high ones dying first, and the hammer's click."""
+    rng = np.random.default_rng(seed)
+    out = np.zeros(n)
+    for ratio, level, tau in ((1.0, 1.0, 0.45), (1.48, 0.55, 0.30), (2.09, 0.45, 0.20), (2.68, 0.3, 0.14), (3.4, 0.2, 0.09)):
+        out += level * np.sin(2 * np.pi * base * ratio * t + rng.uniform(0, 6.28)) * np.exp(-t / (tau * decay))
+    strike = band(rng.standard_normal(n), 1500, 7000) * np.exp(-t / 0.005)
+    return out / np.max(np.abs(out)) + strike / np.max(np.abs(strike)) * 0.3
+
+
+def tram_bell():
+    """
+    The vintage tram's foot gong: the driver stamps on it twice, ding-ding, a bright clang under the floor that rings
+    on after the second stroke.
+    """
+    duration = 1.3
+    n = int(duration * RATE)
+    out = np.zeros(n)
+    for start in (0.0, 0.26):
+        a = int(start * RATE)
+        t = np.arange(n - a) / RATE
+        out[a:] += gong_stroke(n - a, t, 1046.5, 31 + a % 7)
+    out *= envelope(n, 0.001, 0.25)
+    return np.tanh(out * 0.9)
+
+
+def tram_chime():
+    """The low-floor tram's bell: an electronic two-note ding-dong, soft and round, rung twice."""
+    duration = 1.4
+    n = int(duration * RATE)
+    t = np.arange(n) / RATE
+    out = np.zeros(n)
+    for start, freq in ((0.0, 880.0), (0.18, 698.5), (0.55, 880.0), (0.73, 698.5)):
+        a = int(start * RATE)
+        tt = t[: n - a]
+        tone = np.sin(2 * np.pi * freq * tt) + 0.25 * np.sin(2 * np.pi * freq * 2.0 * tt) * np.exp(-tt / 0.08)
+        out[a:] += tone * np.exp(-tt / 0.32) * np.clip(tt / 0.004, 0, 1)
+    out *= envelope(n, 0.001, 0.2)
+    return out
+
+
 def write(name, samples, peak=0.85):
     samples = samples / np.max(np.abs(samples)) * peak
     pcm = (samples * 32767).astype(np.int16)
@@ -231,6 +272,8 @@ SOUNDS = {
     "electric_horn": (lambda: horn((440.0, 523.3)), 0.85),
     "electric_motor": (motor, 0.6),
     "bullet_horn": (bullet_horn, 0.85),
+    "tram_bell": (tram_bell, 0.85),
+    "tram_chime": (tram_chime, 0.8),
 }
 
 

@@ -1017,6 +1017,77 @@ def catenary_models():
         json.dump({"variants": variants}, out, indent=2)
 
 
+ASPHALT = (59, 59, 62)
+
+
+def street_textures():
+    """
+    Street track's road surface: asphalt like Reiko's Car Mod's, and (for the straight block's top) two grooved rails
+    set into it: a bright steel head two pixels wide, the dark groove for the wheel flanges on its inside.
+    """
+    def asphalt(key, x, y):
+        return shade(ASPHALT, 1 + 0.22 * noise(key, x, y))
+
+    plain_road = Image.new("RGBA", (16, 16))
+    railed = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            c = asphalt("street_road", x, y)
+            plain_road.putpixel((x, y), c)
+            if x in (0, 1, 14, 15):
+                c = shade((168, 170, 174), (1.12 if x in (1, 14) else 1.0) + 0.04 * noise("street_rail", x, y))
+            elif x in (2, 13):
+                c = shade((26, 26, 28), 1 + 0.05 * noise("street_groove", x, y))
+            railed.putpixel((x, y), c)
+    plain_road.save(f"{ASSETS}/textures/block/street_road.png")
+    railed.save(f"{ASSETS}/textures/block/street_track.png")
+    solid("street_rail", (168, 170, 174), noise_amount=0.04)
+    solid("street_groove", (26, 26, 28), noise_amount=0.05)
+
+
+def street_models():
+    """
+    Street track: a whole block of road. Running north-south its top has the rails in it; on the diagonal the top is
+    plain road and the rails lie on it (a hair above), turned 45 degrees and reaching over the corners into the road
+    blocks either side, the same as the ordinary diagonal track's.
+    """
+    sides = {f: ("#side", [0, 0, 16, 16]) for f in ("north", "south", "east", "west", "down")}
+
+    def cube(top):
+        faces = dict(sides)
+        faces["up"] = (top, [0, 0, 16, 16])
+        el = element([0, 0, 0], [16, 16, 16], faces)
+        for f in el["faces"]:
+            el["faces"][f]["cullface"] = f
+        return el
+
+    tex = {"particle": "reikotrains:block/street_road", "side": "reikotrains:block/street_road", "top": "reikotrains:block/street_track",
+           "road": "reikotrains:block/street_road", "rail": "reikotrains:block/street_rail", "groove": "reikotrains:block/street_groove"}
+    straight = {"parent": "block/block", "textures": tex, "elements": [cube("#top")]}
+    with open(f"{ASSETS}/models/block/street_track_straight.json", "w") as out:
+        json.dump(straight, out, indent=2)
+    half = 8 * math.sqrt(2)
+    z0, z1 = round(8 - half, 3), round(8 + half, 3)
+    rot = {"origin": [8, 16, 8], "axis": "y", "angle": 45}
+    y = 16.15
+    strips = []
+    for x0, x1, t in ((0, 2, "#rail"), (2, 3, "#groove"), (13, 14, "#groove"), (14, 16, "#rail")):
+        strips.append({"from": [x0, y, z0], "to": [x1, y, z1], "rotation": rot,
+                       "faces": {"up": {"texture": t, "uv": [0, 0, x1 - x0, 16]}}})
+    diagonal = {"parent": "block/block", "textures": tex, "elements": [cube("#road")] + strips}
+    with open(f"{ASSETS}/models/block/street_track_diagonal.json", "w") as out:
+        json.dump(diagonal, out, indent=2)
+    with open(f"{ASSETS}/blockstates/street_track.json", "w") as out:
+        json.dump({"variants": {
+            "axis=z": {"model": "reikotrains:block/street_track_straight"},
+            "axis=x": {"model": "reikotrains:block/street_track_straight", "y": 90},
+            "axis=se": {"model": "reikotrains:block/street_track_diagonal"},
+            "axis=ne": {"model": "reikotrains:block/street_track_diagonal", "y": 90},
+        }}, out, indent=2)
+    with open(f"{ASSETS}/models/item/street_track.json", "w") as out:
+        json.dump({"parent": "reikotrains:block/street_track_straight"}, out, indent=2)
+
+
 def signals_and_stations():
     signal_textures()
     signal_models()
@@ -1035,6 +1106,8 @@ def signals_and_stations():
     speed_sign_models()
     catenary_textures()
     catenary_models()
+    street_textures()
+    street_models()
 
 
 if __name__ == "__main__":

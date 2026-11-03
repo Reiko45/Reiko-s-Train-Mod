@@ -26,6 +26,8 @@ public final class TrainModel {
     private final ModelPart pantographUp;
     @Nullable
     private final ModelPart pantographDown;
+    @Nullable
+    private final ModelPart trolley;
 
     public TrainModel(ModelPart root, String[] wheels, float[] wheelRadii, String[] rods, float crankRadius, float driverRadius, String[] cargo) {
         this.root = root;
@@ -53,6 +55,19 @@ public final class TrainModel {
         }
         this.pantographUp = root.hasChild("panto_up") ? root.getChild("panto_up") : null;
         this.pantographDown = root.hasChild("panto_down") ? root.getChild("panto_down") : null;
+        this.trolley = root.hasChild("trolley") ? root.getChild("trolley") : null;
+    }
+
+    /**
+     * Poses a trolley pole, if it has one: raised {@code angle} radians from lying along the roof, and swung {@code turn}
+     * of the way round from trailing off the back (0) to off the front (1). Half way round it lies flat.
+     */
+    public void trolley(float angle, float turn) {
+        if (trolley == null) {
+            return;
+        }
+        trolley.yRot = Mth.PI * turn;
+        trolley.zRot = -angle * Mth.cos(Mth.PI * turn);
     }
 
     /** Raises the pantograph, if it has one: 0 folded down, 1 right up against the wire. */

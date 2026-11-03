@@ -2,6 +2,25 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.22.0
+
+Trams.
+
+- New: **Street Track**, track set into the road: a whole block of asphalt with grooved rails level with its top, so
+  cars and people go over it. It joins up and draws into curves like train track; a new end is set into the road
+  block clicked; and curves between street track blocks can be as tight as a radius of 3 blocks.
+- New: the **Vintage Tram**, a red and cream single car with a platform at each end: it's driven from whichever end
+  the driver gets in at, and its trolley pole trails to the overhead wire and swings round when it changes ends. About
+  40 km/h.
+- New: the **Low-Floor Tram**, three sections (a driving section at each end and a middle one) that bend round street
+  corners, put on the track by one item and taken up as one. About 50 km/h.
+- Both run from the overhead wires, with a small battery for gaps, and ring a bell (a foot gong, an electronic chime).
+- Street rules: trams stop short of people, animals, cars, boats and other trains on the track ahead, and (with
+  Reiko's Car Mod) at red traffic lights beside the line facing them; on a timetable they wait, ringing their bell.
+  They brake harder than trains. Ordinary trains are unchanged.
+- The mod's network version changes, so clients and servers both need 0.22.0.
+- Eleven new game tests (148 in all).
+
 ## 0.21.0
 
 Overhead wires.

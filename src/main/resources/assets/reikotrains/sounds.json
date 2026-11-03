@@ -75,5 +75,23 @@
       }
     ],
     "subtitle": "subtitles.reikotrains.bullet_horn"
+  },
+  "tram_bell": {
+    "sounds": [
+      {
+        "name": "reikotrains:tram_bell",
+        "attenuation_distance": 48
+      }
+    ],
+    "subtitle": "subtitles.reikotrains.tram_bell"
+  },
+  "tram_chime": {
+    "sounds": [
+      {
+        "name": "reikotrains:tram_chime",
+        "attenuation_distance": 48
+      }
+    ],
+    "subtitle": "subtitles.reikotrains.tram_chime"
   }
 }

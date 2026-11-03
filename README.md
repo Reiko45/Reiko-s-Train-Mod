@@ -1,9 +1,9 @@
 # Reiko's Train Mod
 
-Big steam, diesel and electric trains for Minecraft **1.21.1** (NeoForge), on their own track. Lay a railway with curves, ramps and
-junctions, signal it, work its switches by hand or with redstone, name its stations, load and unload freight
-automatically, and either drive the trains yourself (throttle, brake, whistle, a choice of way at every junction) or
-give them a timetable and let them run between the stations on their own.
+Big steam, diesel and electric trains for Minecraft **1.21.1** (NeoForge), on their own track, and trams in the
+street. Lay a railway with curves, ramps and junctions, signal it, work its switches by hand or with redstone, name its
+stations, load and unload freight automatically, and either drive the trains yourself (throttle, brake, whistle, a
+choice of way at every junction) or give them a timetable and let them run between the stations on their own.
 
 ![A train on the line](docs/screenshots/train.jpg)
 
@@ -25,6 +25,8 @@ give them a timetable and let them run between the stations on their own.
 - **Train Track**: its own railway, separate from minecart rails. Straight track goes down block by block (east-west,
   north-south or diagonal), and curves, ramps, S-bends and long straights are drawn from one track block to another.
   Two ways out of the same end of a block make a junction.
+- **Street Track**: track set into the road, its grooved rails level with the top, so cars and people go over it.
+  Street corners can be tighter than train track's.
 - **Steam Locomotive**: a green tank engine, 2 blocks wide, 3 tall and 6 long. It burns coal (or charcoal, logs,
   blocks of coal, blaze rods, lava...), puffs smoke and chuffs, and its driving wheels and coupling rods turn as it
   goes. Seats a driver and a fireman.
@@ -34,6 +36,10 @@ give them a timetable and let them run between the stations on their own.
   Fuel), the same as the car mod's diesel trucks, and pulls harder than either steam engine.
 - **Electric Locomotive**: a red box-cab electric, 7½ blocks long, with a cab at each end. It runs on BuildCraft
   power (MJ) from its batteries: the fastest and strongest engine, and nearly silent, but it needs charging often.
+- **Vintage Tram**: a red and cream single-car tram with a platform and controller at each end, so it runs either
+  way, and a trolley pole to the overhead wire.
+- **Low-Floor Tram**: a modern three-section tram, white with a green band, that bends round street corners. One item
+  puts all three sections on the track.
 - **Bullet Train**: the top of the line. A white, blue-striped high-speed train with a long streamlined nose,
   about 100 km/h: a driving car at each end and **Bullet Train Coaches** between, so it runs both ways without
   turning. It runs on batteries, like the electric.
@@ -81,11 +87,16 @@ The coaches and wagons ride on two bogies that swing under them, so long cars go
 | **S-bends** | Sneak while you click the end, and the track there faces the way you're looking. |
 | **Junctions** | Draw a curve off a track block that already has track going on from the same end. |
 | **Start over** | Sneak-click the air, or click the starting block again. |
+| **Street track** | Set Street Track into the road like any block (in place of a road block), and draw curves between street track blocks with it the same way; click the top of a road block for a new end, and it's set into that block. |
 
 A curve can reach 48 blocks, can't turn tighter than a radius of 5 blocks (8 or more looks best with long cars) or
 more than 90° at once, and a ramp can't be steeper than about 1 in 2 at its steepest. Curves cost a piece of track
 per block of length, and breaking either end gives it back. Track needs solid ground under its blocks, but a curve
 or ramp can cross gaps between them, so bridges are just long curves. Leave three blocks between parallel lines.
+
+Street track's rails are level with the top of its block, so a street running on into train track needs a ramp (any
+curve between them is one). Curves between two street track blocks can be as tight as a radius of 3 blocks, for street
+corners, and are paid for in street track; the road blocks a curve passes over are up to you.
 
 ![Laying a curve](docs/screenshots/laying_track.jpg)
 
@@ -121,6 +132,9 @@ or ramp can cross gaps between them, so bridges are just long curves. Leave thre
 | Timetable | Two paper and a clock |
 | Wagon Loader | Iron ingot, hopper, iron ingot; iron ingot, chest, iron ingot |
 | Charging Point | Iron ingot, redstone lamp, iron ingot; copper ingot, block of redstone, copper ingot; three iron ingots |
+| Street Track (6) | Three Train Track; stone, coal, stone; three stone |
+| Vintage Tram | Three glass panes; red wool, block of redstone, white wool; iron ingot, minecart, iron ingot |
+| Low-Floor Tram | Three glass; white wool, block of redstone, green wool; minecart, iron ingot, minecart |
 | Overhead Line Mast (2) | Three iron ingots along the top, an iron ingot under the left one, and smooth stone under that (a pole with its arm) |
 | Overhead Wire (4) | Three copper ingots in a row |
 | Substation | Block of copper, iron ingot, block of copper; iron ingot, block of redstone, iron ingot; three iron ingots |
@@ -287,6 +301,35 @@ the way: no more stopping to charge.
 ![The Bullet Train under its wire, both pantographs up](docs/screenshots/bullet_under_wire.jpg)
 
 ![An electric running from the wire](docs/screenshots/electric_under_wire.jpg)
+
+### Trams
+
+Two trams, made for **street track** and the **overhead wires**. Both run from the wire, charging a small battery
+(60,000 MJ a driving end) that gets them over junctions and short gaps in it, or charge at a charging point; both
+ring a bell (the whistle key); and both keep to **street rules**.
+
+- The **Vintage Tram** is a single car, seven blocks long: red below and cream above, a clerestory roof, and at each
+  end an open platform with the controller, a headlamp, a destination box and a lifeguard. It runs both ways: get in
+  as the driver at the end you want to lead, and the throttle takes it that way. Its trolley pole trails behind it to
+  the wire, and swings round when it changes ends. About 40 km/h, and nine seats. Its bell is a foot gong.
+- The **Low-Floor Tram** is three sections that bend in the middle: a driving section at each end (noses out, a
+  pantograph over each one's inner end) and a short middle one, about fourteen blocks in all, white with a green band
+  and big windows, its floor a step above the street. Click a track block with it to put all three on the track
+  together, the middle one there; breaking any of them takes the whole tram up. Drive it from either end. About
+  50 km/h, and fourteen seats (the two drivers' included). Its bell is an electronic chime.
+- **Street rules**: a tram (or any train with one in it) stops a block or so short of anything on the track ahead:
+  people, animals, cars, boats, other trains (it doesn't couple to them). On a timetable it waits for them to clear,
+  ringing its bell now and then. With Reiko's Car Mod, it also stops at **red traffic lights** beside the line that
+  face it (and at amber ones, if it can stop in time), and goes on when they turn green; they show on the gauges like a
+  signal. It brakes harder than a train, too. Ordinary trains carry on as before.
+
+![Street track set into the road, round a street corner](docs/screenshots/street_track.jpg)
+
+![The vintage tram under the wires, its trolley pole up](docs/screenshots/vintage_tram.jpg)
+
+![The low-floor tram bending round a street corner](docs/screenshots/low_floor_tram.jpg)
+
+![The vintage tram waiting at a red light](docs/screenshots/tram_red_light.jpg)
 
 ### Tank wagons and guard's vans
 
@@ -700,6 +743,13 @@ substation taking BuildCraft power into its line and only as much as fits (its b
 sharing their power when joined and split, a flat electric running and charging under a live wire and doing nothing
 under a dead one, both of a Bullet Train's driving cars charging from it, and saving the lines.
 
+`TramGameTests` covers street track (rails level with the road, a whole block things stand on, tighter street corners
+set into the road, ramps to train track paid in train track) and trams: the vintage tram running and charging from
+the wire with its pole trailing, driven from whichever end the driver gets in at, the low-floor tram going on as three
+coupled sections and coming off as one item, and bending round a street corner; a tram stopping short of an armour
+stand on the track and going on when it's gone, a timetabled tram waiting behind a wagon without coupling to it,
+ordinary trains pushing on regardless, and (with the car mod) stopping at a red traffic light and going on at green.
+
 `TrainMapGameTests` covers the map of trains for minimaps: a train on it once, at its leading locomotive, with its
 kind and length, a timetabled train's next stop, a broken locomotive coming off it (and the other engine taking
 over), players being sent the other trains nearest first and not their own, dropping trains that aren't where the
@@ -708,7 +758,8 @@ map says, and saving it with the world.
 `./gradlew runClient -Pshowcase -PwindowSize=1280x720` builds a test railway, runs trains round it and saves
 screenshots to `run/screenshots/` (that's where the pictures above come from). Add `-PxaeroJars=/path/to/folder` for
 the minimap shot, `-PcarJars=/path/to/folder` for the car transporter scene, and `-PshowcaseFrom=<tick>` to skip to the
-scene starting at that tick (`2202` for the Bullet Train, `2810` for the car transporters, `3105` for overhead wires).
+scene starting at that tick (`2202` for the Bullet Train, `2810` for the car transporters, `3105` for overhead wires,
+`3505` for trams).
 
 ### Models, textures and sounds
 
@@ -716,8 +767,8 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
 
 - `tools/models/train_models.py`: the train models (locomotive, coach, wagon, bogie). One part list per model makes
   both the Java geometry (`client/model/geometry/`, don't edit those by hand) and the matching texture.
-- `tools/blocks/track_assets.py`: the track's textures and block models (and the signals', switch stands', level
-  crossings', speed signs', masts', substation's and wagon loader's), and the screens.
+- `tools/blocks/track_assets.py`: the track's textures and block models (and street track's, the signals', switch
+  stands', level crossings', speed signs', masts', substation's and wagon loader's), and the screens.
 - `tools/items/item_icons.py`: the item icons and the mod list logo.
 - `tools/sounds/train_sounds.py`: the whistle, the chuffs, the coupling clank, the diesel's horn and engine, and the
   level crossing's bell, synthesised. Name the ones to remake (`python3 tools/sounds/train_sounds.py crossing_bell`):
@@ -755,6 +806,12 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
   `Autopilot` searches the track for the way to its next station. Leaving wagons, it works out which way it'll set
   off and splits the train at the other end (`Trains.split`); picking them up, it looks along its way for cars with
   no locomotive near the station (`Trains.nearestAlong`), stops short of them and couples on.
+- **Street track** (`track/StreetTrackBlock`): a track block like any other, but a whole block whose rails are at its
+  top rather than a quarter of the way up. Each end of a stretch of track (`EdgeRef`) knows whether it's street track,
+  so its shape (and the height of the rails along it) is worked out without looking at the world.
+- **Street rules** (`train/Lookahead`): a train with a `StreetRunning` car in it walks the track ahead every tick, as
+  far as it takes to stop and a bit, looking for entities in the way, and for Reiko's Car Mod's traffic lights beside
+  it (by registry name and block state, so the car mod isn't needed to build or run it).
 - **Overhead lines** (`wire/`): `OverheadLines` is a saved record per world of every mast (and where it holds the
   wire), every span, every substation and the mast it feeds, and each line's store; it works out the lines (masts
   wired together, named by their first mast) and indexes the spans by the chunks they pass over. An electric looks up

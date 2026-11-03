@@ -50,7 +50,7 @@ final class CarShowcase {
         sedan.setFuel(sedan.tankCapacity());
     }
 
-    private static CarEntity car(ServerLevel level, String type, Vec3 at, float yaw) {
+    static CarEntity car(ServerLevel level, String type, Vec3 at, float yaw) {
         CarEntity car = (CarEntity) BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.fromNamespaceAndPath("reikocars", type)).create(level);
         car.moveTo(at.x, at.y, at.z, yaw, 0.0F);
         level.addFreshEntity(car);

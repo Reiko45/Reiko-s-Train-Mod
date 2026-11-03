@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "W": {
+      "item": "minecraft:white_wool"
+    },
+    "B": {
+      "item": "minecraft:redstone_block"
+    },
+    "N": {
+      "item": "minecraft:green_wool"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "M": {
+      "item": "minecraft:minecart"
+    }
+  },
+  "pattern": [
+    "GGG",
+    "WBN",
+    "MIM"
+  ],
+  "result": {
+    "count": 1,
+    "id": "reikotrains:low_floor_tram"
+  }
+}

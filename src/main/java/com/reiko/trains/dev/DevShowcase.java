@@ -7,6 +7,7 @@ import com.reiko.trains.registry.ModDataComponents;
 import com.reiko.trains.registry.ModEntities;
 import com.reiko.trains.registry.ModItems;
 import com.reiko.trains.track.TrackAxis;
+import com.reiko.trains.track.TrackBuilder;
 import com.reiko.trains.train.DieselLocomotive;
 import com.reiko.trains.train.ElectricLocomotive;
 import com.reiko.trains.power.ChargingPointBlockEntity;
@@ -37,6 +38,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
@@ -180,6 +182,8 @@ public final class DevShowcase {
     private static final int WIRE_LINE = -156;
     /** ... and the one for a Bullet Train, beside it. */
     private static final int BULLET_WIRE_LINE = -170;
+    /** A street with trams, along x at this z (the track down its middle), turning north at its east end. */
+    private static final int STREET = -200;
     /** The switch stand for the junction at x = 52. */
     private static final BlockPos SWITCH = new BlockPos(52, Y, -2);
 
@@ -405,6 +409,11 @@ public final class DevShowcase {
         Trains.couple(wiredFront, wiredMiddle);
         Trains.couple(wiredMiddle, wiredBack);
 
+        // A street, with trams: road along x (asphalt, with Reiko's Car Mod), pavements, street track down the middle
+        // turning north at a corner into a side street, wires overhead, a vintage tram and a low-floor one, and (with the
+        // car mod) a traffic light and a parked car.
+        streetScene(level);
+
         Locomotive limited = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(24, Y, SPEED_LINE), EAST);
         PassengerCoach limitedCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(17, Y, SPEED_LINE), EAST);
         Trains.couple(limited, limitedCoach);
@@ -461,6 +470,72 @@ public final class DevShowcase {
         }
     }
 
+    private static void streetScene(ServerLevel level) {
+        net.minecraft.world.level.block.state.BlockState road = com.reiko.trains.train.CarCargo.CAR_MOD
+                ? BuiltInRegistries.BLOCK.get(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("reikocars", "asphalt")).defaultBlockState()
+                : Blocks.GRAY_CONCRETE.defaultBlockState();
+        net.minecraft.world.level.block.state.BlockState pavement = Blocks.SMOOTH_STONE.defaultBlockState();
+        for (int x = -4; x <= 96; x++) {
+            for (int z = STREET - 9; z <= STREET + 9; z++) {
+                level.setBlock(new BlockPos(x, Y - 1, z), Math.abs(z - STREET) <= 6 ? road : pavement, 2);
+            }
+        }
+        for (int z = STREET - 48; z < STREET - 6; z++) {
+            for (int x = 64; x <= 82; x++) {
+                level.setBlock(new BlockPos(x, Y - 1, z), Math.abs(x - 73) <= 6 ? road : pavement, 2);
+            }
+        }
+        TrackBuilder.streetLine(level, new BlockPos(-4, Y - 1, STREET), TrackAxis.X, 74);
+        BlockPos corner = new BlockPos(69, Y - 1, STREET);
+        TrackBuilder.build(level, TrackBuilder.plan(level, corner, corner.offset(4, 0, -4), Vec3.ZERO, false, true), null);
+        TrackBuilder.streetLine(level, new BlockPos(73, Y - 1, STREET - 46), TrackAxis.Z, 42);
+        // Masts on the south side of the street and the outside of the corner, then up the side street's east side.
+        List<BlockPos> masts = new ArrayList<>();
+        for (BlockPos at : new BlockPos[]{new BlockPos(2, Y, STREET + 3), new BlockPos(22, Y, STREET + 3), new BlockPos(42, Y, STREET + 3),
+                new BlockPos(60, Y, STREET + 3), new BlockPos(74, Y, STREET + 1), new BlockPos(76, Y, STREET - 12),
+                new BlockPos(76, Y, STREET - 30)}) {
+            masts.add(TestTracks.mast(level, at).getBlockPos());
+            level.setBlock(at.below(), road, 2);
+        }
+        TestTracks.wire(level, masts.toArray(BlockPos[]::new));
+        BlockPos substation = new BlockPos(22, Y, STREET + 7);
+        TestTracks.substation(level, substation).addMj(1_000_000);
+        level.setBlock(substation.below(), pavement, 2);
+        TestTracks.station(level, new BlockPos(10, Y, STREET - 7), new BlockPos(10, Y - 1, STREET), "Market Street", 4);
+        level.setBlock(new BlockPos(10, Y - 1, STREET - 7), pavement, 2);
+        com.reiko.trains.train.VintageTram vintage = TestTracks.car(level, ModEntities.VINTAGE_TRAM.get(), new BlockPos(14, Y - 1, STREET), EAST);
+        vintage.setFuel(com.reiko.trains.train.VintageTram.BATTERY_CAPACITY);
+        com.reiko.trains.train.LowFloorTram.place(level, new BlockPos(73, Y - 1, STREET - 4), new Vec3(0, 0, -1));
+        for (com.reiko.trains.train.TramCab cab : level.getEntitiesOfClass(com.reiko.trains.train.TramCab.class,
+                new AABB(60, Y - 3, STREET - 20, 90, Y + 5, STREET + 10))) {
+            cab.setFuel(com.reiko.trains.train.TramCab.BATTERY_CAPACITY);
+        }
+        if (com.reiko.trains.train.CarCargo.CAR_MOD) {
+            // A traffic light on a post on the north pavement, facing west, held on red (set powered, as if by redstone);
+            // and a parked car.
+            net.minecraft.world.level.block.Block light = BuiltInRegistries.BLOCK.get(
+                    net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("reikocars", "traffic_light"));
+            BlockPos post = new BlockPos(44, Y, STREET - 4);
+            level.setBlock(post, Blocks.ANDESITE_WALL.defaultBlockState(), 3);
+            level.setBlock(post.above(), Blocks.ANDESITE_WALL.defaultBlockState(), 3);
+            net.minecraft.world.level.block.state.BlockState lightState = light.defaultBlockState();
+            for (net.minecraft.world.level.block.state.properties.Property<?> property : lightState.getProperties()) {
+                if (property.getName().equals("facing")) {
+                    lightState = withValue(lightState, property, "west");
+                } else if (property.getName().equals("powered")) {
+                    lightState = withValue(lightState, property, "true");
+                }
+            }
+            level.setBlock(post.above(2), lightState, 3);
+            CarShowcase.car(level, "sedan", new Vec3(30.5, Y, STREET + 4.5), 90.0F);
+        }
+    }
+
+    private static <T extends Comparable<T>> net.minecraft.world.level.block.state.BlockState withValue(
+            net.minecraft.world.level.block.state.BlockState state, net.minecraft.world.level.block.state.properties.Property<T> property, String value) {
+        return property.getValue(value).map(v -> state.setValue(property, v)).orElse(state);
+    }
+
     /**
      * Overhead wires: looking back along the electric's line from beyond its curve, the masts' arms reaching over the
      * track; its pantograph up against the wire, from beside it; the substation feeding the line; the Bullet Train's
@@ -503,6 +578,52 @@ public final class DevShowcase {
                     running[0] = true;
                     ReikoTrains.LOGGER.info("Showcase: electric under the wire shot at x = {} (last: {})", front, last);
                     shot(mc, "48_electric_running_under_wire");
+                }
+            });
+        }
+    }
+
+    /**
+     * Trams: street track set into the road round the corner; the vintage tram under the wires, its trolley pole up; the
+     * low-floor tram bending round the corner; and (with the car mod) the vintage tram waiting at a red light.
+     */
+    private static void tramScene() {
+        at(3506, mc -> {
+            mc.options.setCameraType(CameraType.FIRST_PERSON);
+            mc.options.fov().set(70);
+            look(mc, 64.0, Y + 2.2, STREET + 5.0, -135.0F, 24.0F);
+        });
+        at(3562, mc -> shot(mc, "49_street_track"));
+        at(3564, mc -> look(mc, 26.0, Y + 1.6, STREET - 6.5, 58.0F, 4.0F));
+        at(3604, mc -> shot(mc, "50_vintage_tram"));
+        at(3606, mc -> look(mc, 63.0, Y + 3.5, STREET - 15.0, -42.0F, 14.0F));
+        at(3646, mc -> shot(mc, "51_low_floor_tram"));
+        at(3648, mc -> {
+            look(mc, 50.0, Y + 1.8, STREET + 6.0, 125.0F, 4.0F);
+            server(mc, player -> {
+                ServerLevel level = player.serverLevel();
+                com.reiko.trains.train.VintageTram tram = find(level, com.reiko.trains.train.VintageTram.class, 14.5, STREET + 0.5);
+                if (level.getBlockEntity(new BlockPos(10, Y, STREET - 7)) instanceof StationBlockEntity market) {
+                    // Off east, away from its stop and round the corner: it'll stop for the red light on the way.
+                    tram.autopilot().start(List.of(new com.reiko.trains.train.Timetable.Stop(new BlockPos(73, Y - 1, STREET - 40),
+                            new BlockPos(73, Y - 1, STREET - 40), "Side Street")));
+                }
+            });
+        });
+        boolean[] waiting = {false};
+        for (int time = 3700; time <= 3900; time++) {
+            boolean last = time == 3900;
+            at(time, mc -> {
+                if (waiting[0]) {
+                    return;
+                }
+                List<com.reiko.trains.train.VintageTram> trams = mc.level.getEntitiesOfClass(com.reiko.trains.train.VintageTram.class,
+                        new AABB(0, Y - 3, STREET - 4, 100, Y + 5, STREET + 4));
+                boolean stopped = !trams.isEmpty() && trams.getFirst().getX() > 30 && Math.abs(trams.getFirst().getX() - trams.getFirst().xo) < 0.001;
+                if (last || stopped) {
+                    waiting[0] = true;
+                    ReikoTrains.LOGGER.info("Showcase: tram at the light shot (stopped: {}, last: {})", stopped, last);
+                    shot(mc, "52_tram_at_red_light");
                 }
             });
         }
@@ -820,6 +941,7 @@ public final class DevShowcase {
             carScene();
         }
         wireScene();
-        at(3520, Minecraft::stop);
+        tramScene();
+        at(3920, Minecraft::stop);
     }
 }

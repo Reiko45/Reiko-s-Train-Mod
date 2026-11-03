@@ -333,7 +333,7 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
         if (autopilot.isOn()) {
             autopilot.stop();
         }
-        assist = leader.getThrottle() * facing;
+        assist = leader.getThrottle() * leader.cabSign() * facing;
         int shown = Mth.clamp(assist, MIN_THROTTLE, MAX_THROTTLE);
         if (getThrottle() != shown) {
             setThrottle(shown);
@@ -348,7 +348,15 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
 
     /** The notch it's working at: its throttle's, or when it's helping another engine, that one's (turned round to suit). */
     public int workingThrottle() {
-        return helping() != null ? assist : getThrottle();
+        return helping() != null ? assist : getThrottle() * cabSign();
+    }
+
+    /**
+     * Which end it's driven from: +1 its front cab (always, for most), -1 its back one (a tram with a cab at each end).
+     * The throttle works the way the driver faces.
+     */
+    public int cabSign() {
+        return 1;
     }
 
     /** The locomotive it's helping, if another in its train is in charge. */
@@ -388,14 +396,17 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
         if (autopilot.isOn()) {
             return autopilot.plan(cars, signs, index, speed);
         }
-        int throttle = getThrottle();
+        int throttle = getThrottle() * cabSign();
         int direction = Math.abs(speed) > 1.0E-4 ? (speed > 0 ? 1 : -1) : throttle != 0 ? Integer.signum(throttle) * signs[index] : 1;
         int steer = getSteer();
         TrackPos.Chooser chooser = (node, side, options, heading) -> TrackSide.wayOn(level(), node, side, options, heading, steer);
         Lookahead look = Lookahead.look(cars, signs, direction, chooser, null, speed);
         showLookahead(look);
         updateAutoDisplay();
-        double limit = TrainsConfig.SIGNALS_STOP_DRIVERS.getAsBoolean() ? Drive.stoppingSpeed(look.signalStop) : Double.POSITIVE_INFINITY;
+        double limit = TrainsConfig.SIGNALS_STOP_DRIVERS.getAsBoolean()
+                ? Drive.stoppingSpeed(Math.min(look.signalStop, look.lightStop), look.brake) : Double.POSITIVE_INFINITY;
+        // A tram never runs into anything on the track, whoever's driving.
+        limit = Math.min(limit, Drive.stoppingSpeed(look.obstacleStop, look.brake));
         double speedLimit = speedLimit(look, signs[index], speed);
         if (TrainsConfig.SPEED_LIMITS_FOR_DRIVERS.getAsBoolean()) {
             limit = Math.min(limit, speedLimit);

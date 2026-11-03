@@ -1,0 +1,18 @@
+{
+  "variants": {
+    "axis=z": {
+      "model": "reikotrains:block/street_track_straight"
+    },
+    "axis=x": {
+      "model": "reikotrains:block/street_track_straight",
+      "y": 90
+    },
+    "axis=se": {
+      "model": "reikotrains:block/street_track_diagonal"
+    },
+    "axis=ne": {
+      "model": "reikotrains:block/street_track_diagonal",
+      "y": 90
+    }
+  }
+}

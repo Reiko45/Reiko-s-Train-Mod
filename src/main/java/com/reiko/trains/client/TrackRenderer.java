@@ -22,7 +22,8 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * Draws the curves (and ramps, and long straights) drawn from a track block: sleepers every half block and two rails
- * along the curve, in the same textures as the straight track blocks.
+ * along the curve, in the same textures as the straight track blocks. Between two street track blocks it's grooved
+ * rails lying flat on the road instead, a hair above it, as if set into it.
  */
 public class TrackRenderer implements BlockEntityRenderer<TrackBlockEntity> {
     /** Half the distance between the rails' centres, in blocks. */
@@ -51,6 +52,10 @@ public class TrackRenderer implements BlockEntityRenderer<TrackBlockEntity> {
         for (EdgeRef edge : track.ownedEdges()) {
             TrackEdge shape = edge.geometry();
             double length = shape.length();
+            if (edge.street()) {
+                streetRails(consumer, pose, origin, level, shape);
+                continue;
+            }
             // Sleepers
             int count = Math.max(1, (int) Math.round(length / SLEEPER_SPACING));
             for (int i = 0; i <= count; i++) {
@@ -75,6 +80,45 @@ public class TrackRenderer implements BlockEntityRenderer<TrackBlockEntity> {
                 }
             }
         }
+    }
+
+    /** How far above the road street rails lie, so they don't flicker with it. */
+    private static final double STREET_LIFT = 0.01;
+
+    /** A street curve's two grooved rails, flat on the road: the steel head, and the groove on its inside. */
+    private static void streetRails(VertexConsumer consumer, PoseStack.Pose pose, BlockPos origin, Level level, TrackEdge shape) {
+        TextureAtlasSprite steel = sprite("block/street_rail");
+        TextureAtlasSprite groove = sprite("block/street_groove");
+        double length = shape.length();
+        int pieces = Math.max(1, (int) Math.ceil(length / 0.5));
+        for (int i = 0; i < pieces; i++) {
+            double s0 = length * i / pieces;
+            double s1 = length * (i + 1) / pieces;
+            Vec3 a = shape.point(s0).add(0, STREET_LIFT, 0);
+            Vec3 b = shape.point(s1).add(0, STREET_LIFT, 0);
+            Vec3 ra = right(shape.tangent(s0));
+            Vec3 rb = right(shape.tangent(s1));
+            int at = lightAt(level, a.add(b).scale(0.5));
+            for (int side = -1; side <= 1; side += 2) {
+                // Outwards from the middle: the groove (1 px), then the head (2 px), the head centred on the gauge.
+                double head0 = side * (GAUGE - RAIL_HALF_WIDTH);
+                double head1 = side * (GAUGE + RAIL_HALF_WIDTH);
+                double inner = side * (GAUGE - RAIL_HALF_WIDTH - 1.0 / 16);
+                flat(consumer, pose, origin, a, ra, b, rb, Math.min(head0, head1), Math.max(head0, head1), steel, at);
+                flat(consumer, pose, origin, a, ra, b, rb, Math.min(inner, head0), Math.max(inner, head0), groove, at);
+            }
+        }
+    }
+
+    /** A flat strip from {@code a} to {@code b}, from {@code from} to {@code to} sideways of the middle line. */
+    private static void flat(VertexConsumer consumer, PoseStack.Pose pose, BlockPos origin, Vec3 a, Vec3 ra, Vec3 b, Vec3 rb, double from,
+                             double to, TextureAtlasSprite sprite, int light) {
+        float u0 = sprite.getU(0);
+        float u1 = sprite.getU((float) Math.min(1, (to - from)));
+        float v0 = sprite.getV(0);
+        float v1 = sprite.getV(0.5F);
+        quad(consumer, pose, origin, a.add(ra.scale(from)), b.add(rb.scale(from)), b.add(rb.scale(to)), a.add(ra.scale(to)), u0, v0, u1, v1,
+                light, 0, 1, 0);
     }
 
     private static TextureAtlasSprite sprite(String path) {

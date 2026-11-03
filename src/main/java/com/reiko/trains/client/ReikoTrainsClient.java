@@ -75,6 +75,9 @@ public final class ReikoTrainsClient {
     static final ModelLayerLocation LIVESTOCK_LAYER = new ModelLayerLocation(ReikoTrains.id("livestock_wagon"), "main");
     static final ModelLayerLocation BULLET_LAYER = new ModelLayerLocation(ReikoTrains.id("bullet_train"), "main");
     static final ModelLayerLocation BULLET_COACH_LAYER = new ModelLayerLocation(ReikoTrains.id("bullet_coach"), "main");
+    static final ModelLayerLocation VINTAGE_TRAM_LAYER = new ModelLayerLocation(ReikoTrains.id("vintage_tram"), "main");
+    static final ModelLayerLocation TRAM_CAB_LAYER = new ModelLayerLocation(ReikoTrains.id("tram_cab"), "main");
+    static final ModelLayerLocation TRAM_MIDDLE_LAYER = new ModelLayerLocation(ReikoTrains.id("tram_middle"), "main");
     static final ModelLayerLocation CAR_TRANSPORTER_LAYER = new ModelLayerLocation(ReikoTrains.id("car_transporter"), "main");
 
     /** Ticks until a held throttle key moves another notch. */
@@ -113,6 +116,9 @@ public final class ReikoTrainsClient {
         event.registerLayerDefinition(LIVESTOCK_LAYER, LivestockWagonGeometry::create);
         event.registerLayerDefinition(BULLET_LAYER, BulletTrainGeometry::create);
         event.registerLayerDefinition(BULLET_COACH_LAYER, BulletCoachGeometry::create);
+        event.registerLayerDefinition(VINTAGE_TRAM_LAYER, com.reiko.trains.client.model.geometry.VintageTramGeometry::create);
+        event.registerLayerDefinition(TRAM_CAB_LAYER, com.reiko.trains.client.model.geometry.TramCabGeometry::create);
+        event.registerLayerDefinition(TRAM_MIDDLE_LAYER, com.reiko.trains.client.model.geometry.TramMiddleGeometry::create);
         event.registerLayerDefinition(CAR_TRANSPORTER_LAYER, CarTransporterGeometry::create);
     }
 
@@ -146,6 +152,15 @@ public final class ReikoTrainsClient {
         event.registerEntityRenderer(ModEntities.BULLET_COACH.get(), context -> new TrainCarRenderer<>(context,
                 c -> TrainModel.simple(c.bakeLayer(BULLET_COACH_LAYER), new String[0], new float[0]),
                 bogie, ReikoTrains.id("textures/entity/bullet_coach.png")));
+        event.registerEntityRenderer(ModEntities.VINTAGE_TRAM.get(), context -> new TrainCarRenderer<>(context,
+                c -> TrainModel.simple(c.bakeLayer(VINTAGE_TRAM_LAYER), new String[0], new float[0]),
+                bogie, ReikoTrains.id("textures/entity/vintage_tram.png")));
+        event.registerEntityRenderer(ModEntities.TRAM_CAB.get(), context -> new TrainCarRenderer<>(context,
+                c -> TrainModel.simple(c.bakeLayer(TRAM_CAB_LAYER), new String[0], new float[0]),
+                bogie, ReikoTrains.id("textures/entity/tram_cab.png")));
+        event.registerEntityRenderer(ModEntities.TRAM_MIDDLE.get(), context -> new TrainCarRenderer<>(context,
+                c -> TrainModel.simple(c.bakeLayer(TRAM_MIDDLE_LAYER), new String[0], new float[0]),
+                bogie, ReikoTrains.id("textures/entity/tram_middle.png")));
         event.registerEntityRenderer(ModEntities.CAR_TRANSPORTER.get(), context -> new TrainCarRenderer<>(context,
                 c -> TrainModel.simple(c.bakeLayer(CAR_TRANSPORTER_LAYER), new String[0], new float[0]),
                 bogie, ReikoTrains.id("textures/entity/car_transporter.png")));
