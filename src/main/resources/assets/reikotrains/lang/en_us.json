@@ -246,5 +246,16 @@
   "subtitles.reikotrains.tram_bell": "Tram bell clangs",
   "subtitles.reikotrains.tram_chime": "Tram bell chimes",
   "hud.reikotrains.auto.obstacle": "Waiting: something's on the track",
-  "hud.reikotrains.auto.light": "Waiting at a red light"
+  "hud.reikotrains.auto.light": "Waiting at a red light",
+  "block.reikotrains.water_tower": "Water Tower",
+  "message.reikotrains.water_tower.stored": "Water tower: %s of %s buckets",
+  "message.reikotrains.water": "Water: %s%%",
+  "message.reikotrains.tender_water": "Tender's water: %s%%",
+  "message.reikotrains.tender_both": "Tender: coal %s%%, water %s%%",
+  "message.reikotrains.no_water": "The boiler's dry: fill it at a water tower, or with buckets of water",
+  "message.reikotrains.no_water_tender": "The tender's out of water: fill it at a water tower, or with buckets of water",
+  "hud.reikotrains.water": "Water",
+  "hud.reikotrains.no_water": "NO WATER",
+  "hud.reikotrains.auto.no_water": "Out of water",
+  "hud.reikotrains.auto.watering": "At %s: taking water"
 }

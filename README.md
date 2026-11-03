@@ -28,8 +28,8 @@ choice of way at every junction) or give them a timetable and let them run betwe
 - **Street Track**: track set into the road, its grooved rails level with the top, so cars and people go over it.
   Street corners can be tighter than train track's.
 - **Steam Locomotive**: a green tank engine, 2 blocks wide, 3 tall and 6 long. It burns coal (or charcoal, logs,
-  blocks of coal, blaze rods, lava...), puffs smoke and chuffs, and its driving wheels and coupling rods turn as it
-  goes. Seats a driver and a fireman.
+  blocks of coal, blaze rods, lava...) and needs water too, puffs smoke and chuffs, and its driving wheels and
+  coupling rods turn as it goes. Seats a driver and a fireman.
 - **Express Locomotive**: a crimson 4-6-0, 8 blocks long, with big driving wheels: a third faster than the tank
   engine and nearly twice as strong. It burns coal from its **Tender**, which holds four times as much.
 - **Diesel Locomotive**: a blue road-switcher, 7 blocks long, on two bogies. It runs on BuildCraft's diesel (Dense
@@ -43,6 +43,8 @@ choice of way at every junction) or give them a timetable and let them run betwe
 - **Bullet Train**: the top of the line. A white, blue-striped high-speed train with a long streamlined nose,
   about 100 km/h: a driving car at each end and **Bullet Train Coaches** between, so it runs both ways without
   turning. It runs on batteries, like the electric.
+- **Water Tower**: a wooden tank on legs beside the track, for steam engines. Fill it with buckets or pipes, and it
+  fills the tank engines and tenders of a train standing beside it.
 - **Charging Point**: charges the batteries of an electric standing beside it, from BuildCraft engines, kinesis pipes
   or other mods' cables.
 - **Overhead Line Mast**, **Overhead Wire** and **Substation**: electrify a line. Masts stand beside the track with
@@ -131,6 +133,7 @@ corners, and are paid for in street track; the road blocks a curve passes over a
 | Level Crossing | Redstone lamps in the top corners; red dye, iron ingot, white dye; a bell in the bottom middle |
 | Timetable | Two paper and a clock |
 | Wagon Loader | Iron ingot, hopper, iron ingot; iron ingot, chest, iron ingot |
+| Water Tower | Planks, iron ingot, planks; planks, cauldron, planks; logs in the bottom corners |
 | Charging Point | Iron ingot, redstone lamp, iron ingot; copper ingot, block of redstone, copper ingot; three iron ingots |
 | Street Track (6) | Three Train Track; stone, coal, stone; three stone |
 | Vintage Tram | Three glass panes; red wool, block of redstone, white wool; iron ingot, minecart, iron ingot |
@@ -169,7 +172,8 @@ empty hand to climb into the cab.
 
 The gauges, bottom right, show the next signal (and how far), the next switch (which way it's set, and how far), the
 next station, the throttle notch (R2, R1, N, 1-4),
-the speed and the speed limit, which way you're steering, the brake and the firebox (or tender, or fuel tank). Top speed is 43 km/h for the
+the speed and the speed limit, which way you're steering, the brake and the firebox (or tender, or fuel tank), and a
+steam engine's water. Top speed is 43 km/h for the
 tank engine, 52 km/h for the diesel, 58 km/h for the express, 60 km/h for the electric and 100 km/h for the Bullet Train; a heavy train takes longer to get going, and slows (or stalls) going uphill.
 Cars roll downhill on their own. At the end of the line a train stops dead. If the track under a car is broken, the
 car comes off and drops as an item. With nobody at the controls the handbrake holds the train, and the fire only
@@ -193,6 +197,29 @@ worth, four times a tank engine's firebox, and the coal heap in it goes down as 
 ![The express](docs/screenshots/express.jpg)
 
 ![The express under way](docs/screenshots/express_front.jpg)
+
+### Water
+
+Steam engines need **water** as well as coal: a tank engine carries 16 buckets in its side tanks, and a tender 64
+(the express takes its water from its tender). They use it as fast as they burn coal, so a full load of each lasts the
+same. With none left there's no steam: the engine won't go, and its gauges say **NO WATER**. Engines and tenders come
+from the works with their tanks full (and ones from before this update are filled when they load).
+
+- **Water Tower**: put one beside the track (up to three blocks away, like a charging point; its spout faces the
+  track). It's two blocks tall and holds 256 buckets: fill it with buckets of water, or pipes and pumps (water only).
+  Any tank engine or tender in a train standing beside it is filled, 500 millibuckets a tick each (a dry tender in
+  about six seconds), its spout swinging down over the track while it does. Put one by a station: a timetabled train
+  waits there until it's full. The marks on its gauge show how full it is, a comparator reads it, redstone holds the
+  spout up, and clicking it says how much it holds. An empty bucket draws water from it.
+- **By hand**: click a tank engine, an express or a tender with a bucket of water (or any other mod's fluid
+  container); other mods' pipes can fill them too.
+- A server can turn water off (`steamNeedsWater`).
+
+![A tender taking water](docs/screenshots/water_tower.jpg)
+
+![The water tower's spout down over the tender](docs/screenshots/water_tower_spout.jpg)
+
+![The gauges: coal and water](docs/screenshots/water_gauge.png)
 
 ### The diesel
 
@@ -414,6 +441,8 @@ In `serverconfig/reikotrains-server.toml` in each world:
 | `maxTrainLength` | `16` | The most cars in one train |
 | `loaderSpeed` | `640` | How many items a wagon loader moves a second (640 fills a wagon in about 11 seconds) |
 | `fallbackDieselEnergyPerBucket` | `96000` | MJ in a bucket of a diesel fluid BuildCraft has no fuel value for |
+| `steamNeedsWater` | `true` | Whether steam engines need water as well as coal |
+| `waterTowerRateMB` | `500` | Millibuckets a tick a water tower puts into each tank engine or tender at it |
 | `chargingPointCapacityMJ` | `1000000` | MJ a charging point stores |
 | `chargingPointRateMJ` | `5000` | MJ a tick a charging point puts into each electric standing at it |
 | `substationCapacityMJ` | `1000000` | MJ each substation adds to its overhead line's store |
@@ -750,6 +779,12 @@ coupled sections and coming off as one item, and bending round a street corner; 
 stand on the track and going on when it's gone, a timetabled tram waiting behind a wagon without coupling to it,
 ordinary trains pushing on regardless, and (with the car mod) stopping at a red traffic light and going on at green.
 
+`WaterGameTests` covers water: engines coming full and using water as fast as coal, a dry engine not going until a
+bucket of water goes in, an express's water being its tender's (water only, as much as fits), a water tower filling
+a standing train's tender and no more (its spout, gauge and comparator), taking water from buckets and pipes but not
+lava and giving it to empty buckets, breaking as one, leaving moving trains alone and pausing for redstone, a
+timetabled train waiting at a station while it takes water, and servers turning water off.
+
 `TrainMapGameTests` covers the map of trains for minimaps: a train on it once, at its leading locomotive, with its
 kind and length, a timetabled train's next stop, a broken locomotive coming off it (and the other engine taking
 over), players being sent the other trains nearest first and not their own, dropping trains that aren't where the
@@ -759,7 +794,7 @@ map says, and saving it with the world.
 screenshots to `run/screenshots/` (that's where the pictures above come from). Add `-PxaeroJars=/path/to/folder` for
 the minimap shot, `-PcarJars=/path/to/folder` for the car transporter scene, and `-PshowcaseFrom=<tick>` to skip to the
 scene starting at that tick (`2202` for the Bullet Train, `2810` for the car transporters, `3105` for overhead wires,
-`3505` for trams).
+`3505` for trams, `3915` for water).
 
 ### Models, textures and sounds
 
@@ -793,6 +828,9 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
   either way from its block and works out how far off each train is and whether it's coming; while its arm's down it
   puts unseen `CrossingArmBlock`s in the road, which go when it goes up (or check for themselves and go if they're
   left behind).
+- **Water** (`train/WaterStore`, `water/`): tank engines and tenders are `WaterStore`s (millibuckets); a steam
+  engine's burning takes the same share of its water store as of its coal store. A water tower is a two-block
+  structure (like a door) whose bottom block holds the tank and works like a charging point.
 - **Freight** (`freight/`): a wagon loader finds the train standing at its track block each couple of ticks and moves
   goods between the storage next to it and the train's wagons through NeoForge item handlers. It keeps a list of
   loaded loaders, so a timetabled train can ask whether any is still busy with it. A charging point (`power/`) works

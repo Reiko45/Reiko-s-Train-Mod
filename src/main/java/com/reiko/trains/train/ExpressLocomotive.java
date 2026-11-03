@@ -100,9 +100,42 @@ public class ExpressLocomotive extends SteamLocomotive {
         return tender();
     }
 
+    /** Its water's in its tender too. */
+    @Nullable
+    @Override
+    public WaterStore waterStore() {
+        return tender();
+    }
+
+    /** It has no tanks of its own. */
+    @Override
+    public double water() {
+        return 0;
+    }
+
+    @Override
+    public double waterCapacity() {
+        return 0;
+    }
+
     @Override
     protected String noFuelMessage() {
-        return tender() == null ? "message.reikotrains.no_tender" : "message.reikotrains.no_fuel_tender";
+        if (tender() == null) {
+            return "message.reikotrains.no_tender";
+        }
+        return outOfWater() && tender().fuel() > 0 ? "message.reikotrains.no_water_tender" : "message.reikotrains.no_fuel_tender";
+    }
+
+    /** Water poured into the engine goes into its tender. */
+    @Nullable
+    @Override
+    protected InteractionResult water(Player player, InteractionHand hand) {
+        Tender tender = tender();
+        InteractionResult result = WaterTank.fillFromHand(player, hand, tender != null ? tender : this, "message.reikotrains.tender_water");
+        if (result != null && tender == null && !level().isClientSide) {
+            player.displayClientMessage(Component.translatable("message.reikotrains.no_tender"), true);
+        }
+        return result;
     }
 
     @Override

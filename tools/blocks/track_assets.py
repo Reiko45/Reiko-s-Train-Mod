@@ -1088,6 +1088,100 @@ def street_models():
         json.dump({"parent": "reikotrains:block/street_track_straight"}, out, indent=2)
 
 
+def water_tower_textures():
+    """
+    The water tower: grey-brown weathered staves for its tank, dark iron hoops, dark timber legs, dark shingles on its
+    roof, a black iron spout with a canvas hose, and its gauge's marks, lit blue or dark.
+    """
+    staves = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            c = shade((122, 98, 72), 1 + 0.07 * noise("tower_staves", x, y))
+            if x % 4 == 0:
+                c = shade(c, 0.78)  # the joints between staves
+            staves.putpixel((x, y), c)
+    staves.save(f"{ASSETS}/textures/block/water_tower_staves.png")
+    shingles = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            c = shade((70, 52, 46), 1 + 0.08 * noise("tower_roof", x, y))
+            if y % 4 == 3 or (x + (y // 4) * 2) % 5 == 0:
+                c = shade(c, 0.75)
+            shingles.putpixel((x, y), c)
+    shingles.save(f"{ASSETS}/textures/block/water_tower_roof.png")
+    solid("water_tower_hoop", (52, 52, 56), noise_amount=0.05)
+    solid("water_tower_leg", (78, 58, 40), shade((78, 58, 40), 0.75), 0.07)
+    solid("water_tower_spout", (36, 36, 40), noise_amount=0.05)
+    solid("water_tower_hose", (150, 136, 104), noise_amount=0.07)
+    solid("water_tower_mark_on", (70, 150, 230), noise_amount=0.03)
+    solid("water_tower_mark_off", (30, 34, 44), noise_amount=0.04)
+    solid("water_tower_board", (226, 222, 210), shade((226, 222, 210), 0.7), 0.03)
+
+
+def water_tower_models():
+    """
+    The water tower, two blocks (it faces north, its spout towards the track at -z), three blocks tall to look at. The
+    bottom block's model: four timber legs with cross braces, reaching up through the top block, and a deck on them.
+    The top block's: a round-ish tank of staves bound with iron hoops on the deck, a pointed shingle roof, a gauge board
+    on its front with four marks lit as it fills, and its spout, up against the tank or swung down out over the track
+    (just above a tender) with its hose hanging.
+    """
+    tex = {"particle": "reikotrains:block/water_tower_staves", "staves": "reikotrains:block/water_tower_staves",
+           "hoop": "reikotrains:block/water_tower_hoop", "leg": "reikotrains:block/water_tower_leg",
+           "roof": "reikotrains:block/water_tower_roof", "spout": "reikotrains:block/water_tower_spout",
+           "hose": "reikotrains:block/water_tower_hose", "board": "reikotrains:block/water_tower_board",
+           "on": "reikotrains:block/water_tower_mark_on", "off": "reikotrains:block/water_tower_mark_off"}
+    base = []
+    for x0, z0 in ((1, 1), (13, 1), (1, 13), (13, 13)):
+        base.append(element([x0, 0, z0], [x0 + 2, 26, z0 + 2], all_faces("#leg", (0, 0, 2, 16))))
+    for y in (8, 17):
+        for x0, z0, x1, z1 in ((3, 1.5, 13, 2.5), (3, 13.5, 13, 14.5), (1.5, 3, 2.5, 13), (13.5, 3, 14.5, 13)):
+            base.append(element([x0, y, z0], [x1, y + 1.5, z1], all_faces("#leg", (0, 0, 10, 2))))
+    base.append(element([0.5, 26, 0.5], [15.5, 28, 15.5], all_faces("#leg", (0, 0, 15, 15))))
+    with open(f"{ASSETS}/models/block/water_tower_base.json", "w") as out:
+        json.dump({"parent": "block/block", "ambientocclusion": False, "textures": tex, "elements": base}, out, indent=2)
+    for marks in range(5):
+        for filling in (False, True):
+            els = []
+            # The tank: a wide middle and narrower boxes either way, so it looks round from a distance
+            # (The top block's own space, up to 12, is the legs' tops and the deck, drawn by the bottom block.)
+            els.append(element([2, 12, 0.5], [14, 28, 15.5], all_faces("#staves", (0, 0, 12, 16))))
+            els.append(element([0.5, 12, 2], [15.5, 28, 14], all_faces("#staves", (0, 0, 12, 16))))
+            els.append(element([1.25, 12, 1.25], [14.75, 28, 14.75], all_faces("#staves", (0, 0, 12, 16))))
+            for y in (14, 25):
+                els.append(element([1, y, 1], [15, y + 1, 15], all_faces("#hoop", (0, 0, 14, 1))))
+            for lo, hi, y0, y1 in ((1, 15, 28, 29.5), (3.5, 12.5, 29.5, 31), (6, 10, 31, 32)):
+                els.append(element([lo, y0, lo], [hi, y1, hi], all_faces("#roof", (lo, lo, hi, hi))))
+            # The gauge board on its front, right of the spout, with four marks
+            els.append(element([10, 13, 0.25], [13, 27, 0.5], all_faces("#board", (0, 0, 3, 14))))
+            for i in range(4):
+                lit = i < marks
+                y0 = 14 + 3 * i
+                els.append(element([10.75, y0, 0], [12.25, y0 + 1.5, 0.25], {"north": ("#on" if lit else "#off", [0, 0, 1.5, 1.5])}))
+            # The spout, hinged at the tank's front
+            els.append(element([6.5, 16, -0.5], [9.5, 19, 0.5], all_faces("#spout", (0, 0, 3, 3))))
+            if filling:
+                els.append(element([7, 16.5, -16], [9, 18.5, -0.5], all_faces("#spout", (0, 0, 2, 16))))
+                els.append(element([7.25, 14, -15.5], [8.75, 17, -14], all_faces("#hose", (0, 0, 1.5, 3))))
+            else:
+                els.append(element([7, 18.5, -1.5], [9, 31, 0.5], all_faces("#spout", (0, 0, 2, 12))))
+            name = f"water_tower_top_{marks}{'_filling' if filling else ''}"
+            with open(f"{ASSETS}/models/block/{name}.json", "w") as out:
+                json.dump({"parent": "block/block", "ambientocclusion": False, "textures": tex, "elements": els}, out, indent=2)
+    variants = {}
+    for facing, y in (("north", 0), ("east", 90), ("south", 180), ("west", 270)):
+        for half in ("lower", "upper"):
+            for marks in range(5):
+                for filling in ("false", "true"):
+                    model = "water_tower_base" if half == "lower" else f"water_tower_top_{marks}{'_filling' if filling == 'true' else ''}"
+                    v = {"model": f"reikotrains:block/{model}"}
+                    if y:
+                        v["y"] = y
+                    variants[f"facing={facing},filling={filling},half={half},level={marks}"] = v
+    with open(f"{ASSETS}/blockstates/water_tower.json", "w") as out:
+        json.dump({"variants": variants}, out, indent=2)
+
+
 def signals_and_stations():
     signal_textures()
     signal_models()
@@ -1108,6 +1202,8 @@ def signals_and_stations():
     catenary_models()
     street_textures()
     street_models()
+    water_tower_textures()
+    water_tower_models()
 
 
 if __name__ == "__main__":

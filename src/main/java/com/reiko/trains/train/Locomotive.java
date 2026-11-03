@@ -615,6 +615,11 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
         }
     }
 
+    /** For the gauges: how full its water is, 0-100, or -1 if it doesn't use water (or has nowhere to get it from). */
+    public int waterPercent() {
+        return -1;
+    }
+
     /** What the driver's told when they open the throttle with no fire. */
     protected String noFuelMessage() {
         return "message.reikotrains.no_fuel";

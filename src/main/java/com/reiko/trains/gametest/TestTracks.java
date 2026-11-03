@@ -232,6 +232,18 @@ public final class TestTracks {
         }
     }
 
+    /** A water tower (both its blocks) at {@code pos} for the track block {@code node}, as if a player had put it there. */
+    public static com.reiko.trains.water.WaterTowerBlockEntity waterTower(ServerLevel level, BlockPos pos, BlockPos node) {
+        level.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 2);
+        BlockState state = ModBlocks.WATER_TOWER.get().defaultBlockState().setValue(com.reiko.trains.water.WaterTowerBlock.FACING,
+                WagonLoaderBlock.facing(pos, node, null));
+        level.setBlock(pos, state, 3);
+        state.getBlock().setPlacedBy(level, pos, state, null, ItemStack.EMPTY);
+        com.reiko.trains.water.WaterTowerBlockEntity tower = (com.reiko.trains.water.WaterTowerBlockEntity) level.getBlockEntity(pos);
+        tower.attach(node);
+        return tower;
+    }
+
     /** A timetable stop for a station. */
     public static Timetable.Stop stop(StationBlockEntity station) {
         return new Timetable.Stop(station.getBlockPos(), station.node(), station.name());

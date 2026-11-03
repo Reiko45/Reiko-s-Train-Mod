@@ -110,6 +110,9 @@ public final class Autopilot {
             if (charging) {
                 return Component.translatable("hud.reikotrains.auto.charging", stop.name());
             }
+            if (watering) {
+                return Component.translatable("hud.reikotrains.auto.watering", stop.name());
+            }
             return Component.translatable("hud.reikotrains.auto.at", stop.name(), (timer + 19) / 20);
         }
         if (waitingAtSignal) {
@@ -130,6 +133,8 @@ public final class Autopilot {
     private LoaderMode loading;
     /** While it's standing at a station: whether a charging point's charging it. */
     private boolean charging;
+    /** ... and whether a water tower's filling it. */
+    private boolean watering;
 
     /** Picks the way at a junction: the one that leads to the current stop, or heads most towards it. */
     EdgeRef choose(Level level, BlockPos node, int side, List<EdgeRef> options, Vec3 heading, boolean setSwitch) {
@@ -192,10 +197,11 @@ public final class Autopilot {
             // It waits its time at the station, and then for any wagon loaders and charging points to finish with it.
             loading = WagonLoaderBlockEntity.busyWith(level, cars);
             charging = ChargingPointBlockEntity.busyWith(level, cars);
+            watering = com.reiko.trains.water.WaterTowerBlockEntity.busyWith(level, cars);
             if (timer > 0) {
                 timer--;
             }
-            if (timer <= 0 && loading == null && !charging) {
+            if (timer <= 0 && loading == null && !charging && !watering) {
                 if (stop.dropsWagons()) {
                     dropWagons(level, cars, signs, stop);
                 }

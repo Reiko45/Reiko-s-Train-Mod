@@ -67,6 +67,12 @@ public final class ReikoTrains {
         // A diesel's tank takes diesel from buckets, pipes and other mods' fluid containers (its hitbox parts too).
         event.registerEntity(Capabilities.FluidHandler.ENTITY, ModEntities.DIESEL_LOCOMOTIVE.get(), ReikoTrains::dieselTank);
         event.registerEntity(Capabilities.FluidHandler.ENTITY, ModEntities.TANK_WAGON.get(), ReikoTrains::tankWagon);
+        // Steam engines' and tenders' water (an express's goes to its tender).
+        for (net.minecraft.world.entity.EntityType<?> type : java.util.List.<net.minecraft.world.entity.EntityType<?>>of(
+                ModEntities.STEAM_LOCOMOTIVE.get(), ModEntities.EXPRESS_LOCOMOTIVE.get(), ModEntities.TENDER.get())) {
+            event.registerEntity(Capabilities.FluidHandler.ENTITY, type, ReikoTrains::waterTank);
+        }
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ModBlockEntities.WATER_TOWER.get(), (tower, side) -> tower.tank());
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.WAGON_LOADER.get(), (loader, side) -> loader.port());
         // BuildCraft engines and kinesis pipes (and, as BuildCraft's config allows, other mods' energy) feed a charging
         // point from any side.
@@ -89,6 +95,16 @@ public final class ReikoTrains {
     private static IFluidHandler dieselTank(Entity entity, @Nullable Direction side) {
         Entity car = entity instanceof PartEntity<?> part ? part.getParent() : entity;
         return car instanceof DieselLocomotive diesel ? diesel.tank() : null;
+    }
+
+    @Nullable
+    private static IFluidHandler waterTank(Entity entity, @Nullable Direction side) {
+        Entity car = entity instanceof PartEntity<?> part ? part.getParent() : entity;
+        if (car instanceof com.reiko.trains.train.SteamLocomotive steam) {
+            com.reiko.trains.train.WaterStore store = steam.waterStore();
+            return store == null ? null : new com.reiko.trains.train.WaterTank(store);
+        }
+        return car instanceof com.reiko.trains.train.Tender tender ? new com.reiko.trains.train.WaterTank(tender) : null;
     }
 
     @Nullable

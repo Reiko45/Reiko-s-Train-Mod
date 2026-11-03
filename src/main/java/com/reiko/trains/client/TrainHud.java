@@ -21,6 +21,8 @@ public final class TrainHud implements LayeredDraw.Layer {
     /** The extra row for the next signal and station (or the timetable). */
     private static final int INFO = 24;
     private static final int MARGIN = 6;
+    /** The extra row for a steam engine's water. */
+    private static final int WATER_ROW = 11;
     private static final String[] NOTCHES = {"R2", "R1", "N", "1", "2", "3", "4"};
 
     @Override
@@ -35,7 +37,8 @@ public final class TrainHud implements LayeredDraw.Layer {
         int aspect = locomotive.signalAspect();
         boolean points = locomotive.hasPointsAhead();
         boolean info = aspect != 0 || points || !status.getString().isEmpty() || locomotive.isAutomatic();
-        int height = HEIGHT + (info ? INFO : 0);
+        int water = locomotive.waterPercent();
+        int height = HEIGHT + (info ? INFO : 0) + (water >= 0 ? WATER_ROW : 0);
         int x = graphics.guiWidth() - WIDTH - MARGIN;
         int top = graphics.guiHeight() - height - MARGIN;
         graphics.fill(x, top, x + WIDTH, top + height, 0xA0101014);
@@ -114,7 +117,8 @@ public final class TrainHud implements LayeredDraw.Layer {
         // Fuel
         int fuel = locomotive.getFuelPercent();
         Component label = Component.translatable(locomotive.fuelLabel());
-        int barX = x + Math.max(30, 10 + font.width(label));
+        int labels = Math.max(font.width(label), water >= 0 ? font.width(Component.translatable("hud.reikotrains.water")) : 0);
+        int barX = x + Math.max(30, 10 + labels);
         int barY = y + 34;
         int barW = WIDTH - 4 - (barX - x);
         graphics.drawString(font, label, x + 5, y + 33, 0xFFD0D0D0, false);
@@ -125,6 +129,21 @@ public final class TrainHud implements LayeredDraw.Layer {
         } else if (!locomotive.isRunning() && (minecraft.player.tickCount / 10) % 2 == 0) {
             Component out = Component.translatable(fuel < 0 ? "hud.reikotrains.no_tender" : locomotive.outOfFuelLabel());
             graphics.drawString(font, out, barX + (barW - font.width(out)) / 2, barY - 1, 0xFFFF5040, false);
+        }
+
+        // Water, for a steam engine
+        if (water >= 0) {
+            Component waterLabel = Component.translatable("hud.reikotrains.water");
+            int wy = barY + WATER_ROW;
+            graphics.drawString(font, waterLabel, x + 5, wy - 1, 0xFFD0D0D0, false);
+            graphics.fill(barX, wy, barX + barW, wy + 6, 0xFF2A2A2E);
+            if (water > 0) {
+                int fill = Math.max(1, barW * water / 100);
+                graphics.fill(barX, wy, barX + fill, wy + 6, water <= 15 ? 0xFFE0482E : 0xFF3C8CE0);
+            } else if ((minecraft.player.tickCount / 10) % 2 == 0) {
+                Component out = Component.translatable("hud.reikotrains.no_water");
+                graphics.drawString(font, out, barX + (barW - font.width(out)) / 2, wy - 1, 0xFFFF5040, false);
+            }
         }
     }
 

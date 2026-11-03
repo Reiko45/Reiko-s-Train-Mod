@@ -184,6 +184,8 @@ public final class DevShowcase {
     private static final int BULLET_WIRE_LINE = -170;
     /** A street with trams, along x at this z (the track down its middle), turning north at its east end. */
     private static final int STREET = -200;
+    /** A line with a water tower at its halt, along x at this z. */
+    private static final int WATER_LINE = -262;
     /** The switch stand for the junction at x = 52. */
     private static final BlockPos SWITCH = new BlockPos(52, Y, -2);
 
@@ -414,6 +416,15 @@ public final class DevShowcase {
         // car mod) a traffic light and a parked car.
         streetScene(level);
 
+        // A line with a water tower beside its halt, and an express standing there with its tender by the tower.
+        TestTracks.line(level, new BlockPos(0, Y, WATER_LINE), TrackAxis.X, 80);
+        TestTracks.station(level, new BlockPos(40, Y, WATER_LINE - 3), new BlockPos(40, Y, WATER_LINE), "Water Stop", 10);
+        TestTracks.waterTower(level, new BlockPos(28, Y, WATER_LINE + 2), new BlockPos(28, Y, WATER_LINE)).addWater(200_000);
+        ExpressLocomotive thirsty = TestTracks.car(level, ModEntities.EXPRESS_LOCOMOTIVE.get(), new BlockPos(36, Y, WATER_LINE), EAST);
+        Tender thirstyTender = TestTracks.car(level, ModEntities.TENDER.get(), new BlockPos(28, Y, WATER_LINE), EAST);
+        Trains.couple(thirsty, thirstyTender);
+        thirstyTender.setFuel(Tender.FUEL_CAPACITY * 0.7);
+
         Locomotive limited = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(24, Y, SPEED_LINE), EAST);
         PassengerCoach limitedCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(17, Y, SPEED_LINE), EAST);
         Trains.couple(limited, limitedCoach);
@@ -627,6 +638,43 @@ public final class DevShowcase {
                 }
             });
         }
+    }
+
+    /** Water: an express's tender filling at a water tower, its spout down; then the cab gauges, coal and water. */
+    private static void waterScene() {
+        at(3930, mc -> {
+            mc.options.setCameraType(CameraType.FIRST_PERSON);
+            mc.options.fov().set(70);
+            look(mc, 24.0, Y + 2.6, WATER_LINE + 5.5, -134.0F, 18.0F);
+        });
+        // Once it's loaded: the tender's run dry, and the tower fills it.
+        boolean[] emptied = {false};
+        for (int time = 3955; time <= 3995; time++) {
+            at(time, mc -> server(mc, player -> {
+                List<Tender> tenders = player.serverLevel().getEntitiesOfClass(Tender.class,
+                        new AABB(20, Y - 2, WATER_LINE - 4, 40, Y + 4, WATER_LINE + 4));
+                if (!emptied[0] && !tenders.isEmpty()) {
+                    emptied[0] = true;
+                    tenders.getFirst().setWater(0);
+                }
+            }));
+        }
+        at(4005, mc -> shot(mc, "53_water_tower"));
+        at(4007, mc -> look(mc, 22.5, Y + 2.0, WATER_LINE + 1.5, -98.0F, 12.0F));
+        at(4040, mc -> shot(mc, "53b_water_tower_spout"));
+        at(4042, mc -> server(mc, player -> {
+            ServerLevel level = player.serverLevel();
+            ExpressLocomotive express = find(level, ExpressLocomotive.class, 36.5, WATER_LINE + 0.5);
+            player.getAbilities().flying = false;
+            player.onUpdateAbilities();
+            player.teleportTo(level, express.getX(), express.getY(), express.getZ(), -90.0F, 10.0F);
+            player.startRiding(express);
+        }));
+        at(4048, mc -> {
+            mc.player.setYRot(-90.0F);
+            mc.player.setXRot(10.0F);
+        });
+        at(4075, mc -> shot(mc, "54_water_gauge"));
     }
 
     private static void script() {
@@ -942,6 +990,7 @@ public final class DevShowcase {
         }
         wireScene();
         tramScene();
-        at(3920, Minecraft::stop);
+        waterScene();
+        at(4095, Minecraft::stop);
     }
 }

@@ -2,6 +2,23 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.23.0
+
+Water towers.
+
+- Steam engines need water as well as coal: 16 buckets in a tank engine's side tanks, 64 in a tender (the express's
+  water is its tender's). They use it as fast as coal, so a full load of each lasts the same; with none there's no
+  steam. Engines and tenders come full, and existing ones are filled when they load. A new server setting,
+  `steamNeedsWater` (on by default), turns it off.
+- New: the **Water Tower**, a two-block wooden tank on legs beside the track. Fill it with buckets or pipes (water
+  only, 256 buckets); it fills the tank engines and tenders of a train standing beside it (`waterTowerRateMB`, 500 a
+  tick), its spout swinging down over the track. Timetabled trains wait at a station until they're full. Gauge marks,
+  comparator output, redstone holds it.
+- Buckets of water (and other fluid containers, and pipes) fill tank engines, expresses (into the tender) and tenders.
+- The cab gauges show a steam engine's water, and NO WATER when it's dry.
+- The mod's network version changes, so clients and servers both need 0.23.0.
+- Eight new game tests (156 in all).
+
 ## 0.22.0
 
 Trams.

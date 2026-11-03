@@ -59,6 +59,13 @@ public final class TrainsConfig {
             .comment("MJ a tick an electric under a live overhead line puts into its batteries (on top of what it uses to",
                     "run). 2000 charges a flat electric in about 25 seconds.")
             .defineInRange("wireChargeRateMJ", 2000, 0, 10_000_000);
+    public static final ModConfigSpec.BooleanValue STEAM_NEEDS_WATER = BUILDER
+            .comment("Whether steam engines need water as well as coal (from a water tower, buckets or pipes). A full load of",
+                    "water lasts as long as a full load of coal.")
+            .define("steamNeedsWater", true);
+    public static final ModConfigSpec.IntValue WATER_TOWER_RATE = BUILDER
+            .comment("Millibuckets a tick a water tower puts into each tank engine or tender of a train standing at it.")
+            .defineInRange("waterTowerRateMB", 500, 1, 1_000_000);
     public static final ModConfigSpec.IntValue CROSSING_WARNING = BUILDER
             .comment("How many seconds before a train gets to a level crossing its lamps start flashing. The barrier comes",
                     "down three seconds after that, taking two seconds over it.")

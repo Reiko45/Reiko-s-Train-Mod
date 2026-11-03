@@ -38,6 +38,8 @@ public final class ModBlockEntities {
             () -> BlockEntityType.Builder.of(WagonLoaderBlockEntity::new, ModBlocks.WAGON_LOADER.get()).build(null));
 
     @SuppressWarnings("DataFlowIssue")
+    public static final Supplier<BlockEntityType<com.reiko.trains.water.WaterTowerBlockEntity>> WATER_TOWER = BLOCK_ENTITIES.register("water_tower",
+            () -> BlockEntityType.Builder.of(com.reiko.trains.water.WaterTowerBlockEntity::new, ModBlocks.WATER_TOWER.get()).build(null));
     public static final Supplier<BlockEntityType<ChargingPointBlockEntity>> CHARGING_POINT = BLOCK_ENTITIES.register("charging_point",
             () -> BlockEntityType.Builder.of(ChargingPointBlockEntity::new, ModBlocks.CHARGING_POINT.get()).build(null));
 

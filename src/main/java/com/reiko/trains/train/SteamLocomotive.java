@@ -2,20 +2,38 @@ package com.reiko.trains.train;
 
 import com.reiko.trains.registry.ModItems;
 import com.reiko.trains.registry.ModSounds;
+import javax.annotation.Nullable;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * A tank engine, two blocks wide and six long, with its coal in its own firebox. It puffs smoke and chuffs as it
- * works, four chuffs to a turn of its driving wheels, and wisps smoke standing still with its fire lit.
+ * A tank engine, two blocks wide and six long, with its coal in its own firebox and its water in its own side tanks.
+ * It uses water as fast as coal (a full load of each lasts the same), and can't work without (unless the server says
+ * steam engines don't need water); fill it at a water tower, or with buckets. It puffs smoke and chuffs as it works,
+ * four chuffs to a turn of its driving wheels, and wisps smoke standing still with its fire lit.
  */
-public class SteamLocomotive extends Locomotive {
+public class SteamLocomotive extends Locomotive implements WaterStore {
     /** The firebox holds 32 coal's worth. */
     public static final double FUEL_CAPACITY = 32 * 1600;
+    /** Its side tanks hold 16 buckets: as long as a full firebox. */
+    public static final double WATER_CAPACITY = 16_000;
+    /** For the gauges: how full its water is, 0-100, or -1 if it doesn't use any or has nowhere to get it. */
+    private static final EntityDataAccessor<Integer> DATA_WATER = SynchedEntityData.defineId(SteamLocomotive.class, EntityDataSerializers.INT);
+
+    /** Water in its own tanks, in millibuckets: engines come from the works with them full. */
+    private double water = WATER_CAPACITY;
     /** The driver sits on the left of the cab, the fireman on the right. */
     private static final Seat[] SEATS = {new Seat(-1.5, -0.5, 1.06), new Seat(-1.5, 0.5, 1.06)};
 
@@ -25,6 +43,116 @@ public class SteamLocomotive extends Locomotive {
 
     public SteamLocomotive(EntityType<? extends SteamLocomotive> type, Level level) {
         super(type, level);
+    }
+
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_WATER, 100);
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------
+    // Water
+
+    @Override
+    public double water() {
+        return water;
+    }
+
+    /** How much water its own tanks hold (none, for an engine whose water is in its tender). */
+    @Override
+    public double waterCapacity() {
+        return WATER_CAPACITY;
+    }
+
+    @Override
+    public void setWater(double millibuckets) {
+        water = Mth.clamp(millibuckets, 0.0, waterCapacity());
+    }
+
+    /** Where its water comes from: its own tanks (an express's tender). Null if it's got nowhere. */
+    @Nullable
+    public WaterStore waterStore() {
+        return this;
+    }
+
+    /** Whether it's run out of water (and needs it). */
+    public boolean outOfWater() {
+        if (!WaterStore.needed()) {
+            return false;
+        }
+        WaterStore store = waterStore();
+        return store == null || store.water() <= 0;
+    }
+
+    @Override
+    public int waterPercent() {
+        return entityData.get(DATA_WATER);
+    }
+
+    /** Burning coal boils water away: as much of a full load of water as of a full load of coal. */
+    @Override
+    protected void burn(double amount) {
+        FuelStore fuel = fuelStore();
+        WaterStore store = waterStore();
+        if (WaterStore.needed() && fuel != null && fuel.fuel() > 0 && store != null && store.waterCapacity() > 0) {
+            store.setWater(store.water() - amount * store.waterCapacity() / fuel.fuelCapacity());
+        }
+        super.burn(amount);
+    }
+
+    /** No water, no steam. */
+    @Override
+    boolean hasPower() {
+        return super.hasPower() && !outOfWater();
+    }
+
+    @Override
+    protected String noFuelMessage() {
+        return outOfWater() && super.hasPower() ? "message.reikotrains.no_water" : super.noFuelMessage();
+    }
+
+    @Override
+    public String noPowerStatus() {
+        return outOfWater() && super.hasPower() ? "hud.reikotrains.auto.no_water" : super.noPowerStatus();
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (!level().isClientSide) {
+            WaterStore store = waterStore();
+            int percent = !WaterStore.needed() || store == null ? -1 : store.waterFill();
+            if (entityData.get(DATA_WATER) != percent) {
+                entityData.set(DATA_WATER, percent);
+            }
+        }
+    }
+
+    /** A bucket (or other container) of water fills its tanks. */
+    @Override
+    protected InteractionResult interactCar(Player player, InteractionHand hand) {
+        InteractionResult watered = water(player, hand);
+        return watered != null ? watered : super.interactCar(player, hand);
+    }
+
+    /** Fills its water from what the player holds, if it's water; null if it isn't. */
+    @Nullable
+    protected InteractionResult water(Player player, InteractionHand hand) {
+        return WaterTank.fillFromHand(player, hand, this, "message.reikotrains.water");
+    }
+
+    @Override
+    protected void addAdditionalSaveData(CompoundTag tag) {
+        super.addAdditionalSaveData(tag);
+        tag.putDouble("Water", water);
+    }
+
+    /** An engine from before steam engines needed water comes with its tanks full. */
+    @Override
+    protected void readAdditionalSaveData(CompoundTag tag) {
+        super.readAdditionalSaveData(tag);
+        water = tag.contains("Water") ? Mth.clamp(tag.getDouble("Water"), 0.0, WATER_CAPACITY) : WATER_CAPACITY;
     }
 
     @Override

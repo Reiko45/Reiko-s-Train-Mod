@@ -38,6 +38,10 @@ public final class ModBlocks {
             .strength(2.5F).sound(SoundType.METAL).requiresCorrectToolForDrops()
             .lightLevel(state -> state.getValue(WagonLoaderBlock.ACTIVE) ? 4 : 0)));
 
+    public static final DeferredBlock<com.reiko.trains.water.WaterTowerBlock> WATER_TOWER = BLOCKS.register("water_tower",
+            () -> new com.reiko.trains.water.WaterTowerBlock(BlockBehaviour.Properties.of().strength(2.0F).sound(SoundType.WOOD).noOcclusion()
+                    .ignitedByLava().mapColor(net.minecraft.world.level.material.MapColor.WOOD)));
+
     public static final DeferredBlock<ChargingPointBlock> CHARGING_POINT = BLOCKS.register("charging_point", () -> new ChargingPointBlock(
             BlockBehaviour.Properties.of().strength(2.5F).sound(SoundType.METAL).requiresCorrectToolForDrops().noOcclusion()
                     .lightLevel(state -> state.getValue(ChargingPointBlock.CHARGING) ? 6 : state.getValue(ChargingPointBlock.LEVEL) > 0 ? 2 : 0)));

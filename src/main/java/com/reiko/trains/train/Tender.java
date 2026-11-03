@@ -21,13 +21,17 @@ import net.minecraft.world.level.Level;
  * Shovel fuel into it (or into the engine), or let hoppers and wagon loaders fill it: as a container it has one slot,
  * a chute, that takes fuel and tips it in. The coal heap in it shows how full it is.
  */
-public class Tender extends TrainCarEntity implements FuelStore, Container {
+public class Tender extends TrainCarEntity implements FuelStore, WaterStore, Container {
     /** 128 coal's worth. */
     public static final double FUEL_CAPACITY = 128 * 1600;
+    /** 64 buckets of water: as long as its coal. */
+    public static final double WATER_CAPACITY = 64_000;
     /** How much coal shows: 0 empty, else 1-3. */
     private static final EntityDataAccessor<Integer> DATA_COAL = SynchedEntityData.defineId(Tender.class, EntityDataSerializers.INT);
 
     private double fuel;
+    /** Water, in millibuckets: tenders come from the works full. */
+    private double water = WATER_CAPACITY;
     /** Where hoppers and loaders tip coal in. */
     private final FuelChute chute = new FuelChute(this, stack -> stack.is(Locomotive.FUEL));
 
@@ -108,14 +112,35 @@ public class Tender extends TrainCarEntity implements FuelStore, Container {
     }
 
     @Override
+    public double water() {
+        return water;
+    }
+
+    @Override
+    public double waterCapacity() {
+        return WATER_CAPACITY;
+    }
+
+    @Override
+    public void setWater(double millibuckets) {
+        water = Mth.clamp(millibuckets, 0.0, WATER_CAPACITY);
+    }
+
+    @Override
     protected InteractionResult interactCar(Player player, InteractionHand hand) {
+        InteractionResult watered = WaterTank.fillFromHand(player, hand, this, "message.reikotrains.tender_water");
+        if (watered != null) {
+            return watered;
+        }
         ItemStack stack = player.getItemInHand(hand);
         if (stack.is(Locomotive.FUEL)) {
             return Locomotive.shovel(player, hand, stack, this, position().add(0, 1.5, 0), "message.reikotrains.tender_fuel",
                     "message.reikotrains.tender_full");
         }
         if (!level().isClientSide) {
-            player.displayClientMessage(Component.translatable("message.reikotrains.tender_fuel", fuelPercent()), true);
+            player.displayClientMessage(WaterStore.needed()
+                    ? Component.translatable("message.reikotrains.tender_both", fuelPercent(), waterFill())
+                    : Component.translatable("message.reikotrains.tender_fuel", fuelPercent()), true);
         }
         return InteractionResult.sidedSuccess(level().isClientSide);
     }
@@ -137,6 +162,7 @@ public class Tender extends TrainCarEntity implements FuelStore, Container {
     protected void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putDouble("Fuel", fuel);
+        tag.putDouble("Water", water);
         chute.save(tag, registryAccess());
     }
 
@@ -144,6 +170,8 @@ public class Tender extends TrainCarEntity implements FuelStore, Container {
     protected void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         setFuel(tag.getDouble("Fuel"));
+        // A tender from before steam engines needed water comes full.
+        water = tag.contains("Water") ? Mth.clamp(tag.getDouble("Water"), 0.0, WATER_CAPACITY) : WATER_CAPACITY;
         chute.load(tag, registryAccess());
     }
 

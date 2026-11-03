@@ -57,6 +57,8 @@ public final class ModItems {
             () -> new BlockItem(ModBlocks.SWITCH.get(), new Item.Properties()));
     public static final DeferredItem<BlockItem> STATION = ITEMS.register("station",
             () -> new BlockItem(ModBlocks.STATION.get(), new Item.Properties()));
+    public static final DeferredItem<BlockItem> WATER_TOWER = ITEMS.register("water_tower",
+            () -> new BlockItem(ModBlocks.WATER_TOWER.get(), new Item.Properties()));
     public static final DeferredItem<BlockItem> CHARGING_POINT = ITEMS.register("charging_point",
             () -> new BlockItem(ModBlocks.CHARGING_POINT.get(), new Item.Properties()));
     public static final DeferredItem<BlockItem> CATENARY_MAST = ITEMS.register("catenary_mast",

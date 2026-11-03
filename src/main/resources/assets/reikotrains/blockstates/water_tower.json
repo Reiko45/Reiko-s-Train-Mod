@@ -1,0 +1,304 @@
+{
+  "variants": {
+    "facing=north,filling=false,half=lower,level=0": {
+      "model": "reikotrains:block/water_tower_base"
+    },
+    "facing=north,filling=true,half=lower,level=0": {
+      "model": "reikotrains:block/water_tower_base"
+    },
+    "facing=north,filling=false,half=lower,level=1": {
+      "model": "reikotrains:block/water_tower_base"
+    },
+    "facing=north,filling=true,half=lower,level=1": {
+      "model": "reikotrains:block/water_tower_base"
+    },
+    "facing=north,filling=false,half=lower,level=2": {
+      "model": "reikotrains:block/water_tower_base"
+    },
+    "facing=north,filling=true,half=lower,level=2": {
+      "model": "reikotrains:block/water_tower_base"
+    },
+    "facing=north,filling=false,half=lower,level=3": {
+      "model": "reikotrains:block/water_tower_base"
+    },
+    "facing=north,filling=true,half=lower,level=3": {
+      "model": "reikotrains:block/water_tower_base"
+    },
+    "facing=north,filling=false,half=lower,level=4": {
+      "model": "reikotrains:block/water_tower_base"
+    },
+    "facing=north,filling=true,half=lower,level=4": {
+      "model": "reikotrains:block/water_tower_base"
+    },
+    "facing=north,filling=false,half=upper,level=0": {
+      "model": "reikotrains:block/water_tower_top_0"
+    },
+    "facing=north,filling=true,half=upper,level=0": {
+      "model": "reikotrains:block/water_tower_top_0_filling"
+    },
+    "facing=north,filling=false,half=upper,level=1": {
+      "model": "reikotrains:block/water_tower_top_1"
+    },
+    "facing=north,filling=true,half=upper,level=1": {
+      "model": "reikotrains:block/water_tower_top_1_filling"
+    },
+    "facing=north,filling=false,half=upper,level=2": {
+      "model": "reikotrains:block/water_tower_top_2"
+    },
+    "facing=north,filling=true,half=upper,level=2": {
+      "model": "reikotrains:block/water_tower_top_2_filling"
+    },
+    "facing=north,filling=false,half=upper,level=3": {
+      "model": "reikotrains:block/water_tower_top_3"
+    },
+    "facing=north,filling=true,half=upper,level=3": {
+      "model": "reikotrains:block/water_tower_top_3_filling"
+    },
+    "facing=north,filling=false,half=upper,level=4": {
+      "model": "reikotrains:block/water_tower_top_4"
+    },
+    "facing=north,filling=true,half=upper,level=4": {
+      "model": "reikotrains:block/water_tower_top_4_filling"
+    },
+    "facing=east,filling=false,half=lower,level=0": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 90
+    },
+    "facing=east,filling=true,half=lower,level=0": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 90
+    },
+    "facing=east,filling=false,half=lower,level=1": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 90
+    },
+    "facing=east,filling=true,half=lower,level=1": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 90
+    },
+    "facing=east,filling=false,half=lower,level=2": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 90
+    },
+    "facing=east,filling=true,half=lower,level=2": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 90
+    },
+    "facing=east,filling=false,half=lower,level=3": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 90
+    },
+    "facing=east,filling=true,half=lower,level=3": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 90
+    },
+    "facing=east,filling=false,half=lower,level=4": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 90
+    },
+    "facing=east,filling=true,half=lower,level=4": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 90
+    },
+    "facing=east,filling=false,half=upper,level=0": {
+      "model": "reikotrains:block/water_tower_top_0",
+      "y": 90
+    },
+    "facing=east,filling=true,half=upper,level=0": {
+      "model": "reikotrains:block/water_tower_top_0_filling",
+      "y": 90
+    },
+    "facing=east,filling=false,half=upper,level=1": {
+      "model": "reikotrains:block/water_tower_top_1",
+      "y": 90
+    },
+    "facing=east,filling=true,half=upper,level=1": {
+      "model": "reikotrains:block/water_tower_top_1_filling",
+      "y": 90
+    },
+    "facing=east,filling=false,half=upper,level=2": {
+      "model": "reikotrains:block/water_tower_top_2",
+      "y": 90
+    },
+    "facing=east,filling=true,half=upper,level=2": {
+      "model": "reikotrains:block/water_tower_top_2_filling",
+      "y": 90
+    },
+    "facing=east,filling=false,half=upper,level=3": {
+      "model": "reikotrains:block/water_tower_top_3",
+      "y": 90
+    },
+    "facing=east,filling=true,half=upper,level=3": {
+      "model": "reikotrains:block/water_tower_top_3_filling",
+      "y": 90
+    },
+    "facing=east,filling=false,half=upper,level=4": {
+      "model": "reikotrains:block/water_tower_top_4",
+      "y": 90
+    },
+    "facing=east,filling=true,half=upper,level=4": {
+      "model": "reikotrains:block/water_tower_top_4_filling",
+      "y": 90
+    },
+    "facing=south,filling=false,half=lower,level=0": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 180
+    },
+    "facing=south,filling=true,half=lower,level=0": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 180
+    },
+    "facing=south,filling=false,half=lower,level=1": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 180
+    },
+    "facing=south,filling=true,half=lower,level=1": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 180
+    },
+    "facing=south,filling=false,half=lower,level=2": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 180
+    },
+    "facing=south,filling=true,half=lower,level=2": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 180
+    },
+    "facing=south,filling=false,half=lower,level=3": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 180
+    },
+    "facing=south,filling=true,half=lower,level=3": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 180
+    },
+    "facing=south,filling=false,half=lower,level=4": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 180
+    },
+    "facing=south,filling=true,half=lower,level=4": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 180
+    },
+    "facing=south,filling=false,half=upper,level=0": {
+      "model": "reikotrains:block/water_tower_top_0",
+      "y": 180
+    },
+    "facing=south,filling=true,half=upper,level=0": {
+      "model": "reikotrains:block/water_tower_top_0_filling",
+      "y": 180
+    },
+    "facing=south,filling=false,half=upper,level=1": {
+      "model": "reikotrains:block/water_tower_top_1",
+      "y": 180
+    },
+    "facing=south,filling=true,half=upper,level=1": {
+      "model": "reikotrains:block/water_tower_top_1_filling",
+      "y": 180
+    },
+    "facing=south,filling=false,half=upper,level=2": {
+      "model": "reikotrains:block/water_tower_top_2",
+      "y": 180
+    },
+    "facing=south,filling=true,half=upper,level=2": {
+      "model": "reikotrains:block/water_tower_top_2_filling",
+      "y": 180
+    },
+    "facing=south,filling=false,half=upper,level=3": {
+      "model": "reikotrains:block/water_tower_top_3",
+      "y": 180
+    },
+    "facing=south,filling=true,half=upper,level=3": {
+      "model": "reikotrains:block/water_tower_top_3_filling",
+      "y": 180
+    },
+    "facing=south,filling=false,half=upper,level=4": {
+      "model": "reikotrains:block/water_tower_top_4",
+      "y": 180
+    },
+    "facing=south,filling=true,half=upper,level=4": {
+      "model": "reikotrains:block/water_tower_top_4_filling",
+      "y": 180
+    },
+    "facing=west,filling=false,half=lower,level=0": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 270
+    },
+    "facing=west,filling=true,half=lower,level=0": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 270
+    },
+    "facing=west,filling=false,half=lower,level=1": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 270
+    },
+    "facing=west,filling=true,half=lower,level=1": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 270
+    },
+    "facing=west,filling=false,half=lower,level=2": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 270
+    },
+    "facing=west,filling=true,half=lower,level=2": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 270
+    },
+    "facing=west,filling=false,half=lower,level=3": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 270
+    },
+    "facing=west,filling=true,half=lower,level=3": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 270
+    },
+    "facing=west,filling=false,half=lower,level=4": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 270
+    },
+    "facing=west,filling=true,half=lower,level=4": {
+      "model": "reikotrains:block/water_tower_base",
+      "y": 270
+    },
+    "facing=west,filling=false,half=upper,level=0": {
+      "model": "reikotrains:block/water_tower_top_0",
+      "y": 270
+    },
+    "facing=west,filling=true,half=upper,level=0": {
+      "model": "reikotrains:block/water_tower_top_0_filling",
+      "y": 270
+    },
+    "facing=west,filling=false,half=upper,level=1": {
+      "model": "reikotrains:block/water_tower_top_1",
+      "y": 270
+    },
+    "facing=west,filling=true,half=upper,level=1": {
+      "model": "reikotrains:block/water_tower_top_1_filling",
+      "y": 270
+    },
+    "facing=west,filling=false,half=upper,level=2": {
+      "model": "reikotrains:block/water_tower_top_2",
+      "y": 270
+    },
+    "facing=west,filling=true,half=upper,level=2": {
+      "model": "reikotrains:block/water_tower_top_2_filling",
+      "y": 270
+    },
+    "facing=west,filling=false,half=upper,level=3": {
+      "model": "reikotrains:block/water_tower_top_3",
+      "y": 270
+    },
+    "facing=west,filling=true,half=upper,level=3": {
+      "model": "reikotrains:block/water_tower_top_3_filling",
+      "y": 270
+    },
+    "facing=west,filling=false,half=upper,level=4": {
+      "model": "reikotrains:block/water_tower_top_4",
+      "y": 270
+    },
+    "facing=west,filling=true,half=upper,level=4": {
+      "model": "reikotrains:block/water_tower_top_4_filling",
+      "y": 270
+    }
+  }
+}
