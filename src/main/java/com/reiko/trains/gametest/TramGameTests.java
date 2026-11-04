@@ -443,4 +443,28 @@ public final class TramGameTests {
         helper.assertTrue(Trains.train(middle).size() == 3, "clicking it again still doesn't split it");
         helper.succeed();
     }
+
+    @GameTest(template = LINE, timeoutTicks = 300)
+    public static void streetTrackRunsStraightOnIntoTrainTrack(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        TestTracks.floor(level, helper.absolutePos(new BlockPos(0, 1, 0)), 64, 9);
+        TrackBuilder.streetLine(level, at(helper, 0), TrackAxis.X, 24);
+        BlockPos track = at(helper, 24).above();
+        TestTracks.line(level, track, TrackAxis.X, 40);
+        List<com.reiko.trains.track.EdgeRef> on = TrackGraph.edgesFrom(level, at(helper, 23), 1);
+        helper.assertTrue(on.size() == 1 && on.getFirst().to().equals(track), "the street should run on into the train track: " + on);
+        List<com.reiko.trains.track.EdgeRef> back = TrackGraph.edgesFrom(level, track, -1);
+        helper.assertTrue(back.size() == 1 && back.getFirst().to().equals(at(helper, 23)), "and the train track back into the street: " + back);
+        helper.assertTrue(TrackGraph.exists(level, on.getFirst()) && TrackGraph.exists(level, back.getFirst()), "both ways");
+        double step = TrackGraph.point(level, track).y - TrackGraph.point(level, at(helper, 23)).y;
+        helper.assertTrue(Math.abs(step - 0.25) < 1.0E-9, "a quarter of a block up, near enough level: " + step);
+        com.reiko.trains.train.SteamLocomotive loco = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), at(helper, 8), EAST);
+        loco.setFuel(com.reiko.trains.train.SteamLocomotive.FUEL_CAPACITY);
+        Player driver = board(helper, loco);
+        throttle(loco, 3);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(loco.getX() > track.getX() + 12 && loco.isOnTrack() && loco.isAlive(), "a train should run from the street onto it");
+            driver.stopRiding();
+        });
+    }
 }

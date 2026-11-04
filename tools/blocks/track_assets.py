@@ -222,8 +222,11 @@ def loader_screen():
 
 
 def track_layer_screen():
-    """The track-laying wagon's screen: its 27-slot store, a row for its switch and what it's doing, and the inventory."""
-    width, height = 176, 196
+    """
+    The track-laying wagon's screen: its 27-slot store, a row for its switch and what it's doing, a row for how it lays
+    (two buttons, drawn by the game), and the inventory.
+    """
+    width, height = 176, 220
     img = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
     bg, light, dark, black = (198, 198, 198, 255), (255, 255, 255, 255), (85, 85, 85, 255), (0, 0, 0, 255)
     for y in range(height):
@@ -275,9 +278,9 @@ def track_layer_screen():
             img.putpixel((x, y), (55, 55, 55, 255) if edge_dark else light if edge_light else (40, 44, 40, 255))
     for r in range(3):
         for c in range(9):
-            slot(8 + c * 18, 114 + r * 18)
+            slot(8 + c * 18, 138 + r * 18)
     for c in range(9):
-        slot(8 + c * 18, 172)
+        slot(8 + c * 18, 196)
     os.makedirs(f"{ASSETS}/textures/gui", exist_ok=True)
     img.save(f"{ASSETS}/textures/gui/track_layer.png")
 

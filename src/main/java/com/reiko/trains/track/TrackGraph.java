@@ -75,6 +75,11 @@ public final class TrackGraph {
         BlockPos next = node.offset(side * axis.dx, 0, side * axis.dz);
         if (axis(level, next) == axis) {
             edges.add(new EdgeRef(node, axis, side, next, axis, -side, street, street(level, next)));
+        } else {
+            BlockPos step = streetStep(level, node, axis, side, street);
+            if (step != null) {
+                edges.add(new EdgeRef(node, axis, side, step, axis, -side, street, !street));
+            }
         }
         if (level.getBlockEntity(node) instanceof TrackBlockEntity track) {
             for (TrackConnection connection : track.connections()) {
@@ -90,6 +95,22 @@ public final class TrackGraph {
         return edges;
     }
 
+    /**
+     * Street track running on into train track, in line: the train track block a block up from the street track's
+     * (on the ground the street's set into), whose rails are a quarter of a block above the street's. They join up as
+     * if they were level (or the other way, from the train track down to the street's).
+     */
+    @Nullable
+    private static BlockPos streetStep(Level level, BlockPos node, TrackAxis axis, int side, boolean street) {
+        BlockPos next = node.offset(side * axis.dx, street ? 1 : -1, side * axis.dz);
+        if (!level.isLoaded(next)) {
+            return null;
+        }
+        BlockState state = level.getBlockState(next);
+        return state.getBlock() instanceof TrackBlock && state.getValue(TrackBlock.AXIS) == axis && (state.getBlock() instanceof StreetTrackBlock) != street
+                ? next : null;
+    }
+
     /** Whether this stretch of track is still there. */
     public static boolean exists(Level level, EdgeRef edge) {
         if (axis(level, edge.from()) != edge.fromAxis() || axis(level, edge.to()) != edge.toAxis()
@@ -98,6 +119,11 @@ public final class TrackGraph {
         }
         BlockPos next = edge.from().offset(edge.fromSide() * edge.fromAxis().dx, 0, edge.fromSide() * edge.fromAxis().dz);
         if (next.equals(edge.to()) && edge.fromAxis() == edge.toAxis() && edge.toSide() == -edge.fromSide()) {
+            return true;
+        }
+        if (edge.fromAxis() == edge.toAxis() && edge.toSide() == -edge.fromSide() && edge.fromStreet() != edge.toStreet()
+                && edge.to().equals(streetStep(level, edge.from(), edge.fromAxis(), edge.fromSide(), edge.fromStreet()))
+                && axis(level, next) != edge.fromAxis()) {
             return true;
         }
         return level.getBlockEntity(edge.from()) instanceof TrackBlockEntity track

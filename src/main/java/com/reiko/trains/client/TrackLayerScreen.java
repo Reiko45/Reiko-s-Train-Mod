@@ -12,15 +12,20 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-/** The track-laying wagon's screen: its store, its on/off switch, and what it's doing (or why it's stopped). */
+/**
+ * The track-laying wagon's screen: its store, its on/off switch, what it's doing (or why it's stopped), and how it lays:
+ * following the ground or level, and tight or wide bends.
+ */
 public class TrackLayerScreen extends AbstractContainerScreen<TrackLayerMenu> {
     private static final ResourceLocation BACKGROUND = ReikoTrains.id("textures/gui/track_layer.png");
     private Button toggle;
+    private Button grade;
+    private Button bends;
 
     public TrackLayerScreen(TrackLayerMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
         imageWidth = 176;
-        imageHeight = 196;
+        imageHeight = 220;
         inventoryLabelY = imageHeight - 94;
     }
 
@@ -29,6 +34,10 @@ public class TrackLayerScreen extends AbstractContainerScreen<TrackLayerMenu> {
         super.init();
         toggle = addRenderableWidget(Button.builder(Component.empty(), b -> press(TrackLayerMenu.BUTTON_SWITCH))
                 .bounds(leftPos + 7, topPos + 77, 50, 20).build());
+        grade = addRenderableWidget(Button.builder(Component.empty(), b -> press(TrackLayerMenu.BUTTON_GRADE))
+                .bounds(leftPos + 7, topPos + 101, 80, 20).build());
+        bends = addRenderableWidget(Button.builder(Component.empty(), b -> press(TrackLayerMenu.BUTTON_BENDS))
+                .bounds(leftPos + 89, topPos + 101, 80, 20).build());
         HandbookButton handbook = HandbookButton.create(leftPos + imageWidth - 19, topPos + 3, 14, com.reiko.trains.guide.Handbook.TRACK_LAYER);
         if (handbook != null) {
             addRenderableWidget(handbook);
@@ -48,6 +57,12 @@ public class TrackLayerScreen extends AbstractContainerScreen<TrackLayerMenu> {
                 .withStyle(on ? ChatFormatting.GREEN : ChatFormatting.RED));
         toggle.setTooltip(Tooltip.create(Component.translatable(on ? "screen.reikotrains.track_layer.on.tooltip"
                 : "screen.reikotrains.track_layer.off.tooltip")));
+        String g = menu.followsGround() ? "follow" : "level";
+        grade.setMessage(Component.translatable("screen.reikotrains.track_layer.grade." + g));
+        grade.setTooltip(Tooltip.create(Component.translatable("screen.reikotrains.track_layer.grade." + g + ".tooltip")));
+        String w = menu.wideBends() ? "wide" : "tight";
+        bends.setMessage(Component.translatable("screen.reikotrains.track_layer.bends." + w));
+        bends.setTooltip(Tooltip.create(Component.translatable("screen.reikotrains.track_layer.bends." + w + ".tooltip")));
     }
 
     @Override

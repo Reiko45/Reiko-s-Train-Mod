@@ -10,6 +10,7 @@ import com.reiko.trains.track.TrackGraph;
 import com.reiko.trains.train.SteamLocomotive;
 import com.reiko.trains.train.TrackLayer;
 import com.reiko.trains.train.Trains;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -19,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -133,6 +135,7 @@ public final class TrackLayerGameTests {
         }
         SteamLocomotive[] loco = new SteamLocomotive[1];
         TrackLayer layer = train(helper, 4, 16, loco); // no fill: what it digs out of the hill fills the dip
+        layer.setFollowGround(false);
         Player driver = drive(helper, loco[0], 3);
         helper.succeedWhen(() -> {
             helper.assertTrue(layer.status() == TrackLayer.Status.OUT_OF_TRACK, "it should lay all its track: " + layer.status());
@@ -150,14 +153,15 @@ public final class TrackLayerGameTests {
                 helper.assertTrue(!level.getBlockState(helper.absolutePos(new BlockPos(x, Y, 2))).isAir(), "but not wider than it needs");
             }
             for (int x = 30; x <= 32; x++) {
-                for (int y = 1; y < Y; y++) {
-                    helper.assertTrue(level.getBlockState(helper.absolutePos(new BlockPos(x, y, 4))).is(Blocks.COBBLESTONE),
-                            "the dip should be filled under the track with what it dug, at " + x + "," + y);
+                for (int z = 3; z <= 5; z++) {
+                    for (int y = 1; y < Y; y++) {
+                        helper.assertTrue(level.getBlockState(helper.absolutePos(new BlockPos(x, y, z))).is(Blocks.COBBLESTONE),
+                                "the dip should be filled under the track, three wide, with what it dug, at " + x + "," + y + "," + z);
+                    }
                 }
-                helper.assertTrue(level.getBlockState(helper.absolutePos(new BlockPos(x, Y - 1, 3))).isAir(), "only under the track");
             }
             int cobble = layer.count(stack -> stack.is(Items.COBBLESTONE));
-            helper.assertTrue(cobble > 20, "what it dug out and didn't use should be in its store: " + cobble);
+            helper.assertTrue(cobble > 15, "what it dug out and didn't use should be in its store: " + cobble);
             driver.stopRiding();
         });
     }
@@ -165,16 +169,22 @@ public final class TrackLayerGameTests {
     @GameTest(template = LINE, timeoutTicks = 400)
     public static void stopsAtWater(GameTestHelper helper) {
         ground(helper, 64, 9);
-        helper.getLevel().setBlock(helper.absolutePos(new BlockPos(END + 4, Y - 1, 4)), Blocks.WATER.defaultBlockState(), 3);
+        // A pond where the track would go, walled in until the wagon gets to it.
+        ServerLevel level = helper.getLevel();
+        for (BlockPos wall : List.of(new BlockPos(END + 4, Y, 3), new BlockPos(END + 4, Y, 5), new BlockPos(END + 5, Y, 4), new BlockPos(END + 3, Y, 4))) {
+            level.setBlock(helper.absolutePos(wall), Blocks.STONE.defaultBlockState(), 2);
+        }
+        level.setBlock(helper.absolutePos(new BlockPos(END + 4, Y, 4)), Blocks.WATER.defaultBlockState(), 3);
         SteamLocomotive[] loco = new SteamLocomotive[1];
         TrackLayer layer = train(helper, 4, 16, loco);
         layer.store(new ItemStack(Items.GRAVEL, 64));
         Player driver = drive(helper, loco[0], 3);
         helper.succeedWhen(() -> {
             helper.assertTrue(layer.status() == TrackLayer.Status.WATER, "it should stop at the water: " + layer.status());
-            helper.assertTrue(layer.laid() == 3 && track(helper, END + 3, 4, TrackAxis.X), "laying up to it, " + layer.laid());
-            helper.assertTrue(TrackGraph.axis(helper.getLevel(), at(helper, END + 4, 4)) == null, "and no further");
-            helper.assertTrue(helper.getLevel().getBlockState(helper.absolutePos(new BlockPos(END + 4, Y - 1, 4))).is(Blocks.WATER),
+            helper.assertTrue(layer.laid() == 2 && track(helper, END + 2, 4, TrackAxis.X), "laying up to it, " + layer.laid());
+            helper.assertTrue(TrackGraph.axis(helper.getLevel(), at(helper, END + 3, 4)) == null
+                    && helper.getLevel().getBlockState(at(helper, END + 3, 4)).is(Blocks.STONE), "and no further: not letting it out");
+            helper.assertTrue(helper.getLevel().getBlockState(helper.absolutePos(new BlockPos(END + 4, Y, 4))).is(Blocks.WATER),
                     "leaving the water be");
             driver.stopRiding();
         });
@@ -263,6 +273,197 @@ public final class TrackLayerGameTests {
                 helper.assertTrue(track(helper, END + 7 + i, 13 + i, TrackAxis.SE), "then straight on, south-east: " + i);
             }
             helper.assertTrue(layer.getZ() > at(helper, 0, 13).getZ(), "the train should have gone round the bend");
+            driver.stopRiding();
+        });
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 1200)
+    public static void followsTheGroundUpAndDown(GameTestHelper helper) {
+        ground(helper, 64, 9);
+        ServerLevel level = helper.getLevel();
+        // A rise a block high, from x 24 to 40.
+        for (int x = 24; x <= 40; x++) {
+            for (int z = 0; z < 9; z++) {
+                level.setBlock(helper.absolutePos(new BlockPos(x, Y, z)), Blocks.STONE.defaultBlockState(), 2);
+            }
+        }
+        SteamLocomotive[] loco = new SteamLocomotive[1];
+        TrackLayer layer = train(helper, 4, 32, loco);
+        layer.store(new ItemStack(Items.GRAVEL, 64));
+        Player driver = drive(helper, loco[0], 3);
+        double[] highest = {0};
+        helper.onEachTick(() -> highest[0] = Math.max(highest[0], layer.getY()));
+        helper.succeedWhen(() -> {
+            helper.assertTrue(layer.status() == TrackLayer.Status.OUT_OF_TRACK, "it should lay all its track: " + layer.status());
+            BlockPos top = at(helper, END + 8, 4).above();
+            helper.assertTrue(TrackGraph.axis(level, top) == TrackAxis.X, "a slope up, 1 in 8, onto the rise");
+            helper.assertTrue(TrackGraph.edgesFrom(level, at(helper, END, 4), 1).stream().anyMatch(e -> e.to().equals(top)), "from the end of the line");
+            for (int x = END + 1; x < END + 8; x++) {
+                helper.assertTrue(TrackGraph.axis(level, at(helper, x, 4)) == null && TrackGraph.axis(level, at(helper, x, 4).above()) == null,
+                        "a smooth slope, not steps, at " + x);
+            }
+            helper.assertTrue(TrackGraph.axis(level, at(helper, 35, 4).above()) == TrackAxis.X, "level along the top");
+            helper.assertTrue(TrackGraph.axis(level, at(helper, 43, 4)) == TrackAxis.X, "and down again where it ends");
+            helper.assertTrue(TrackGraph.edgesFrom(level, at(helper, 35, 4).above(), 1).stream().anyMatch(e -> e.to().equals(at(helper, 43, 4))),
+                    "by a slope down");
+            helper.assertTrue(highest[0] > at(helper, 0, 4).getY() + 0.9, "the train should have climbed it: " + highest[0]);
+            driver.stopRiding();
+        });
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 600)
+    public static void bridgesWaterOnPiers(GameTestHelper helper) {
+        ground(helper, 64, 9);
+        ServerLevel level = helper.getLevel();
+        for (int x = 24; x <= 30; x++) {
+            for (int z = 1; z <= 7; z++) {
+                for (int y = 1; y < Y; y++) {
+                    level.setBlock(helper.absolutePos(new BlockPos(x, y, z)), Blocks.WATER.defaultBlockState(), 2);
+                }
+            }
+        }
+        SteamLocomotive[] loco = new SteamLocomotive[1];
+        TrackLayer layer = train(helper, 4, 16, loco);
+        layer.store(new ItemStack(Items.STONE_BRICKS, 64));
+        Player driver = drive(helper, loco[0], 3);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(layer.status() == TrackLayer.Status.OUT_OF_TRACK, "it should lay all its track: " + layer.status());
+            for (int x = END + 1; x <= END + 16; x++) {
+                helper.assertTrue(track(helper, x, 4, TrackAxis.X), "level track at x " + x);
+            }
+            int piers = 0;
+            for (int x = 24; x <= 30; x++) {
+                for (int z = 3; z <= 5; z++) {
+                    helper.assertTrue(level.getBlockState(helper.absolutePos(new BlockPos(x, Y - 1, z))).is(Blocks.STONE_BRICKS),
+                            "a bridge deck, three wide, over the water at " + x + "," + z);
+                }
+                BlockPos foot = helper.absolutePos(new BlockPos(x, 1, 4));
+                if (Math.floorMod(foot.getX(), TrackLayer.PIER_SPACING) == 0) {
+                    piers++;
+                    helper.assertTrue(level.getBlockState(foot).is(Blocks.STONE_BRICKS) && level.getBlockState(foot.above()).is(Blocks.STONE_BRICKS),
+                            "a pier down to the bottom at " + x);
+                } else {
+                    helper.assertTrue(level.getBlockState(foot).is(Blocks.WATER), "and water between the piers at " + x);
+                }
+            }
+            helper.assertTrue(piers >= 1 && layer.bridged() > 21, "on piers: " + piers + ", " + layer.bridged());
+            helper.assertTrue(layer.getX() > at(helper, 31, 4).getX(), "the train should have gone over it");
+            driver.stopRiding();
+        });
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 600)
+    public static void tunnelsUnderATallHill(GameTestHelper helper) {
+        ground(helper, 64, 9);
+        ServerLevel level = helper.getLevel();
+        // A hill seven blocks high (taller than the test space), with a seam of sand where the tunnel's roof will be.
+        for (int x = 24; x <= 31; x++) {
+            for (int z = 0; z < 9; z++) {
+                for (int y = Y; y <= Y + 6; y++) {
+                    boolean sand = y == Y + TrackLayer.CLEAR_HEIGHT && x >= 26 && x <= 28;
+                    level.setBlock(helper.absolutePos(new BlockPos(x, y, z)), (sand ? Blocks.SAND : Blocks.STONE).defaultBlockState(), 2);
+                }
+            }
+        }
+        SteamLocomotive[] loco = new SteamLocomotive[1];
+        TrackLayer layer = train(helper, 4, 16, loco);
+        layer.setFollowGround(false);
+        layer.store(new ItemStack(Items.STONE_BRICKS, 16));
+        Player driver = drive(helper, loco[0], 3);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(layer.status() == TrackLayer.Status.OUT_OF_TRACK, "it should lay all its track: " + layer.status());
+            for (int x = END + 1; x <= END + 16; x++) {
+                helper.assertTrue(track(helper, x, 4, TrackAxis.X), "level track at x " + x);
+            }
+            for (int x = 24; x <= 31; x++) {
+                for (int y = Y + 1; y < Y + TrackLayer.CLEAR_HEIGHT; y++) {
+                    helper.assertTrue(level.getBlockState(helper.absolutePos(new BlockPos(x, y, 4))).isAir(), "a tunnel bored through at " + x + "," + y);
+                }
+                BlockPos roof = helper.absolutePos(new BlockPos(x, Y + TrackLayer.CLEAR_HEIGHT, 4));
+                BlockState state = level.getBlockState(roof);
+                helper.assertTrue(x >= 26 && x <= 28 ? state.is(Blocks.STONE_BRICKS) : state.is(Blocks.STONE),
+                        "its roof left be, and made good where it was sand, at " + x + ": " + state);
+                helper.assertTrue(level.getBlockState(roof.above()).is(x >= 26 && x <= 28 ? Blocks.STONE : Blocks.STONE), "the hill left over it");
+            }
+            helper.assertTrue(layer.lined() >= 3, "lining " + layer.lined());
+            driver.stopRiding();
+        });
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 600)
+    public static void laysStreetTrackOnFromStreetTrack(GameTestHelper helper) {
+        ground(helper, 64, 9);
+        ServerLevel level = helper.getLevel();
+        com.reiko.trains.track.TrackBuilder.streetLine(level, at(helper, 0, 4).below(), TrackAxis.X, END + 1);
+        SteamLocomotive loco = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), at(helper, 9, 4).below(), EAST);
+        TrackLayer layer = TestTracks.car(level, ModEntities.TRACK_LAYER.get(), at(helper, 16, 4).below(), EAST);
+        helper.assertTrue(Trains.couple(loco, layer) == Trains.CoupleResult.COUPLED, "the wagon should couple to the engine");
+        loco.setFuel(16000);
+        layer.store(new ItemStack(ModItems.STREET_TRACK.get(), 4));
+        layer.store(new ItemStack(ModItems.TRACK.get(), 6));
+        Player driver = drive(helper, loco, 3);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(layer.status() == TrackLayer.Status.OUT_OF_TRACK, "it should lay all its track: " + layer.status());
+            for (int x = END + 1; x <= END + 4; x++) {
+                BlockPos pos = at(helper, x, 4).below();
+                helper.assertTrue(TrackGraph.street(level, pos) && TrackGraph.axis(level, pos) == TrackAxis.X, "street track set into the road at " + x);
+            }
+            for (int x = END + 5; x <= END + 10; x++) {
+                helper.assertTrue(track(helper, x, 4, TrackAxis.X) && !TrackGraph.street(level, at(helper, x, 4)), "then train track, on the ground, at " + x);
+            }
+            helper.assertTrue(TrackGraph.edgesFrom(level, at(helper, END + 4, 4).below(), 1).size() == 1, "joined on from the street");
+            helper.assertTrue(layer.getX() > at(helper, END + 4, 4).getX(), "the train should have run on onto it");
+            driver.stopRiding();
+        });
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 900)
+    public static void wiresTheLineWithMastsAboard(GameTestHelper helper) {
+        // Low down, for room for the wire under the top of the test space.
+        ServerLevel level = helper.getLevel();
+        TestTracks.floor(level, helper.absolutePos(new BlockPos(0, 1, 0)), 64, 9);
+        BlockPos start = helper.absolutePos(new BlockPos(0, 1, 4));
+        TestTracks.line(level, start, TrackAxis.X, END + 1);
+        SteamLocomotive engine = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), start.east(9), EAST);
+        TrackLayer layer = TestTracks.car(level, ModEntities.TRACK_LAYER.get(), start.east(16), EAST);
+        helper.assertTrue(Trains.couple(engine, layer) == Trains.CoupleResult.COUPLED, "the wagon should couple to the engine");
+        engine.setFuel(16000);
+        layer.store(new ItemStack(ModItems.TRACK.get(), 36));
+        layer.store(new ItemStack(ModItems.CATENARY_MAST.get(), 4));
+        layer.store(new ItemStack(ModItems.OVERHEAD_WIRE.get(), 4));
+        Player driver = drive(helper, engine, 3);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(layer.status() == TrackLayer.Status.OUT_OF_TRACK, "it should lay all its track: " + layer.status());
+            List<BlockPos> masts = new java.util.ArrayList<>();
+            for (int x = END; x <= END + 36; x++) {
+                BlockPos pos = start.offset(x, 0, -3);
+                if (level.getBlockState(pos).is(com.reiko.trains.registry.ModBlocks.CATENARY_MAST.get())) {
+                    masts.add(pos);
+                }
+            }
+            helper.assertTrue(masts.size() >= 3 && layer.masts() == masts.size(), "masts put up along the left of the line: " + masts);
+            com.reiko.trains.wire.OverheadLines lines = com.reiko.trains.wire.OverheadLines.get(level);
+            for (int i = 1; i < masts.size(); i++) {
+                helper.assertTrue(lines.connected(masts.get(i - 1), masts.get(i)), "wired together, " + masts.get(i - 1) + " to " + masts.get(i));
+                helper.assertTrue(masts.get(i).getX() - masts.get(i - 1).getX() >= TrackLayer.MAST_SPACING - 1, "16 or so blocks apart");
+            }
+            helper.assertTrue(lines.lineAbove(TrackGraph.point(level, start.east(END + 20))) != null, "the wire over the track");
+            driver.stopRiding();
+        });
+    }
+
+    @GameTest(template = YARD, timeoutTicks = 600)
+    public static void wideBendsAreWide(GameTestHelper helper) {
+        ground(helper, 48, 48);
+        SteamLocomotive[] loco = new SteamLocomotive[1];
+        TrackLayer layer = train(helper, 10, 22, loco);
+        layer.setWideBends(true);
+        loco[0].control(TrainControlPayload.STEER_RIGHT);
+        Player driver = drive(helper, loco[0], 3);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(track(helper, END + 14, 16, TrackAxis.SE), "a wide 45° bend to the right, ending going south-east");
+            helper.assertTrue(TrackGraph.edgesFrom(helper.getLevel(), at(helper, END, 10), 1).size() == 1, "joined on to the end of the line");
+            helper.assertTrue(layer.getZ() > at(helper, 0, 13).getZ(), "the train should have gone round it");
             driver.stopRiding();
         });
     }

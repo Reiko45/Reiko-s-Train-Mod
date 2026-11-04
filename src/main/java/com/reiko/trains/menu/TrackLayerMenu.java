@@ -19,7 +19,9 @@ import net.minecraft.world.item.ItemStack;
  */
 public class TrackLayerMenu extends AbstractContainerMenu {
     public static final int BUTTON_SWITCH = 0;
-    public static final int INVENTORY_TOP = 114;
+    public static final int BUTTON_GRADE = 1;
+    public static final int BUTTON_BENDS = 2;
+    public static final int INVENTORY_TOP = 138;
     @Nullable
     private final TrackLayer layer;
     private final Container store;
@@ -27,7 +29,7 @@ public class TrackLayerMenu extends AbstractContainerMenu {
 
     /** On the client. */
     public TrackLayerMenu(int id, Inventory inventory) {
-        this(id, inventory, null, new SimpleContainer(TrackLayer.SLOTS), new SimpleContainerData(4));
+        this(id, inventory, null, new SimpleContainer(TrackLayer.SLOTS), new SimpleContainerData(5));
     }
 
     /** On the server, for a wagon. */
@@ -38,8 +40,10 @@ public class TrackLayerMenu extends AbstractContainerMenu {
                 return switch (index) {
                     case 0 -> layer.isOn() ? 1 : 0;
                     case 1 -> layer.status().ordinal();
-                    case 2 -> Math.min(Short.MAX_VALUE, layer.count(stack -> stack.is(com.reiko.trains.registry.ModItems.TRACK.get())));
-                    default -> Math.min(Short.MAX_VALUE, layer.count(stack -> stack.is(TrackLayer.TRACKBED)));
+                    case 2 -> Math.min(Short.MAX_VALUE, layer.count(stack -> stack.is(com.reiko.trains.registry.ModItems.TRACK.get())
+                            || stack.is(com.reiko.trains.registry.ModItems.STREET_TRACK.get())));
+                    case 3 -> Math.min(Short.MAX_VALUE, layer.count(stack -> stack.is(TrackLayer.TRACKBED) || stack.is(TrackLayer.MASONRY)));
+                    default -> (layer.followsGround() ? 1 : 0) | (layer.wideBends() ? 2 : 0);
                 };
             }
 
@@ -49,7 +53,7 @@ public class TrackLayerMenu extends AbstractContainerMenu {
 
             @Override
             public int getCount() {
-                return 4;
+                return 5;
             }
         });
     }
@@ -92,18 +96,35 @@ public class TrackLayerMenu extends AbstractContainerMenu {
         return data.get(2);
     }
 
-    /** How much fill it has. */
+    /** How much fill (and masonry) it has. */
     public int fill() {
         return data.get(3);
     }
 
+    /** Whether it follows the ground up and down. */
+    public boolean followsGround() {
+        return (data.get(4) & 1) != 0;
+    }
+
+    /** Whether its bends are wide ones. */
+    public boolean wideBends() {
+        return (data.get(4) & 2) != 0;
+    }
+
     @Override
     public boolean clickMenuButton(Player player, int id) {
-        if (layer != null && id == BUTTON_SWITCH) {
-            layer.setOn(!layer.isOn());
-            return true;
+        if (layer == null) {
+            return false;
         }
-        return false;
+        switch (id) {
+            case BUTTON_SWITCH -> layer.setOn(!layer.isOn());
+            case BUTTON_GRADE -> layer.setFollowGround(!layer.followsGround());
+            case BUTTON_BENDS -> layer.setWideBends(!layer.wideBends());
+            default -> {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
