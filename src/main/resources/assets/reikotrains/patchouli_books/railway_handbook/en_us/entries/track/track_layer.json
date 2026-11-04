@@ -1,0 +1,48 @@
+{
+  "name": "Track-Laying Wagon",
+  "icon": "reikotrains:track_layer",
+  "category": "reikotrains:track",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:entity",
+      "entity": "reikotrains:track_layer",
+      "scale": 0.376,
+      "offset": 0.1,
+      "rotate": true,
+      "text": "A flat wagon that lays track: stacks of it show along its deck."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Click it for its store (27 slots; hoppers reach it too). Load it with $(item)Train Track$() and something to fill dips: stone, cobblestone, dirt or gravel (or deepslate, andesite, tuff, sandstone, netherrack...).$(br2)Couple it at the $(l)front$() of a train, drive to the end of the line and keep going: it lays track ahead of itself, holding the train to a walk."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "It carries the line straight on, diagonals too. $(l)Steer$() left or right ($(k:key.left) / $(k:key.right)) and it lays a smooth 45° bend that way, then goes straight on: one bend for each press.$(br2)The line stays $(l)level$(): it digs a cutting through hills, three wide and four high, keeping what it digs, and fills dips up to six deep under the track."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/track_layer_line.png"
+      ],
+      "border": true,
+      "text": "Through a hill, over a gully and round a bend."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "It stops when it's out of track or fill, at water or lava, at a drop too deep to fill (bridge it by hand and carry on), and at bedrock, chests or other track right in the way. Its screen says why, and so does a message to the driver.$(br2)The switch in its screen turns it off: then it's an ordinary wagon."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/track_layer_screen.png"
+      ],
+      "border": true,
+      "text": "Its screen: the store, the switch and what it's doing."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:track_layer"
+    }
+  ]
+}

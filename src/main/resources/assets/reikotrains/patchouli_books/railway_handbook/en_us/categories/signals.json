@@ -1,0 +1,6 @@
+{
+  "name": "Signalling",
+  "description": "Signals, the signal box, speed limits, switches, track sensors and level crossings.",
+  "icon": "reikotrains:signal",
+  "sortnum": 7
+}

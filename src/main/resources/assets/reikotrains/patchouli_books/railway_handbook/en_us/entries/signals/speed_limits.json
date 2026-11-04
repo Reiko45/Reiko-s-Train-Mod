@@ -1,0 +1,29 @@
+{
+  "name": "Speed Limits",
+  "icon": "reikotrains:speed_sign",
+  "category": "reikotrains:signals",
+  "sortnum": 3,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Put a $(item)Speed Limit Sign$() beside the track (up to three blocks away), its face towards the trains coming. $(l)Click$() it to change its limit: 10 to 90 km/h, or the end of a limit.$(br2)Trains going towards its face slow in time to pass it at the limit, and keep to it until the next sign their way. Trains going the other way take no notice."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/speed_sign.png"
+      ],
+      "border": true,
+      "text": "A timetabled train slowing for a 20 km/h sign."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Timetabled trains always keep to the limits, and driven ones too (a server setting). The gauges show the limit beside the speed, yellow while slowing for a lower one.$(br2)Use them for sharp curves, junctions, stations trains run through, or a level crossing in a village."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:speed_sign",
+      "text": "Makes four."
+    }
+  ]
+}

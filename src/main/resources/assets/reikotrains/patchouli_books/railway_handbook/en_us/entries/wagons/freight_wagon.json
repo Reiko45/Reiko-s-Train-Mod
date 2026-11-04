@@ -1,0 +1,24 @@
+{
+  "name": "Freight Wagon",
+  "icon": "reikotrains:freight_wagon",
+  "category": "reikotrains:wagons",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:entity",
+      "entity": "reikotrains:freight_wagon",
+      "scale": 0.451,
+      "offset": 0.0,
+      "rotate": true,
+      "text": "Crates pile up in it as it fills."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "A freight wagon holds 108 stacks, four chests' worth, all on one screen: click it to open it. Hoppers above or below it fill and empty it, and so do other mods' pipes.$(br2)A full wagon is heavier to pull. Breaking it spills what's in it.$(br2)For loading by itself at a station, see $(l:freight/wagon_loader)Wagon Loaders$(/l)."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:freight_wagon"
+    }
+  ]
+}

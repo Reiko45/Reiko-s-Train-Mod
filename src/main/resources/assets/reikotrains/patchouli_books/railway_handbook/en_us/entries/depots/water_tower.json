@@ -1,0 +1,28 @@
+{
+  "name": "Water Tower",
+  "icon": "reikotrains:water_tower",
+  "category": "reikotrains:depots",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Put a $(item)Water Tower$() beside the track (up to three blocks away; its spout faces the track). It holds 256 buckets: fill it with buckets of water, or pipes.$(br2)Any tank engine or tender in a train standing beside it is filled, its spout swinging down over the track. A timetabled train at a station there waits until it's full."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/water_tower.png"
+      ],
+      "border": true,
+      "text": "A tender taking water."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "The marks on its gauge show how full it is, a comparator reads it, redstone holds the spout up, and clicking it says how much it holds. An empty bucket draws water from it.$(br2)A server can turn water off ($(l:more/settings)settings$(/l))."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:water_tower"
+    }
+  ]
+}

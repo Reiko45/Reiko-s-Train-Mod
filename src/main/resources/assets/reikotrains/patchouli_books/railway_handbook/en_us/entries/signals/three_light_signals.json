@@ -1,0 +1,28 @@
+{
+  "name": "Three-Light Signals",
+  "icon": "reikotrains:three_light_signal",
+  "category": "reikotrains:signals",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "A $(item)Three-Light Signal$() guards its section like any signal, and shows $(l)yellow$() while it's clear but the next signal on is red. Trains pass a yellow at $(l)caution speed$() (40 km/h, a server setting) and keep to it until the next signal, slowing in time; they speed up again if it turns green.$(br2)A comparator reads 15, 7 or 0 for red, yellow or green."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/three_light_signals.png"
+      ],
+      "border": true,
+      "text": "Green, yellow and red, with a train beyond the red."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Mix them with two-light signals as you like: a three-light signal looks at whatever kind of signal comes next. Put them where trains need warning: before a station's platform signal, or on a fast main line.$(br2)The gauges show a yellow ahead, and caution speed as the speed limit."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:three_light_signal"
+    }
+  ]
+}

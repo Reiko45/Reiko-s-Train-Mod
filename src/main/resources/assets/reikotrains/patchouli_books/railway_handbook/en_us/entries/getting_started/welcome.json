@@ -1,0 +1,30 @@
+{
+  "name": "Welcome",
+  "icon": "reikotrains:steam_locomotive",
+  "category": "reikotrains:getting_started",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Reiko's Train Mod$() adds big trains, two blocks wide and three tall, on their own track: steam engines, a diesel, an electric, the Bullet Train and trams, with coaches and wagons for everything.$(br2)Signal the line, name its stations, and drive the trains yourself or let a timetable run them."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/welcome.png"
+      ],
+      "border": true,
+      "text": "A tank engine and its coaches at the station."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "This book has a chapter for each part of the mod. Start with $(l:getting_started/first_train)Your First Train$(/l), then look things up as you need them.$(br2)The mod's screens have a little book button in their corner: it opens this book at their page."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:railway_handbook",
+      "text": "Lost this book? Make another from a book and a piece of Train Track."
+    }
+  ],
+  "priority": true
+}

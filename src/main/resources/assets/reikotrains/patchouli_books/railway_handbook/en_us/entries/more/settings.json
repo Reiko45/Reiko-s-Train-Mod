@@ -1,0 +1,16 @@
+{
+  "name": "Server Settings",
+  "icon": "minecraft:command_block",
+  "category": "reikotrains:more",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "A server can change these in its world's $(thing)serverconfig/reikotrains-server.toml$():$(li)needsFuel, fuelUse$(li)steamNeedsWater, waterTowerRateMB$(li)maxSpeed, acceleration$(li)signalsStopDrivers, cautionSpeedKmh$(li)speedLimitsForDrivers$(li)maxTrainLength (16)"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(li)loaderSpeed$(li)chargingPointCapacityMJ, chargingPointRateMJ$(li)substationCapacityMJ, wireChargeRateMJ$(li)crossingWarningSeconds$(li)trainsOnMinimaps$(li)giveHandbook: give new players this book$(br2)Datapacks can change the tags reikotrains:locomotive_fuel, reikotrains:trackbed and reikotrains:diesel."
+    }
+  ]
+}

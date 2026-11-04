@@ -87,6 +87,10 @@ public class SignalBoxScreen extends AbstractContainerScreen<SignalBoxMenu> {
         scale = Mth.clamp(Math.min(mapRight - mapLeft, mapBottom - mapTop) / (2.0F * SignalBoxBlockEntity.RANGE) * 1.6F, MIN_SCALE, MAX_SCALE);
         panX = 0;
         panZ = 0;
+        HandbookButton handbook = HandbookButton.create(leftPos + imageWidth - 17, topPos + 2, 14, com.reiko.trains.guide.Handbook.SIGNAL_BOX);
+        if (handbook != null) {
+            addRenderableWidget(handbook);
+        }
     }
 
     private float sx(float x) {

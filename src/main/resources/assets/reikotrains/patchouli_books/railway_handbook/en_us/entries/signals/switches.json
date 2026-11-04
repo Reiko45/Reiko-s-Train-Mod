@@ -1,0 +1,32 @@
+{
+  "name": "Switches",
+  "icon": "reikotrains:switch_stand",
+  "category": "reikotrains:signals",
+  "sortnum": 4,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Put a $(item)Switch Stand$() within three blocks of the block where a line divides: trains heading for the fork go the way it's set.$(li)$(l)Normal$() (green target): the straightest way.$(li)$(l)Thrown$() (yellow): the branch.$(br2)Click it to throw it over or back; at a three-way junction clicks go round the ways."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Redstone$() sets it and holds it there. Sneak-click the stand to choose what redstone does: throw it, or hold it straight on. The marker on its post shows which (yellow, it throws; green, it holds) and lights while redstone holds it.$(br2)Trains coming out of either branch just run through."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/switch_branch.png"
+      ],
+      "border": true,
+      "text": "A timetabled train sets the switch for the branch."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Timetabled trains set an unheld switch their way as they come to it; a held one they obey. Drivers' steering only counts at junctions with no switch.$(br2)Throwing a switch under a train doesn't split it: the cars behind follow the engine."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:switch_stand"
+    }
+  ]
+}

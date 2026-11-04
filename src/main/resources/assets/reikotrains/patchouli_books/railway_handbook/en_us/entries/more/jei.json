@@ -1,0 +1,12 @@
+{
+  "name": "JEI",
+  "icon": "minecraft:crafting_table",
+  "category": "reikotrains:more",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "With $(thing)JEI$() installed, every recipe here shows in it, and each of the mod's items has an $(l)information$() page saying what it does.$(br2)There's also a $(l)Locomotive Fuel$() page for each locomotive (what it runs on and how long it lasts) and a $(l)Track-Laying Wagon$() page (what it lays, and what fills dips): look up an engine's uses, or a fuel's."
+    }
+  ]
+}

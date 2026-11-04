@@ -1,0 +1,13 @@
+{
+  "name": "Railway Handbook",
+  "landing_text": "Everything about $(l)Reiko's Train Mod$(): laying track, building and driving trains, signalling the line, and running it all by timetable.$(br2)Open a chapter on the right, or search for anything.",
+  "subtitle": "Reiko's Train Mod",
+  "use_resource_pack": true,
+  "model": "reikotrains:railway_handbook",
+  "creative_tab": "reikotrains:trains",
+  "show_progress": false,
+  "text_overflow_mode": "resize",
+  "index_icon": "reikotrains:steam_locomotive",
+  "header_color": "1F4A2E",
+  "nameplate_color": "E2C45C"
+}

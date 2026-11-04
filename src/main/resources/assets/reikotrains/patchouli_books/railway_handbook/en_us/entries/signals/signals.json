@@ -1,0 +1,29 @@
+{
+  "name": "Railway Signals",
+  "icon": "reikotrains:signal",
+  "category": "reikotrains:signals",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Put a $(item)Railway Signal$() beside the track (up to three blocks away), looking along the line the way trains will go. It guards the track ahead that way, up to the next signal facing the same way, down every branch.$(br2)It shows $(l)red$() while there's a train on that stretch, and $(l)green$() when it's clear."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Trains stop short of a red signal and go on when it turns green: trains on a timetable always, and trains you drive too (a server setting). The gauges show the next signal and how far it is.$(br2)Redstone holds a signal at red, and a comparator reads 15 while there's a train ahead. Signals also tell timetabled trains which way a loop runs."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/signals.png"
+      ],
+      "border": true,
+      "text": "Signals round the loop: red behind a train, green ahead."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:signal",
+      "text": "Makes two."
+    }
+  ]
+}

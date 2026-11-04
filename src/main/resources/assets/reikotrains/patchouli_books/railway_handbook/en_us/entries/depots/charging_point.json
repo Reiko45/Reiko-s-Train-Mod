@@ -1,0 +1,28 @@
+{
+  "name": "Charging Point",
+  "icon": "reikotrains:charging_point",
+  "category": "reikotrains:depots",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "A $(item)Charging Point$() charges the electrics and Bullet Trains standing beside it (up to three blocks from the track; its cable reaches out over it). Feed it from BuildCraft engines or kinesis pipes: it stores a million MJ.$(br2)It charges a flat electric in ten seconds, and a timetabled train waits until it's full."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/electric_charging.png"
+      ],
+      "border": true,
+      "text": "Its bars show its store; its lamp lights while it's charging."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Click it to see how much it holds. Redstone pauses it, and a comparator reads its store.$(br2)On a long line, $(l:electric/overhead_lines)overhead wires$(/l) keep trains charged as they go instead."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:charging_point"
+    }
+  ]
+}

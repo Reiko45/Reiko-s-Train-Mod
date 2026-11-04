@@ -21,6 +21,15 @@ public class FreightWagonScreen extends AbstractContainerScreen<FreightWagonMenu
     }
 
     @Override
+    protected void init() {
+        super.init();
+        HandbookButton handbook = HandbookButton.create(leftPos + imageWidth - 19, topPos + 3, 14, com.reiko.trains.guide.Handbook.FREIGHT_WAGON);
+        if (handbook != null) {
+            addRenderableWidget(handbook);
+        }
+    }
+
+    @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         graphics.blit(BACKGROUND, leftPos, topPos, 0, 0, imageWidth, imageHeight, 512, 256);
     }

@@ -74,6 +74,10 @@ public final class TrainsConfig {
             .comment("How many seconds before a train gets to a level crossing its lamps start flashing. The barrier comes",
                     "down three seconds after that, taking two seconds over it.")
             .defineInRange("crossingWarningSeconds", 10, 6, 30);
+    public static final ModConfigSpec.BooleanValue GIVE_HANDBOOK = BUILDER
+            .comment("Whether each player is given the Railway Handbook the first time they join the world (once ever; it",
+                    "needs Patchouli). It can always be crafted from a book and Train Track.")
+            .define("giveHandbook", true);
 
     public static final ModConfigSpec SPEC = BUILDER.build();
 

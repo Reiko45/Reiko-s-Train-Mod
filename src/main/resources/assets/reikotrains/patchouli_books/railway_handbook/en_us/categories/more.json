@@ -1,0 +1,6 @@
+{
+  "name": "Settings and More",
+  "description": "Trains on the minimap, JEI, and the server's settings.",
+  "icon": "minecraft:compass",
+  "sortnum": 10
+}

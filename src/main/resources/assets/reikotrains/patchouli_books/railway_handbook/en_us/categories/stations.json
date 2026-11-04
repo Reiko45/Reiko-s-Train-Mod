@@ -1,0 +1,6 @@
+{
+  "name": "Stations",
+  "description": "Naming stations, and timetables that run trains by themselves, leaving and picking up wagons.",
+  "icon": "reikotrains:station",
+  "sortnum": 8
+}

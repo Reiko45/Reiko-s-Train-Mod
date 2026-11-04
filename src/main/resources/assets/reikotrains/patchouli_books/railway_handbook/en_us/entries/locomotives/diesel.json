@@ -1,0 +1,28 @@
+{
+  "name": "Diesel Locomotive",
+  "icon": "reikotrains:diesel_locomotive",
+  "category": "reikotrains:locomotives",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:entity",
+      "entity": "reikotrains:diesel_locomotive",
+      "scale": 0.313,
+      "offset": 0.55,
+      "rotate": true,
+      "text": "A road-switcher on two bogies: 52 km/h, and it pulls harder than the steam engines."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "It runs on $(thing)diesel$(): BuildCraft Reborn's $(l)Dense Fuel$() or $(l)Mixed Heavy Fuels$(), or other mods' diesel. Its tank holds 16 buckets of Dense Fuel: a bucket lasts about five minutes at full throttle, nearly an hour idling.$(br2)Fill it with buckets or pipes, or at a $(l:freight/wagon_loader)wagon loader$(/l) with a tank of diesel beside it."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "It won't take coal, and steam engines won't take diesel. Its engine rumbles, rising with the throttle, its exhaust smokes harder the harder it works, and it sounds a two-tone horn."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:diesel_locomotive"
+    }
+  ]
+}

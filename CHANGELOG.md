@@ -2,6 +2,24 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.28.0
+
+The Railway Handbook, and JEI pages.
+
+- New, with Patchouli installed: the **Railway Handbook**, the mod's guide book. Eleven chapters, forty entries: every
+  part of the mod, every recipe, the locomotives and wagons turning on stands, and pictures from the game. Every
+  player is given one the first time they join a world (once; the server setting `giveHandbook` turns that off), and
+  another can be crafted from a book and a piece of Train Track.
+- The track-laying wagon's, signal box's, wagon loader's, freight wagon's and station's screens have a little book
+  button in the corner that opens the handbook at their page.
+- With JEI installed: an information page for each of the mod's items, a **Locomotive Fuel** page for the steam
+  engines, the diesel and the electrics (what they run on, and how long each fuel lasts at full throttle), and a
+  **Track-Laying Wagon** page (what it lays and what it fills dips with).
+- Patchouli and JEI are optional: without them there's no book, no buttons and no JEI pages, and nothing else changes.
+- The mod's network version changes, so clients and servers both need 0.28.0 (the handbook's pages come with the
+  client).
+- Two new game tests (185 in all).
+
 ## 0.27.0
 
 The track-laying wagon.

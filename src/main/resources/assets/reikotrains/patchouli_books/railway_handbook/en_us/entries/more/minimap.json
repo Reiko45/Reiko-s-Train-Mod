@@ -1,0 +1,20 @@
+{
+  "name": "Trains on the Minimap",
+  "icon": "minecraft:compass",
+  "category": "reikotrains:more",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "With $(thing)Xaero's Minimap$() installed, every train in your dimension shows on it, however far away: a marker at its leading locomotive, lettered by the kind of engine (St, Ex, Di, El, Bu), with how many cars it has and where it's going.$(br2)Each player can hide them in the client settings, and a server can stop sharing them."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/trains_on_minimap.png"
+      ],
+      "border": true,
+      "text": "Trains on the minimap, lettered by their engines."
+    }
+  ]
+}

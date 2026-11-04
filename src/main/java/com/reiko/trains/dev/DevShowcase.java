@@ -75,6 +75,8 @@ public final class DevShowcase {
      * tick 100), to check one scene without waiting through the rest.
      */
     private static final int FROM = Integer.getInteger("reikotrains.showcaseFrom", 0);
+    /** {@code -PshowcaseBook}: the Railway Handbook, every spread, and the JEI pages, instead of the trains. */
+    private static final boolean BOOK = Boolean.getBoolean("reikotrains.showcaseBook");
     /** The flat world's ground is at y = -61, so track goes at -60. */
     private static final int Y = -60;
     private static final Vec3 EAST = new Vec3(1, 0, 0);
@@ -114,7 +116,11 @@ public final class DevShowcase {
                     registries -> registries.registryOrThrow(Registries.WORLD_PRESET).getHolderOrThrow(WorldPresets.FLAT)
                             .value().createWorldDimensions(), new TitleScreen());
         });
-        script();
+        if (BOOK) {
+            bookScript();
+        } else {
+            script();
+        }
     }
 
     @SubscribeEvent
@@ -1049,6 +1055,64 @@ public final class DevShowcase {
         at(5762, mc -> mc.setCameraEntity(mc.player));
         at(5790, mc -> shot(mc, "65_track_layer_screen"));
         at(5792, mc -> mc.setScreen(null));
+    }
+
+    // ---- the Railway Handbook, its buttons and the JEI pages: ./gradlew runClient -Pshowcase -PshowcaseBook ----
+
+    /**
+     * A station's screen with its handbook button, the book opened from it; JEI's pages (an item's information, the
+     * locomotive fuel pages, the track-laying wagon's); then every spread of the handbook, one screenshot each
+     * (book_NNN_entry_page.png), from the list tools/guidebook/book.py writes to run/guide-spreads.txt.
+     */
+    private static void bookScript() {
+        at(20, mc -> {
+            mc.options.hideGui = false;
+            server(mc, player -> player.serverLevel().setDayTime(6000));
+            ReikoTrains.LOGGER.info("Showcase book: holding {}", mc.player.getInventory().items.stream().filter(stack -> !stack.isEmpty())
+                    .map(stack -> stack.getHoverName().getString()).toList());
+        });
+        at(30, mc -> mc.setScreen(new com.reiko.trains.client.StationScreen(BlockPos.ZERO, "Riverside", 10)));
+        at(40, mc -> shot(mc, "book_button"));
+        at(42, mc -> {
+            if (mc.screen != null) {
+                for (net.minecraft.client.gui.components.events.GuiEventListener child : mc.screen.children()) {
+                    if (child instanceof com.reiko.trains.client.HandbookButton button) {
+                        button.onPress();
+                    }
+                }
+            }
+        });
+        at(56, mc -> shot(mc, "book_from_button"));
+        at(58, mc -> com.reiko.trains.guide.Handbook.openFront());
+        at(70, mc -> shot(mc, "book_front"));
+        at(72, mc -> mc.setScreen(null));
+        at(80, mc -> ShowcaseJei.show(new ItemStack(ModItems.TRACK_LAYER.get()), true));
+        at(100, mc -> shot(mc, "jei_info"));
+        at(102, mc -> ShowcaseJei.fuel());
+        at(122, mc -> shot(mc, "jei_fuel"));
+        at(124, mc -> ShowcaseJei.show(new ItemStack(Items.COAL), false));
+        at(144, mc -> shot(mc, "jei_coal_uses"));
+        at(146, mc -> ShowcaseJei.trackLaying());
+        at(166, mc -> shot(mc, "jei_track_laying"));
+        at(168, mc -> mc.setScreen(null));
+        List<String[]> spreads = new ArrayList<>();
+        try {
+            for (String line : java.nio.file.Files.readAllLines(java.nio.file.Path.of("guide-spreads.txt"))) {
+                if (!line.isBlank()) {
+                    spreads.add(line.trim().split(" "));
+                }
+            }
+        } catch (java.io.IOException e) {
+            ReikoTrains.LOGGER.error("Showcase book: no guide-spreads.txt in the run folder", e);
+        }
+        for (int i = 0; i < spreads.size(); i++) {
+            String[] spread = spreads.get(i);
+            int at = 180 + i * 14;
+            String name = String.format("book_%03d_%s_%s", i, spread[0].replace('/', '_'), spread[1]);
+            at(at, mc -> com.reiko.trains.guide.Handbook.open(spread[0], Integer.parseInt(spread[1])));
+            at(at + 11, mc -> shot(mc, name));
+        }
+        at(180 + spreads.size() * 14 + 10, Minecraft::stop);
     }
 
     private static void script() {

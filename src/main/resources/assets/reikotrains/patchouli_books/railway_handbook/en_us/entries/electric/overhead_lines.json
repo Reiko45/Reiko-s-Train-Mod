@@ -1,0 +1,45 @@
+{
+  "name": "Overhead Lines",
+  "icon": "reikotrains:catenary_mast",
+  "category": "reikotrains:electric",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Masts$(): put an $(item)Overhead Line Mast$() beside the track, up to three blocks from it. Its arm reaches over the track to hold the wire there, up to 32 blocks apart (closer on curves).$(br2)$(l)Wire$(): hold $(item)Overhead Wire$(), click a mast, then the next one along, and so on; click the same mast twice to stop."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "A mast holds up to four spans, so lines branch at junctions. Sneak-click a mast with wire to take its spans down.$(br2)$(l)Power$(): put a $(item)Substation$() within four blocks of one of the line's masts and feed it like a charging point. Each substation gives the line room for a million MJ. Its bars show the line's store, and its lamp lights while it's live."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/overhead_line.png"
+      ],
+      "border": true,
+      "text": "An electrified line round a curve."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "An electric, a Bullet Train or a tram under a live wire raises its pantograph (or trolley pole) and runs from the line, charging its batteries as it goes; the fuel gauge reads Wire. Past the end of the wire, or under a dead one, it runs on its batteries again."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/pantograph.png"
+      ],
+      "border": true,
+      "text": "Pantograph up against the contact wire."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:catenary_mast",
+      "recipe2": "reikotrains:overhead_wire"
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:substation"
+    }
+  ]
+}

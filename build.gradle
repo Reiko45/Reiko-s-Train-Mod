@@ -40,6 +40,9 @@ neoForge {
             systemProperty 'reikotrains.showcase', project.hasProperty('showcase') ? 'true' : 'false'
             // -PshowcaseFrom=<tick>: skip to the showcase's steps from that tick, to check one scene.
             systemProperty 'reikotrains.showcaseFrom', (project.findProperty('showcaseFrom') ?: '0').toString()
+            // -PshowcaseBook: instead, every spread of the Railway Handbook, the JEI pages and a handbook button
+            // (run python3 tools/guidebook/book.py first: it lists the spreads in run/guide-spreads.txt).
+            systemProperty 'reikotrains.showcaseBook', project.hasProperty('showcaseBook') ? 'true' : 'false'
             // -PwindowSize=1280x720: a bigger window, for bigger screenshots.
             def windowSize = project.findProperty('windowSize')
             if (windowSize) {
@@ -79,6 +82,18 @@ configurations {
     runtimeClasspath.extendsFrom localRuntime
 }
 
+repositories {
+    // JEI and Patchouli. Only their APIs are compiled against; the full mods go on the dev runs' classpath.
+    maven {
+        name = "Jared's Maven"
+        url = "https://maven.blamejared.com/"
+        content {
+            includeGroup "mezz.jei"
+            includeGroup "vazkii.patchouli"
+        }
+    }
+}
+
 dependencies {
     // BuildCraft Reborn: its fuels (and their energy values) are what the diesel locomotive runs on. It's required at
     // runtime too, so it goes on the dev runs' classpath, where NeoForge loads it as a mod.
@@ -89,6 +104,22 @@ dependencies {
     // are in (the car mod's with Reiko's Economy, which it needs):
     // ./gradlew runClient -PxaeroJars=/path/to/folder -PcarJars=/path/to/other/folder
     compileOnly sourceSets.stubs.output
+
+    // JEI is optional: the plugin in compat/jei (information pages, what locomotives run on, what the track-laying
+    // wagon fills with) only loads when JEI is installed.
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
+    // Patchouli is optional too: it shows the Railway Handbook (assets/reikotrains/patchouli_books/railway_handbook).
+    // Only its API is compiled against, in compat/patchouli. -PnoOptionalMods leaves both out of the dev runs.
+    compileOnly "vazkii.patchouli:Patchouli:${patchouli_version}:api"
+    if (!project.hasProperty('noOptionalMods')) {
+        localRuntime("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}") {
+            transitive = false // the mod jar has everything it needs inside it
+        }
+        localRuntime("vazkii.patchouli:Patchouli:${patchouli_version}") {
+            transitive = false
+        }
+    }
     for (folder in [project.findProperty('xaeroJars'), project.findProperty('carJars')]) {
         if (folder != null) {
             localRuntime fileTree(folder.toString()) { include '*.jar' }

@@ -1,0 +1,28 @@
+{
+  "name": "Engine Shed Doors",
+  "icon": "reikotrains:engine_shed",
+  "category": "reikotrains:depots",
+  "sortnum": 3,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "$(item)Engine Shed Doors$() go on the end of a shed you build round them. Use them on straight track from outside: a frame five blocks across and five high goes up over the track, the doors facing you.$(br2)They open by themselves as a train comes up, from either side, and shut once it's gone by. Click them, or use redstone, to hold them open."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/engine_shed.png"
+      ],
+      "border": true,
+      "text": "A tank engine going into its shed."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Servicing$(): the doors keep a store of fuel (nine stacks), 64 buckets each of water and diesel, and BuildCraft power. Every engine and tender standing still inside, up to 32 blocks in, is topped up from it. A timetabled train with a station inside waits until it's done.$(br2)Fill the store by hand, or with hoppers and pipes. Clicking the doors says what's in it."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:engine_shed"
+    }
+  ]
+}

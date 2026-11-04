@@ -47,6 +47,10 @@ public class StationScreen extends Screen {
         dwellLabel.active = false;
         addRenderableWidget(Button.builder(Component.literal("+"), b -> changeDwell(hasShiftDown() ? 10 : 1)).bounds(x + 180, y + 54, 20, 20).build());
         addRenderableWidget(Button.builder(Component.translatable("gui.done"), b -> onClose()).bounds(x, y + 84, 200, 20).build());
+        HandbookButton handbook = HandbookButton.create(x + 204, y + 14, 20, com.reiko.trains.guide.Handbook.STATIONS);
+        if (handbook != null) {
+            addRenderableWidget(handbook);
+        }
     }
 
     private Component dwellText() {

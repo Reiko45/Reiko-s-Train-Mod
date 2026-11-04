@@ -1,0 +1,32 @@
+{
+  "name": "Turntable",
+  "icon": "reikotrains:turntable",
+  "category": "reikotrains:depots",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "A $(item)Turntable$() turns locomotives round, or sends them off down whichever track you like. Use it on flat, solid ground: it digs its own pit, 15 blocks across, centred on the block you click, with its bridge pointing the way you're looking. Breaking any of it gives it back (the pit stays dug)."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Lay straight track off the pit's edge in line with its middle (from 8 blocks out, or 6 on a diagonal). Lined up with track, the bridge is track.$(br2)$(l)Click$() it to turn the bridge to the next track round, clockwise; sneak-click for the other way. Redstone at the pit's edge turns it too, and a comparator reads which way it points."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/turntable_turning.png"
+      ],
+      "border": true,
+      "text": "Turning the express round."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "A train standing all on the bridge goes round with it. It won't turn with a train half on it.$(br2)Put a $(l:stations/stations)station$(/l) by its far end at the end of a line: a timetabled train that stops there, and would have to back out, is turned round while it waits instead, so steam engines always go chimney first."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:turntable"
+    }
+  ]
+}

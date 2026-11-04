@@ -1,0 +1,45 @@
+{
+  "name": "Bullet Train",
+  "icon": "reikotrains:bullet_train",
+  "category": "reikotrains:locomotives",
+  "sortnum": 4,
+  "pages": [
+    {
+      "type": "patchouli:entity",
+      "entity": "reikotrains:bullet_train",
+      "scale": 0.251,
+      "offset": 0.35,
+      "rotate": true,
+      "text": "A driving car: about 100 km/h, with seats for eight behind the cab."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "The Bullet Train is a set: a $(l)driving car$() at each end, noses out, with $(item)Bullet Train Coaches$() between them (as many as the train length allows). Drive it from either end: climb into the cab at the end you want to lead. On a timetable it shuttles back and forth without turning."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Both driving cars pull and run on batteries (1,500,000 MJ each), charged at a $(l:depots/charging_point)charging point$(/l); under $(l:electric/overhead_lines)overhead wires$(/l) both raise their pantographs and run from the wire.$(br2)Signals, stations and speed signs look further ahead for it, so it slows in time at full speed."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/bullet_train.png"
+      ],
+      "border": true,
+      "text": "The Bullet Train standing at the station."
+    },
+    {
+      "type": "patchouli:entity",
+      "entity": "reikotrains:bullet_coach",
+      "scale": 0.282,
+      "offset": 0.35,
+      "rotate": true,
+      "text": "A coach: twelve seats."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:bullet_train",
+      "recipe2": "reikotrains:bullet_coach"
+    }
+  ]
+}

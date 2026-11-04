@@ -1,0 +1,28 @@
+{
+  "name": "Level Crossings",
+  "icon": "reikotrains:level_crossing",
+  "category": "reikotrains:signals",
+  "sortnum": 6,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Where a road crosses the line, put a $(item)Level Crossing$() at the side of the road, within three blocks of the track: its arm comes down towards you, across the road. Click the post to set how far the arm reaches (one to eight blocks).$(br2)Real crossings have one each side of the line."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "When a train is due within ten seconds, the lamps flash and the bell rings; then the arm comes down, and stays down while any of a train is on the crossing. Under it, an unseen barrier stops cars getting through.$(br2)It gives a redstone signal while it's warning, for your own lamps or bells."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/crossing_closed.png"
+      ],
+      "border": true,
+      "text": "The lamps flash and the arms are down."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:level_crossing"
+    }
+  ]
+}

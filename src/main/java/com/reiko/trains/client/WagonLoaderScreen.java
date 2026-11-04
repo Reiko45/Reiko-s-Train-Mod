@@ -31,6 +31,10 @@ public class WagonLoaderScreen extends AbstractContainerScreen<WagonLoaderMenu> 
                 .bounds(leftPos + 7, topPos + 42, 78, 20).build());
         filter = addRenderableWidget(Button.builder(Component.empty(), b -> press(WagonLoaderMenu.BUTTON_FILTER))
                 .bounds(leftPos + 91, topPos + 42, 78, 20).build());
+        HandbookButton handbook = HandbookButton.create(leftPos + imageWidth - 19, topPos + 3, 14, com.reiko.trains.guide.Handbook.LOADER_FILTERS);
+        if (handbook != null) {
+            addRenderableWidget(handbook);
+        }
         refresh();
     }
 

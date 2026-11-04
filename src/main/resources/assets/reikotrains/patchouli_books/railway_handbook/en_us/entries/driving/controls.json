@@ -1,0 +1,29 @@
+{
+  "name": "Controls",
+  "icon": "reikotrains:steam_locomotive",
+  "category": "reikotrains:driving",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Click a locomotive empty-handed to get in.$(br)$(li)$(k:key.forward): throttle up a notch$(li)$(k:key.back): throttle down, through neutral into reverse$(li)$(k:key.jump): brake, while held$(li)$(k:key.left) / $(k:key.right): hold to take the left or right way at junctions$(li)$(k:key.reikotrains.whistle): whistle or horn$(li)$(k:key.sneak): get out"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "With nobody at the controls the handbrake holds the train, and the fire only burns while someone's driving.$(br2)A heavy train takes longer to get going and slows uphill; cars roll downhill on their own. At the end of the line a train stops dead. If the track under a car is broken, the car comes off and drops as an item."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/cab.png"
+      ],
+      "border": true,
+      "text": "The gauges: notch, speed, fuel and water."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "The gauges show the next signal and how far it is, the next switch and which way it's set, the next station, the throttle notch (R2, R1, N, 1 to 4), the speed and the speed limit, which way you're steering, the brake, and the fuel (and a steam engine's water).$(br2)A moving train keeps the world round it loaded.",
+      "title": "The Gauges"
+    }
+  ]
+}

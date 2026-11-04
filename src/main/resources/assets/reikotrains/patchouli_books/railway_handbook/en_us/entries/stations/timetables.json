@@ -1,0 +1,29 @@
+{
+  "name": "Timetables",
+  "icon": "reikotrains:timetable",
+  "category": "reikotrains:stations",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "$(li)Click stations with a $(item)Timetable$(), in the order the train should call at them (up to 16). Its tooltip lists them.$(li)Fuel the locomotive, and click any car of the train with the timetable. Off it goes.$(br2)It runs to each station in turn and round again, waiting at each."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "It picks its way at junctions, stops for red signals, keeps to speed limits, and backs out of dead ends (or turns on a turntable).$(br2)Climb into the cab and touch the throttle or brake to take over; sneak-click the train with the timetable to stop it. Sneak-click the air to clear the timetable."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/timetabled_trains.png"
+      ],
+      "border": true,
+      "text": "Two timetabled trains share a signalled loop."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:timetable",
+      "text": "Two paper and a clock."
+    }
+  ]
+}

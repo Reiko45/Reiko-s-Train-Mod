@@ -1,0 +1,6 @@
+{
+  "name": "Wires and Trams",
+  "description": "Electrifying a line with overhead wires, and the trams that run under them in the street.",
+  "icon": "reikotrains:catenary_mast",
+  "sortnum": 6
+}

@@ -1,0 +1,26 @@
+{
+  "name": "Making Up a Train",
+  "icon": "reikotrains:coupler",
+  "category": "reikotrains:driving",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "$(li)Click a track block with a locomotive, coach or wagon to put it there, facing the way you're looking. It needs track under both bogies.$(li)Take the $(item)Coupler$(), click one car, then the next car along (up to 5 blocks between buffers): they're drawn together.$(li)Sneak-click a car with the coupler to uncouple it."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Cars couple at either end, facing either way, and the locomotives can be anywhere in the train: they pull or push. A train can have up to 16 cars (a server setting).$(br2)Break a car (hit it a few times) to pick it up again; what it carries spills out."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:coupler",
+      "text": "Iron ingot, chain, iron ingot, in a column."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "A train can have several locomotives, anywhere in it and facing either way: double-head a heavy train, or put a banking engine at the back to push.$(br2)One is in charge: the one on a timetable, or else the one being driven. The others work with it, notched up the same, each adding its pull up to its own top speed, and each burning its own fuel.",
+      "title": "More Than One Engine"
+    }
+  ]
+}

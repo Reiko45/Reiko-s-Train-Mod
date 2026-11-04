@@ -1,0 +1,28 @@
+{
+  "name": "Signal Box",
+  "icon": "reikotrains:signal_box",
+  "category": "reikotrains:signals",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Put a $(item)Signal Box$() wherever you like (build the box round it) and click it: its screen is a live map of the railway within 96 blocks, north up: the track, turntables, stations, every train car as it moves, each signal's lamp and the way each switch is set. Hover over anything to see what it is."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(li)Click a $(l)switch$() on the map to throw it to its next way (not if redstone holds it).$(li)Click a $(l)signal$() to hold it at red, so trains stop at it, and again to let it go. A held signal has a white ring round its lamp.$(br2)Drag the map to move it; scroll to zoom. Breaking the box lets go of every signal it held."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/signal_box.png"
+      ],
+      "border": true,
+      "text": "The map: the loop and its trains, the main line and its junction."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:signal_box"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "name": "Stations",
+  "icon": "reikotrains:station",
+  "category": "reikotrains:stations",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Put a $(item)Station$() beside the track, like a signal. $(l)Click$() it to name it (or name it in an anvil first) and set how long timetabled trains wait there, 2 to 120 seconds.$(br2)Trains on a timetable stop with their front level with its nameboard. It gives a redstone signal while a train is standing at it: handy for doors, lamps or a bell."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/station.png"
+      ],
+      "border": true,
+      "text": "A station and its nameboard."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:station"
+    }
+  ]
+}

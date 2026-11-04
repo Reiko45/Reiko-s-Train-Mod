@@ -46,6 +46,23 @@ Big steam, diesel and electric trains on their own track. Lay straight track blo
     ordering="NONE"
     side="BOTH"
 
+# Optional: with Patchouli, the Railway Handbook: the mod's guide book, given to each player once and craftable.
+[[dependencies.${mod_id}]]
+    modId="patchouli"
+    type="optional"
+    versionRange="[1.21-80,)"
+    ordering="NONE"
+    side="BOTH"
+
+# Optional: with JEI, each of the mod's items has an information page, and there are pages for what locomotives run
+# on and what the track-laying wagon fills dips with.
+[[dependencies.${mod_id}]]
+    modId="jei"
+    type="optional"
+    versionRange="[19,)"
+    ordering="NONE"
+    side="BOTH"
+
 # The diesel locomotive runs on BuildCraft Reborn's fuels: Dense Fuel and Mixed Heavy Fuels.
 [[dependencies.${mod_id}]]
     modId="buildcraftreborn"

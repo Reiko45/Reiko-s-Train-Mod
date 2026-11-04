@@ -1,0 +1,24 @@
+{
+  "name": "Passenger Coach",
+  "icon": "reikotrains:passenger_coach",
+  "category": "reikotrains:wagons",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:entity",
+      "entity": "reikotrains:passenger_coach",
+      "scale": 0.347,
+      "offset": 0.4,
+      "rotate": true,
+      "text": "Six and a half blocks long: eight seats in four rows."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Click a coach to sit in it: passengers ride along with the train, and see the station names as they go. Sneak to get out.$(br2)Coaches ride on two bogies that swing under them, so long cars go round curves like the real thing."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:passenger_coach"
+    }
+  ]
+}

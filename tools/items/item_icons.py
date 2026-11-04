@@ -68,6 +68,8 @@ PALETTE = {
     "J": (140, 82, 44, 255),    # copper wire, dark
     "Q": (138, 66, 40, 255),    # porcelain insulator
     "U": (86, 112, 90, 255),    # substation green
+    "1": (40, 92, 58, 255),     # handbook cover
+    "2": (24, 58, 36, 255),     # handbook spine
 }
 
 ICONS = {
@@ -429,6 +431,24 @@ ICONS = {
         "..ww........ww..",
         ".wSww......wSww.",
         "..ww........ww..",
+        "................",
+    ],
+    "railway_handbook": [
+        "................",
+        "..KKKKKKKKKKKK..",
+        ".K21111111111pK.",
+        ".K21eeeeeeee1pK.",
+        ".K21e1c11cce1pK.",
+        ".K21e1c11cce1pK.",
+        ".K21ecccccce1pK.",
+        ".K21ecccccce1pK.",
+        ".K21ek1k11ke1pK.",
+        ".K21e111111e1pK.",
+        ".K21eeeeeeee1pK.",
+        ".K21111111111pK.",
+        ".K21111111111pK.",
+        ".K22222222222pK.",
+        "..KKKKKKKKKKKK..",
         "................",
     ],
     "car_transporter": [

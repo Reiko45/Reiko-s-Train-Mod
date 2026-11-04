@@ -1,0 +1,45 @@
+{
+  "name": "Laying Track",
+  "icon": "reikotrains:track",
+  "category": "reikotrains:track",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Straight track$(): place Train Track on the ground and it runs the way you're facing, one of eight ways (diagonals too). Blocks in a line join up by themselves.$(br2)$(l)Curves and ramps$(): hold track, click a track block to start from, then click where the line should go: on the ground for a new end, or on another track block to join it."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "A green outline shows the curve before you click, or a red one, with the reason, if it can't be built. A new end faces the way that makes a smooth curve; $(l)sneak$() as you click it and it faces the way you're looking instead, for S-bends.$(br2)Click the start again, or sneak-click the air, to start over."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/laying_track.png"
+      ],
+      "border": true,
+      "text": "Laying a curve: the outline shows where it goes."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "A curve can reach 48 blocks, can't turn tighter than a radius of 5 blocks (8 or more looks best with long cars) or more than 90° at once, and can't be steeper than about 1 in 2.$(br2)It costs a piece of track a block of its length, and breaking either end gives it back.",
+      "title": "The Rules"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Junctions$(): draw a curve off a block that already has track going on from the same end. Trains go straight on unless steered, or a $(l:signals/switches)switch stand$(/l) sets the way.$(br2)Track needs solid ground under its blocks, but a curve or ramp crosses gaps between them, so a bridge is just a long curve. Leave three blocks between parallel lines."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/junction.png"
+      ],
+      "border": true,
+      "text": "A junction: the branch curves away to the right."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:track"
+    }
+  ]
+}

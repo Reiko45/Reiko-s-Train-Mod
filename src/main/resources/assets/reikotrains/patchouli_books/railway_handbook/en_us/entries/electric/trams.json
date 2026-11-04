@@ -1,0 +1,42 @@
+{
+  "name": "Trams",
+  "icon": "reikotrains:vintage_tram",
+  "category": "reikotrains:electric",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:entity",
+      "entity": "reikotrains:vintage_tram",
+      "scale": 0.322,
+      "offset": 0.35,
+      "rotate": true,
+      "text": "The vintage tram: 40 km/h, nine seats, a controller at each end."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Two trams, made for $(l:track/street_track)street track$(/l) and $(l:electric/overhead_lines)overhead wires$(/l). Both run from the wire, with a small battery for junctions and gaps (or charge at a charging point), and ring a bell.$(br2)The $(l)Vintage Tram$() runs both ways: get in as the driver at the end you want to lead. Its trolley pole trails behind it to the wire."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "The $(l)Low-Floor Tram$() is three sections that bend round corners, about fourteen blocks in all: click a track block with it to put all three on together, and breaking any of them takes the whole tram up. Drive it from either end: about 50 km/h, fourteen seats."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/low_floor_tram.png"
+      ],
+      "border": true,
+      "text": "The low-floor tram round a street corner."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "A tram stops a block or so short of anything on the track ahead, people, animals, cars or other trains, and waits for them to clear, ringing its bell. With Reiko's Car Mod it stops at red traffic lights beside the line that face it, too. It brakes harder than a train.",
+      "title": "Street Rules"
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:vintage_tram",
+      "recipe2": "reikotrains:low_floor_tram"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "Wagon Loaders",
+  "icon": "reikotrains:wagon_loader",
+  "category": "reikotrains:freight",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Put a $(item)Wagon Loader$() beside the track (two blocks away is best: its chute reaches over) with chests, barrels or other storage next to it. It works on every freight, tank and livestock wagon of a train standing beside it:$(li)$(l)Loading$() (green arrow): fills them from its storage, tanks and the animals round it$(li)$(l)Unloading$() (orange): empties them"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Sneak-click it to switch between the two. It moves ten stacks a second; two at one train work twice as fast.$(br2)Redstone pauses it, a comparator reads how full the wagons are, and loading, it tops up tenders' coal and diesels' fuel too.$(br2)A timetabled train waits at a station until its loaders are done."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/wagon_loader.png"
+      ],
+      "border": true,
+      "text": "Filling a freight wagon."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:wagon_loader"
+    }
+  ]
+}

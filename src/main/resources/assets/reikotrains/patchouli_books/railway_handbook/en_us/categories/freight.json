@@ -1,0 +1,6 @@
+{
+  "name": "Freight",
+  "description": "Wagon loaders: loading and unloading goods, fluids and animals by themselves, and their filters.",
+  "icon": "reikotrains:wagon_loader",
+  "sortnum": 9
+}

@@ -217,6 +217,14 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
         return 1.0;
     }
 
+    /**
+     * How much fuel it uses a tick at full throttle (at the default {@code fuelUse}), in its fuel's units: furnace burn
+     * ticks for steam engines, MJ for diesels and electrics. For the JEI pages.
+     */
+    public double fullThrottleUse() {
+        return (0.1 * idleAppetite() + 0.35 * appetite()) * burnScale();
+    }
+
     /** How fast it burns fuel standing with the throttle shut, compared with the tank engine. */
     protected double idleAppetite() {
         return 1.0;

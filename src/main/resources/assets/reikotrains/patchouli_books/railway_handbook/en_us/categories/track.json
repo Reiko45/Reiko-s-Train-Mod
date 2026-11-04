@@ -1,0 +1,6 @@
+{
+  "name": "Track",
+  "description": "Laying track: straights, curves, ramps and junctions, street track, and the track-laying wagon.",
+  "icon": "reikotrains:track",
+  "sortnum": 1
+}

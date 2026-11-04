@@ -1,0 +1,36 @@
+{
+  "name": "Car Transporter",
+  "icon": "reikotrains:car_transporter",
+  "category": "reikotrains:wagons",
+  "sortnum": 4,
+  "pages": [
+    {
+      "type": "patchouli:entity",
+      "entity": "reikotrains:car_transporter",
+      "scale": 0.188,
+      "offset": -0.45,
+      "rotate": true,
+      "text": "Twelve blocks of deck: three cars, or a bus."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "It carries the cars, vans, trucks and buses of $(thing)Reiko's Car Mod$() (without that mod it carries nothing).$(br2)$(l)Driving on$(): with the train stopped, drive up to a free end, lined up with it, and keep going. The car rolls aboard to the far end, or up to the cars already there; a train of them fills from the far end."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Driving off$(): sit in the car with the train stopped and keep going forwards or backwards: off the end of the train that way, or on to the next transporter.$(br2)Aboard, a car stays put: it doesn't drive, burn fuel or wear. It won't take a car towing something, or one that doesn't fit. Clicking it says how many cars are aboard."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/cars_by_rail.png"
+      ],
+      "border": true,
+      "text": "Cars by rail, on the way to the docks."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:car_transporter"
+    }
+  ]
+}

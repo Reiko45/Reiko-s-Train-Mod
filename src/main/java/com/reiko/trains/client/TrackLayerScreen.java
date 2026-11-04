@@ -29,6 +29,10 @@ public class TrackLayerScreen extends AbstractContainerScreen<TrackLayerMenu> {
         super.init();
         toggle = addRenderableWidget(Button.builder(Component.empty(), b -> press(TrackLayerMenu.BUTTON_SWITCH))
                 .bounds(leftPos + 7, topPos + 77, 50, 20).build());
+        HandbookButton handbook = HandbookButton.create(leftPos + imageWidth - 19, topPos + 3, 14, com.reiko.trains.guide.Handbook.TRACK_LAYER);
+        if (handbook != null) {
+            addRenderableWidget(handbook);
+        }
         refresh();
     }
 

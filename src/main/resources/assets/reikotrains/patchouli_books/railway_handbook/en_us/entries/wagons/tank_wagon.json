@@ -1,0 +1,24 @@
+{
+  "name": "Tank Wagon",
+  "icon": "reikotrains:tank_wagon",
+  "category": "reikotrains:wagons",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:entity",
+      "entity": "reikotrains:tank_wagon",
+      "scale": 0.41,
+      "offset": 0.15,
+      "rotate": true,
+      "text": "The gauge on its side lights a quarter at a time as it fills."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "It carries 256 buckets of one fluid: water, lava, oil, BuildCraft's fuels. Click it with a full bucket (or any mod's fluid container) to pour it in, or with an empty one to draw some off; empty-handed, to see what's in it.$(br2)Pipes fill and empty it, and so does a $(l:freight/wagon_loader)wagon loader$(/l) with tanks beside it. If it's broken up, what's in it is lost."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:tank_wagon"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "Electric Locomotive",
+  "icon": "reikotrains:electric_locomotive",
+  "category": "reikotrains:locomotives",
+  "sortnum": 3,
+  "pages": [
+    {
+      "type": "patchouli:entity",
+      "entity": "reikotrains:electric_locomotive",
+      "scale": 0.301,
+      "offset": 0.45,
+      "rotate": true,
+      "text": "A box-cab electric: 60 km/h, the strongest engine there is."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "It runs on $(thing)BuildCraft power$() (MJ) from its batteries: a million MJ, about twenty minutes at full power. Standing still it uses next to nothing. When they're flat it stops, and the gauges say FLAT.$(br2)Charge it at a $(l:depots/charging_point)charging point$(/l), or run it under $(l:electric/overhead_lines)overhead wires$(/l), which charge it as it goes."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Drive it from the front cab. Its motors hum, the whine climbing as it gathers speed; working hard, the odd spark flies from under it. It has a two-tone horn, and won't take coal or diesel."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:electric_locomotive"
+    }
+  ]
+}

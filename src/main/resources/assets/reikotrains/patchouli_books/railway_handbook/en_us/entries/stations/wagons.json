@@ -1,0 +1,28 @@
+{
+  "name": "Leaving Wagons",
+  "icon": "reikotrains:freight_wagon",
+  "category": "reikotrains:stations",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "After adding a station to a timetable, click it again with the same timetable to say what the train does with wagons there. Each click goes on to the next:$(li)$(l)Leave$() a wagon, or 2, 3 or 4, or all of them$(li)$(l)Pick up$() waiting wagons$(li)Nothing to do with wagons$(br)The tooltip shows what each stop does."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Leaving, it uncouples cars from the end it won't be leading with when it sets off again, and leaves them standing. Coming back out of a dead-end siding it leaves the ones at the far end, so push them in with the engine at the back.$(br2)Picking up, it runs up to wagons standing near the nameboard, couples on, and takes them along."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/wagons_left.png"
+      ],
+      "border": true,
+      "text": "The diesel's left two wagons at the goods yard."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "For example: a goods train running Quarry, then Yard (leave 2 wagons) leaves two wagons at the yard every trip; a second engine running Yard (pick up), then Works (leave all) brings them on to the works.$(br2)Leave wagons on level track: loose wagons roll on a slope (a guard's van's handbrake holds them)."
+    }
+  ]
+}

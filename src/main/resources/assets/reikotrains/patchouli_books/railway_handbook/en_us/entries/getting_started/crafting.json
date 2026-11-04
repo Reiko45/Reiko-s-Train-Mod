@@ -1,0 +1,12 @@
+{
+  "name": "Finding Recipes",
+  "icon": "minecraft:crafting_table",
+  "category": "reikotrains:getting_started",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Every recipe is in this book, on the page about what it makes, and everything is in the $(thing)Reiko's Trains$() creative tab.$(br2)With $(thing)JEI$() installed, each of the mod's items has an information page too, and there are pages for what the locomotives run on and what the track-laying wagon fills dips with ($(l:more/jei)JEI$(/l))."
+    }
+  ]
+}

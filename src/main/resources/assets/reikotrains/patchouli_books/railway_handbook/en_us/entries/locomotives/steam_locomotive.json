@@ -1,0 +1,28 @@
+{
+  "name": "Steam Locomotive",
+  "icon": "reikotrains:steam_locomotive",
+  "category": "reikotrains:locomotives",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:entity",
+      "entity": "reikotrains:steam_locomotive",
+      "scale": 0.376,
+      "offset": 0.4,
+      "rotate": true,
+      "text": "A tank engine: 43 km/h flat out, seats for a driver and a fireman."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Click it with fuel to fill its firebox: coal, charcoal, logs, blocks of coal, blaze rods, dried kelp blocks or a bucket of lava. A piece of coal lasts about three minutes at full throttle.$(br2)It needs $(l)water$() too: its side tanks hold 16 buckets, and it uses them as fast as it burns coal. With none left there's no steam, and the gauges say NO WATER."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Fill it with buckets of water (or any mod's fluid container), pipes, or at a $(l:depots/water_tower)water tower$(/l). It comes from the works with its tanks full.$(br2)Its driving wheels and coupling rods turn as it goes, it chuffs and puffs smoke, and it whistles."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:steam_locomotive"
+    }
+  ]
+}

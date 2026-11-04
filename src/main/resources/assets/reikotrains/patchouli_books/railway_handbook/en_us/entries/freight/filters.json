@@ -1,0 +1,24 @@
+{
+  "name": "Loader Filters",
+  "icon": "reikotrains:wagon_loader",
+  "category": "reikotrains:freight",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Click a loader to open its screen: nine $(l)filter$() slots, a button for loading or unloading, and one for what the filter does: $(l)only these$(), or $(l)all but these$(). To put an item in, click a filter slot holding it, or shift-click it in your inventory: the filter shows a copy. Click a slot empty-handed to clear it."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "A filled bucket stands for its fluid, for tank wagons, and a spawn egg for its animal. Items, fluids and animals are filtered separately, and engines' fuel isn't filtered at all.$(br2)So one station can load iron into one train and coal into another, or unload just the logs."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/loader_filter.png"
+      ],
+      "border": true,
+      "text": "Iron ore, coal and water in the filter."
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "Track Sensors",
+  "icon": "reikotrains:track_sensor",
+  "category": "reikotrains:signals",
+  "sortnum": 5,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "A $(item)Track Sensor$() beside the track (up to three blocks away, its eye facing the track) gives a redstone signal while a train is over the track beside it, moving or standing. A comparator reads how many cars the train has.$(br2)$(l)Click$() it to choose which way trains must be going: either, or only left or right as you stand behind it."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Click it with an item$() to sense only some trains:$(li)a locomotive, coach or wagon: trains with that kind of car$(li)a timetable: trains running it (a blank one: any timetable)$(li)a spawn egg: trains carrying that animal$(li)a filled bucket: tank wagons of that fluid$(li)anything else: trains carrying it$(br)Sneak-click to clear it."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/track_sensor.png"
+      ],
+      "border": true,
+      "text": "Sensing trains with an electric, going right."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:track_sensor",
+      "text": "Makes two."
+    }
+  ]
+}

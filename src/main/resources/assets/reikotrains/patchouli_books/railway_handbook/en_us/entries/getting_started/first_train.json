@@ -1,0 +1,26 @@
+{
+  "name": "Your First Train",
+  "icon": "reikotrains:track",
+  "category": "reikotrains:getting_started",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "$(li)Craft $(item)Train Track$() (sixteen at a time) and lay a line: blocks in a row join up by themselves ($(l:track/laying_track)Laying Track$(/l)).$(li)Craft a $(item)Steam Locomotive$() and click the track with it to put it on the line.$(li)Click it with coal (or charcoal, logs...) to fill its firebox. It comes with its water tanks full."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(li)Click it empty-handed to climb into the cab, then press $(k:key.forward) to open the throttle and $(k:key.jump) to brake ($(l:driving/controls)Controls$(/l)).$(li)Add a $(item)Passenger Coach$() with the $(item)Coupler$() ($(l:driving/making_up)Making Up a Train$(/l)).$(li)Put up a $(l:stations/stations)station$(/l) at each end, and give the train a $(l:stations/timetables)timetable$(/l)."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:track",
+      "text": "Iron ingots in the corners and wooden slabs across the middle make sixteen."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:steam_locomotive",
+      "text": "A furnace minecart in copper and iron."
+    }
+  ]
+}

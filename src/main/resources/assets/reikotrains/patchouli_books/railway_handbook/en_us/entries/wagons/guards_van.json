@@ -1,0 +1,24 @@
+{
+  "name": "Guard's Van",
+  "icon": "reikotrains:guards_van",
+  "category": "reikotrains:wagons",
+  "sortnum": 5,
+  "pages": [
+    {
+      "type": "patchouli:entity",
+      "entity": "reikotrains:guards_van",
+      "scale": 0.451,
+      "offset": 0.4,
+      "rotate": true,
+      "text": "Tail lamps on its back end, and a veranda on its front."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "The guard's van goes on the back of the train. It seats two, by the stove (which smokes while someone's aboard) and by the window.$(br2)Its brake works with the train's: with a van on, a train's brakes are half as strong again (two vans at most), so a heavy train stops quicker. And a train left with no engine is held by the van's handbrake."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:guards_van"
+    }
+  ]
+}

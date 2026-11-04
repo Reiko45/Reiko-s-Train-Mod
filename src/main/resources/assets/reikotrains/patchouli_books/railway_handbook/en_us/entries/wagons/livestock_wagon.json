@@ -1,0 +1,36 @@
+{
+  "name": "Livestock Wagon",
+  "icon": "reikotrains:livestock_wagon",
+  "category": "reikotrains:wagons",
+  "sortnum": 3,
+  "pages": [
+    {
+      "type": "patchouli:entity",
+      "entity": "reikotrains:livestock_wagon",
+      "scale": 0.41,
+      "offset": 0.4,
+      "rotate": true,
+      "text": "Six stalls behind slatted sides."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "It carries six animals: cows, sheep, pigs, chickens, goats, horses, llamas... (not tamed pets).$(br2)$(li)$(l)Lead$() animals up to it and click it: as many as there's room for go in, and you get the leads back.$(li)$(l)Sneak-click$() it empty-handed to let them all out beside you.$(br2)Aboard, they come to no harm. People can't ride in it."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "A $(l:freight/wagon_loader)wagon loader$(/l) works with it too: loading, it puts the animals standing around it into the train's livestock wagons; unloading, it lets them out behind it. So a timetabled train can take the sheep from the farm to market by itself."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/livestock_wagon.png"
+      ],
+      "border": true,
+      "text": "Loaded from the pen behind the wagon loader."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:livestock_wagon"
+    }
+  ]
+}

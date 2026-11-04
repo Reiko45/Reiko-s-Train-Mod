@@ -1,0 +1,37 @@
+{
+  "name": "Express and Tender",
+  "icon": "reikotrains:express_locomotive",
+  "category": "reikotrains:locomotives",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:entity",
+      "entity": "reikotrains:express_locomotive",
+      "scale": 0.282,
+      "offset": 0.55,
+      "rotate": true,
+      "text": "The express: eight blocks long, 58 km/h, nearly twice as strong as the tank engine."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "The express carries no coal or water itself: couple a $(item)Tender$() to it (at either end) and it uses the tender's. A tender holds 128 coal's worth and 64 buckets of water, and its coal heap goes down as it's used.$(br2)Click the engine or the tender with fuel to fill the tender. Without one the express won't go: its gauges say NO TENDER."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Hoppers and wagon loaders fill tenders too, with fuel only, so a train on a timetable can take on coal at a station with a $(l:freight/wagon_loader)wagon loader$(/l). Click the tender empty-handed to see how full it is."
+    },
+    {
+      "type": "patchouli:entity",
+      "entity": "reikotrains:tender",
+      "scale": 0.41,
+      "offset": 0.1,
+      "rotate": true,
+      "text": "The tender: coal at the front, the water tank behind."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:express_locomotive",
+      "recipe2": "reikotrains:tender"
+    }
+  ]
+}

@@ -19,6 +19,10 @@ choice of way at every junction) or give them a timetable and let them run betwe
   on it
 - Optional: [Reiko's Car Mod](https://github.com/Reiko45/Reiko-s-Car-Mod) 1.39 or newer: car transporter wagons
   carry its cars
+- Optional: [Patchouli](https://modrinth.com/mod/patchouli) (made with 1.21.1-93): the **Railway Handbook**, the
+  mod's guide book
+- Optional: [JEI](https://modrinth.com/mod/jei) 19 or newer (made with 19.21.2): an information page for each of the
+  mod's items, and pages for what the locomotives run on and what the track-laying wagon fills dips with
 
 ## What's in it
 
@@ -85,10 +89,39 @@ choice of way at every junction) or give them a timetable and let them run betwe
 - **Station**: a nameboard beside the track. Trains stop with their front level with it.
 - **Timetable**: a list of stations for a train to run between by itself, leaving wagons at some and picking them up
   at others.
+- **Railway Handbook** (with Patchouli): the guide to all of it, in the game.
 
 The coaches and wagons ride on two bogies that swing under them, so long cars go round curves like the real thing.
 
 ![The loop](docs/screenshots/loop.jpg)
+
+## The Railway Handbook
+
+With [Patchouli](https://modrinth.com/mod/patchouli) installed, the mod has a guide book: the **Railway Handbook**.
+Every player is given one the first time they join a world (once ever; a server can turn that off with
+`giveHandbook`), and another can be crafted from a book and a piece of Train Track.
+
+- A chapter for each part of the mod: getting started, track, driving, the locomotives, coaches and wagons, engine
+  depots, wires and trams, signalling, stations and timetables, freight, and settings. Every recipe is on the page
+  about what it makes, the locomotives and wagons turn on stands, and there are pictures from the game.
+- The mod's screens (the track-laying wagon, signal box, wagon loader, freight wagon and station) have a little book
+  button in the corner: it opens the handbook at that screen's page.
+
+With [JEI](https://modrinth.com/mod/jei) installed, every one of the mod's items has an **information** page saying
+what it does, as well as its recipe, and there are two pages of its own:
+
+- **Locomotive Fuel**: what the steam engines (coal and the like, grouped by how long they burn, and water), the diesel
+  (each kind of diesel) and the electrics (charging points and overhead lines) run on, with how long each lasts at full
+  throttle. Look up the uses of coal, or of a locomotive, to find it.
+- **Track-Laying Wagon**: what it lays, and everything it fills dips with.
+
+![The Railway Handbook, open at its contents](docs/screenshots/handbook.jpg)
+
+![A page about the steam locomotive, which turns on its stand](docs/screenshots/handbook_page.jpg)
+
+![A station's screen, with the handbook button by the name](docs/screenshots/handbook_button.jpg)
+
+![JEI's Locomotive Fuel page](docs/screenshots/jei_fuel.png)
 
 ## Building a railway
 
@@ -539,6 +572,7 @@ In `serverconfig/reikotrains-server.toml` in each world:
 | `substationCapacityMJ` | `1000000` | MJ each substation adds to its overhead line's store |
 | `wireChargeRateMJ` | `2000` | MJ a tick an electric (or Bullet Train driving car) charges at under a live wire |
 | `crossingWarningSeconds` | `10` | How long before a train arrives level crossings start warning |
+| `giveHandbook` | `true` | Whether each player is given the Railway Handbook the first time they join (needs Patchouli) |
 
 The fuel steam engines take is the item tag `reikotrains:locomotive_fuel`, and the diesel's is the fluid tag
 `reikotrains:diesel` (BuildCraft's Dense Fuel and Mixed Heavy Fuels, and `c:diesel`, `c:biodiesel` and the like, as
@@ -841,6 +875,10 @@ You need Java 21. BuildCraft Reborn's jar is in `libs/` (the build and the dev r
 ./gradlew runGameTestServer  # runs the game tests and exits
 ```
 
+JEI and Patchouli are optional too: the mod compiles against their APIs (from Jared's Maven) and the dev runs load the
+full mods, so you can read the handbook and look things up in JEI. `-PnoOptionalMods` leaves them out, to try the mod
+without them.
+
 Xaero's Minimap and Reiko's Car Mod are optional, so the train mod compiles against stand-ins for the few of their
 classes it uses (`src/stubs/`), which never go in the jar. To try them in a dev client (or the game tests), put their
 jars in folders and pass them: `./gradlew runClient -PxaeroJars=/path/to/folder -PcarJars=/path/to/other/folder` (the
@@ -953,6 +991,9 @@ under the track with what it dug; it stops at water, and for want of fill, carry
 lays a 45° bend and then straight on; switched off (from its screen) it lays nothing; and behind the engine it can't
 lay anything.
 
+`HandbookGameTests` covers the Railway Handbook: given once on joining (and not again, even after losing it), its
+recipe making it, and the pages the screens' buttons open being there.
+
 `TrainMapGameTests` covers the map of trains for minimaps: a train on it once, at its leading locomotive, with its
 kind and length, a timetabled train's next stop, a broken locomotive coming off it (and the other engine taking
 over), players being sent the other trains nearest first and not their own, dropping trains that aren't where the
@@ -962,8 +1003,12 @@ map says, and saving it with the world.
 screenshots to `run/screenshots/` (that's where the pictures above come from). Add `-PxaeroJars=/path/to/folder` for
 the minimap shot, `-PcarJars=/path/to/folder` for the car transporter scene, and `-PshowcaseFrom=<tick>` to skip to the
 scene starting at that tick (`2202` for the Bullet Train, `2810` for the car transporters, `3105` for overhead wires,
-`3505` for trams, `3915` for water, `4100` for the turntable and engine shed, `4480` for three-light signals, `4960` for the signal box; start a
-scene from the one before it, so the world round it is loaded).
+`3505` for trams, `3915` for water, `4100` for the turntable and engine shed, `4480` for three-light signals, `4960` for the signal box,
+`5090` for the track-laying wagon; start a scene from the one before it, so the world round it is loaded).
+
+`./gradlew runClient -Pshowcase -PshowcaseBook -PwindowSize=1280x720` instead photographs the Railway Handbook, every
+spread of it (`book_NNN_*.png`, after `python3 tools/guidebook/book.py` has listed them), a handbook button, and the JEI
+pages.
 
 ### Models, textures and sounds
 
@@ -975,6 +1020,9 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
   stands', level crossings', speed signs', masts', substation's, wagon loader's, water tower's, turntable's and engine
   shed doors'), and the screens.
 - `tools/items/item_icons.py`: the item icons and the mod list logo.
+- `tools/guidebook/book.py`: the Railway Handbook, written out as Patchouli's JSON (`data/reikotrains/patchouli_books`
+  and `assets/reikotrains/patchouli_books`). It checks that every page's text fits, every link goes somewhere and every
+  recipe is in the book. `tools/guidebook/pictures.py` crops its pictures out of `docs/screenshots`.
 - `tools/sounds/train_sounds.py`: the whistle, the chuffs, the coupling clank, the diesel's horn and engine, the level
   crossing's bell, the trams' bells and the turntable's gear, synthesised. Name the ones to remake (`python3 tools/sounds/train_sounds.py crossing_bell`):
   Vorbis encoding isn't byte-for-byte repeatable, so remaking the rest just changes their files.
@@ -1055,6 +1103,11 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
   to `LAYING_SPEED`, and every few ticks it lays the next piece off the last block, a straight block or (steering) a
   bend built with `TrackBuilder`, after working out the whole cutting and fill first so a piece is laid all or
   nothing.
+- **Handbook and JEI** (`guide/Handbook`, `compat/`): `Handbook` is safe to call without Patchouli (it checks it's
+  installed before touching `compat/patchouli/RailwayHandbook`, the only class that uses Patchouli's API); it gives
+  each player the book once, remembered in their persisted data. `client/HandbookButton` is the screens' button. JEI
+  finds `compat/jei/ReikoTrainsJeiPlugin` by itself; nothing else in the mod touches JEI. Its fuel times come from
+  `Locomotive.fullThrottleUse()`, the fuel's burn time (or BuildCraft's value for a diesel fluid) and the batteries.
 - **Minimap** (`train/TrainMap`): a saved list per world of where each train is, kept by its leading locomotive every
   second (and when it unloads), sent to each player every two seconds (`TrainMapPayload`). On the client
   `TrainMinimap` moves the loaded ones as they go, and `TrainsXaero` puts them on Xaero's Minimap as its custom
