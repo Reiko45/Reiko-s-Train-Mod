@@ -15,6 +15,8 @@
     "reikotrains:street_track",
     "reikotrains:turntable",
     "reikotrains:three_light_signal",
-    "reikotrains:four_aspect_signal"
+    "reikotrains:four_aspect_signal",
+    "reikotrains:car_ramp",
+    "reikotrains:small_turntable"
   ]
 }

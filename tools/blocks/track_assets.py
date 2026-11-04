@@ -1625,8 +1625,59 @@ def signals_and_stations():
     signal_box_models()
 
 
+def car_ramp_assets():
+    """
+    The Car Ramp: a wedge of steel chequer plate in four steps, rising to the north (turned by the blockstate to rise
+    the way it faces), its sides plain steel with a yellow and black hazard stripe along the top edge.
+    """
+    plate = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            base = (132, 136, 140)
+            c = shade(base, 1 + 0.05 * noise("ramp_plate", x, y))
+            # Raised diamonds, in rows offset by half
+            dx = (x + (4 if (y // 4) % 2 else 0)) % 8
+            dy = y % 4
+            if (dx, dy) in ((3, 1), (4, 1), (2, 2), (3, 2), (4, 2), (5, 2)):
+                c = shade(base, 1.28 if dy == 1 else 0.82)
+            plate.putpixel((x, y), c)
+    plate.save(f"{ASSETS}/textures/block/car_ramp_plate.png")
+    side = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            c = shade((104, 108, 112), 1 + 0.05 * noise("ramp_side", x, y))
+            if y < 3:
+                c = (232, 186, 40, 255) if ((x + y) // 3) % 2 == 0 else (34, 34, 36, 255)
+            elif y == 3:
+                c = shade((70, 72, 76), 1)
+            side.putpixel((x, y), c)
+    side.save(f"{ASSETS}/textures/block/car_ramp_side.png")
+    tex = {"particle": "reikotrains:block/car_ramp_plate", "plate": "reikotrains:block/car_ramp_plate",
+           "side": "reikotrains:block/car_ramp_side"}
+    elements = []
+    for step in range(4):
+        z0 = 12 - step * 4
+        h = 4 + step * 4
+        elements.append(element([0, 0, z0], [16, h, z0 + 4], {
+            "up": ("#plate", [0, z0, 16, z0 + 4]),
+            "down": ("#plate", [0, z0, 16, z0 + 4]),
+            "north": ("#side", [0, 0, 16, h]),
+            "south": ("#side", [0, 0, 16, h]),
+            "east": ("#side", [16 - z0 - 4, 0, 16 - z0, h]),
+            "west": ("#side", [z0, 0, z0 + 4, h])}))
+    with open(f"{ASSETS}/models/block/car_ramp.json", "w") as out:
+        json.dump({"parent": "block/block", "textures": tex, "elements": elements}, out, indent=2)
+    with open(f"{ASSETS}/blockstates/car_ramp.json", "w") as out:
+        json.dump({"variants": {f"facing={f}": ({"model": "reikotrains:block/car_ramp"} if r == 0 else
+                                                {"model": "reikotrains:block/car_ramp", "y": r})
+                                for f, r in (("north", 0), ("east", 90), ("south", 180), ("west", 270))}}, out, indent=2)
+    with open(f"{ASSETS}/models/item/car_ramp.json", "w") as out:
+        json.dump({"parent": "reikotrains:block/car_ramp"}, out, indent=2)
+
+
 if __name__ == "__main__":
     main()
     signals_and_stations()
     loader_screen()
     track_layer_screen()
+    car_ramp_assets()

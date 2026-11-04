@@ -25,6 +25,7 @@ public final class ModNetwork {
         registrar.playToServer(TrainControlPayload.TYPE, TrainControlPayload.STREAM_CODEC, ModNetwork::handleControl);
         registrar.playToServer(StationSettingsPayload.TYPE, StationSettingsPayload.STREAM_CODEC, ModNetwork::handleStation);
         registrar.playToServer(CarTransportPayload.TYPE, CarTransportPayload.STREAM_CODEC, ModNetwork::handleCarTransport);
+        registrar.playToServer(CarHitchPayload.TYPE, CarHitchPayload.STREAM_CODEC, (payload, context) -> CarCargo.hitch(context.player()));
         registrar.playToClient(OpenStationPayload.TYPE, OpenStationPayload.STREAM_CODEC,
                 (payload, context) -> com.reiko.trains.client.StationScreen.open(payload));
         registrar.playToClient(TrainMapPayload.TYPE, TrainMapPayload.STREAM_CODEC,

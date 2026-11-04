@@ -160,8 +160,14 @@ public final class TrainMap extends SavedData {
             if (!entry.id().equals(own)) {
                 // A loaded train's where it is now, not where it was last noted.
                 Entity loco = level.getEntity(entry.id());
-                Vec3 pos = loco != null ? loco.position() : entry.pos();
-                pins.add(new TrainMapPayload.Pin(entry.id(), pos, entry.type(), entry.cars(), entry.stop(), entry.atStop()));
+                if (loco instanceof Locomotive running) {
+                    net.minecraft.world.entity.player.Player driver = running.driver();
+                    int kmh = (int) Math.round(Math.abs(running.trainSpeed()) * 72);
+                    pins.add(new TrainMapPayload.Pin(entry.id(), loco.position(), entry.type(), entry.cars(), entry.stop(), entry.atStop(), true,
+                            kmh, driver == null ? "" : driver.getGameProfile().getName(), running.autopilot().isOn()));
+                } else {
+                    pins.add(new TrainMapPayload.Pin(entry.id(), entry.pos(), entry.type(), entry.cars(), entry.stop(), entry.atStop()));
+                }
             }
         }
         pins.sort(Comparator.comparingDouble(pin -> pin.pos().distanceToSqr(at)));

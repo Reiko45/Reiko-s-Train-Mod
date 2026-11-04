@@ -1,9 +1,11 @@
 package com.reiko.trains.client;
 
+import com.reiko.trains.network.CarHitchPayload;
 import com.reiko.trains.network.CarTransportPayload;
 import com.reiko.trains.train.CarCargo;
 import com.reiko.trains.train.CarTransporter;
 import javax.annotation.Nullable;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
@@ -25,6 +27,24 @@ final class CarTransportClient {
     private static boolean latched;
     @Nullable
     private static Entity hinted;
+    private static boolean hitchDown;
+    @Nullable
+    private static KeyMapping hitchKey;
+    private static boolean lookedForHitchKey;
+
+    /** The car mod's hitch key (G unless changed), found by its name. */
+    @Nullable
+    private static KeyMapping hitchKey(Minecraft minecraft) {
+        if (!lookedForHitchKey) {
+            lookedForHitchKey = true;
+            for (KeyMapping key : minecraft.options.keyMappings) {
+                if (key.getName().equals("key.reikocars.hitch")) {
+                    hitchKey = key;
+                }
+            }
+        }
+        return hitchKey;
+    }
 
     private CarTransportClient() {
     }
@@ -35,8 +55,16 @@ final class CarTransportClient {
         if (car == null) {
             held = 0;
             hinted = null;
+            hitchDown = false;
             return;
         }
+        // The car mod's hitch key, aboard: it does the unhitching itself; hitching up a trailer standing on the deck is ours.
+        KeyMapping hitch = hitchKey(minecraft);
+        boolean down = hitch != null && hitch.isDown();
+        if (down && !hitchDown && car.getVehicle() instanceof CarTransporter) {
+            PacketDistributor.sendToServer(new CarHitchPayload());
+        }
+        hitchDown = down;
         int direction = player.input.up ? 1 : player.input.down ? -1 : 0;
         if (direction == 0) {
             latched = false;
@@ -53,14 +81,18 @@ final class CarTransportClient {
             if (near == null) {
                 near = CarCargo.approach(car, -1, CarCargo.CLIENT_REACH);
             }
-            if (near != null && hinted != near.wagon()) {
-                hinted = near.wagon();
-                player.displayClientMessage(Component.translatable("message.reikotrains.car_transporter.hint"), true);
-            } else if (near == null) {
+            CarTransporter beside = near == null ? CarCargo.besideRamp(car) : null;
+            Entity wagon = near != null ? near.wagon() : beside;
+            if (wagon != null && hinted != wagon) {
+                hinted = wagon;
+                player.displayClientMessage(Component.translatable(near != null ? "message.reikotrains.car_transporter.hint"
+                        : "message.reikotrains.car_transporter.ramp_hint"), true);
+            } else if (wagon == null) {
                 hinted = null;
             }
             double speed = Math.hypot(car.getX() - car.xo, car.getZ() - car.zo);
-            ready = direction != 0 && speed < 0.35 && CarCargo.approach(car, direction, CarCargo.CLIENT_REACH) != null;
+            ready = direction != 0 && speed < 0.35 && (CarCargo.approach(car, direction, CarCargo.CLIENT_REACH) != null
+                    || beside != null && CarCargo.standing(beside));
         }
         if (ready && !latched && direction == heldDirection) {
             if (++held >= HOLD) {

@@ -13,4 +13,12 @@ public enum CarType {
         height = 0;
         length = 0;
     }
+
+    public boolean hasTowBall() {
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean canTow(com.reiko.cars.trailer.TrailerType trailer) {
+        throw new UnsupportedOperationException();
+    }
 }

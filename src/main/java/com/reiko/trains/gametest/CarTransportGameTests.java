@@ -266,4 +266,83 @@ public final class CarTransportGameTests {
             helper.succeed();
         });
     }
+
+    @GameTest(template = LINE, timeoutTicks = 80)
+    public static void aTrailerComesAboardAndHitchesOnTheDeck(GameTestHelper helper) {
+        if (noCarMod(helper)) {
+            return;
+        }
+        line(helper);
+        CarTransporter wagon = transporter(helper, 20);
+        double pickupLength = 3.75;
+        Entity pickup = carAtEastEnd(helper, wagon, "pickup_truck", pickupLength);
+        Entity camper = car(helper, "camper", relX(helper, pickup) + 6.5, FACING_WEST);
+        helper.assertTrue(camper.startRiding(pickup, true), "the camper should hitch to the pickup");
+        Player driver = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(4, () -> {
+            String said = drive(driver, pickup, 1);
+            helper.assertTrue(said.equals("loaded"), "driving on forwards, trailer and all: " + said);
+            helper.assertTrue(pickup.getVehicle() == wagon && camper.getVehicle() == pickup, "the pickup aboard, the camper still hitched to it");
+            CarTransporter.Slot slot = wagon.slot(pickup);
+            helper.assertTrue(slot != null && slot.tail() > 4, "the camper taking up the deck behind it: " + slot);
+        });
+        helper.runAfterDelay(8, () -> {
+            double expected = wagon.getX() - (CarTransporter.DECK_HALF - pickupLength / 2);
+            helper.assertTrue(Math.abs(pickup.getX() - expected) < 0.3, "the pickup at the far end: " + (pickup.getX() - wagon.getX()));
+            helper.assertTrue(camper.getX() > pickup.getX() + 3 && camper.getX() < wagon.getX() + wagon.halfLength(),
+                    "the camper behind it, on the deck: " + (camper.getX() - wagon.getX()));
+            camper.stopRiding(); // what the car mod's hitch key does to unhitch it
+        });
+        helper.runAfterDelay(11, () -> {
+            helper.assertTrue(camper.getVehicle() == wagon, "unhitched, it's left standing aboard: " + camper.getVehicle());
+            helper.assertTrue(wagon.slot(pickup).tail() == 0 && wagon.slot(camper) != null, "in its own place on the deck");
+            helper.assertTrue(drive(driver, pickup, 1).equals("unloaded"), "the pickup can drive off without it");
+        });
+        helper.runAfterDelay(14, () -> {
+            helper.assertTrue(!pickup.isPassenger(), "off");
+            // Back aboard, and hitched up again on the deck.
+            helper.assertTrue(drive(driver, pickup, -1).equals("loaded"), "it backs on again (no trailer now)");
+        });
+        helper.runAfterDelay(18, () -> {
+            helper.assertTrue(pickup.getVehicle() == wagon && wagon.slot(pickup) != null, "aboard again");
+            CarCargo.hitch(driver); // the car mod's hitch key, aboard
+        });
+        helper.runAfterDelay(24, () -> {
+            helper.assertTrue(camper.getVehicle() == pickup, "the camper hitched up again: " + camper.getVehicle());
+            helper.assertTrue(wagon.slot(camper) == null && wagon.slot(pickup).tail() > 4, "riding on the pickup again");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 60)
+    public static void carsLoadSidewaysFromACarRamp(GameTestHelper helper) {
+        if (noCarMod(helper)) {
+            return;
+        }
+        line(helper);
+        ServerLevel level = helper.getLevel();
+        for (int x = 16; x <= 24; x++) {
+            level.setBlock(helper.absolutePos(new BlockPos(x, 1, 7)), com.reiko.trains.registry.ModBlocks.CAR_RAMP.get().defaultBlockState()
+                    .setValue(com.reiko.trains.freight.CarRampBlock.FACING, net.minecraft.core.Direction.NORTH), 3);
+        }
+        CarTransporter wagon = transporter(helper, 20);
+        Entity sedan = car(helper, "sedan", 21.5, FACING_WEST);
+        sedan.moveTo(sedan.getX(), helper.absolutePos(new BlockPos(0, 2, 0)).getY(), helper.absolutePos(new BlockPos(0, 0, 7)).getZ() + 0.5,
+                FACING_WEST, 0);
+        Player driver = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(4, () -> {
+            helper.assertTrue(CarCargo.onRamp(sedan) && CarCargo.besideRamp(sedan) == wagon, "on the ramp, beside the transporter");
+            String said = drive(driver, sedan, 1);
+            helper.assertTrue(said.equals("loaded"), "it should drive aboard sideways: " + said);
+            helper.assertTrue(sedan.getVehicle() == wagon, "aboard");
+            helper.assertTrue(Math.abs(wagon.slot(sedan).along() - 1.0) < 0.6, "where it was, along the train: " + wagon.slot(sedan));
+        });
+        helper.runAfterDelay(8, () -> {
+            String said = drive(driver, sedan, 1);
+            helper.assertTrue(said.equals("onto_ramp"), "and off again onto the ramp: " + said);
+            helper.assertTrue(!sedan.isPassenger() && Math.abs(sedan.getZ() - (helper.absolutePos(new BlockPos(0, 0, 7)).getZ() + 0.5)) < 0.6,
+                    "beside the train: " + sedan.position());
+            helper.succeed();
+        });
+    }
 }

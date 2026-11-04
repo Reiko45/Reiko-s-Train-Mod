@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "S": {
+      "item": "minecraft:smooth_stone_slab"
+    }
+  },
+  "pattern": [
+    "  I",
+    " II",
+    "SSS"
+  ],
+  "result": {
+    "count": 4,
+    "id": "reikotrains:car_ramp"
+  }
+}

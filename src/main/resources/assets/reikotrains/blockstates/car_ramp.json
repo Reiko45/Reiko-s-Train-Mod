@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "reikotrains:block/car_ramp"
+    },
+    "facing=east": {
+      "model": "reikotrains:block/car_ramp",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "reikotrains:block/car_ramp",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "reikotrains:block/car_ramp",
+      "y": 270
+    }
+  }
+}

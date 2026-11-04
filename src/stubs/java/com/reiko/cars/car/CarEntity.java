@@ -35,4 +35,12 @@ public abstract class CarEntity extends VehicleEntity {
     public void setFuel(double mj) {
         throw new UnsupportedOperationException();
     }
+
+    public com.reiko.cars.trailer.TrailerEntity trailer() {
+        throw new UnsupportedOperationException();
+    }
+
+    public Vec3 hitchPoint() {
+        throw new UnsupportedOperationException();
+    }
 }

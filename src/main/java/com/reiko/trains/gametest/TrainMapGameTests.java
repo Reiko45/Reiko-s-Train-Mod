@@ -176,4 +176,27 @@ public final class TrainMapGameTests {
         helper.assertTrue(entry.equals(loaded.get(id)), "the train should be saved and loaded as it was: " + loaded.get(id));
         helper.succeed();
     }
+
+    @GameTest(template = LINE, timeoutTicks = 80)
+    public static void theMapSaysHowATrainIsGoing(GameTestHelper helper) {
+        lines(helper);
+        SteamLocomotive loco = TestTracks.car(helper.getLevel(), ModEntities.STEAM_LOCOMOTIVE.get(), at(helper, 10), EAST);
+        loco.setFuel(SteamLocomotive.FUEL_CAPACITY);
+        Player driver = helper.makeMockPlayer(GameType.SURVIVAL);
+        driver.moveTo(loco.position());
+        driver.startRiding(loco);
+        for (int i = 0; i < 4; i++) {
+            loco.control(com.reiko.trains.network.TrainControlPayload.THROTTLE_UP);
+        }
+        Player watcher = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(50, () -> {
+            TrainMapPayload.Pin pin = map(helper).pinsFor(helper.getLevel(), watcher.position(), null).stream()
+                    .filter(p -> p.id().equals(loco.getUUID())).findFirst().orElse(null);
+            helper.assertTrue(pin != null && pin.loaded(), "a train near someone is seen as it is: " + pin);
+            helper.assertTrue(pin.kmh() > 0 && pin.kmh() == Math.round(Math.abs(loco.trainSpeed()) * 72), "how fast: " + pin.kmh());
+            helper.assertTrue(pin.driver().equals(driver.getGameProfile().getName()) && !pin.auto(), "and who's driving: " + pin.driver());
+            driver.stopRiding();
+            helper.succeed();
+        });
+    }
 }

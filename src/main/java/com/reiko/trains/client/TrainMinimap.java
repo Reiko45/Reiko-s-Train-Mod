@@ -29,8 +29,8 @@ public final class TrainMinimap {
     /** How often the minimap's trains are moved, in ticks. */
     private static final int UPDATE_INTERVAL = 5;
 
-    /** A train as the minimap shows it. */
-    record Shown(UUID id, Vec3 pos, String name, String initials, String kind) {
+    /** A train as the minimap shows it (and what the server said about it). */
+    record Shown(UUID id, Vec3 pos, String name, String initials, String kind, TrainMapPayload.Pin pin) {
     }
 
     @Nullable
@@ -94,7 +94,7 @@ public final class TrainMinimap {
         for (TrainMapPayload.Pin pin : payload.trains()) {
             Entity loco = loaded.get(pin.id());
             Vec3 pos = loco != null ? loco.position() : pin.pos();
-            trains.add(new Shown(pin.id(), pos, name(pin), initials(pin), pin.type().getPath()));
+            trains.add(new Shown(pin.id(), pos, name(pin), initials(pin), pin.type().getPath(), pin));
         }
         return trains;
     }

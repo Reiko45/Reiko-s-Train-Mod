@@ -89,6 +89,10 @@ public final class ModBlocks {
                 .isValidSpawn((state, level, pos, type) -> false);
     }
 
+    public static final DeferredBlock<com.reiko.trains.freight.CarRampBlock> CAR_RAMP = BLOCKS.register("car_ramp",
+            () -> new com.reiko.trains.freight.CarRampBlock(BlockBehaviour.Properties.of().strength(3.0F, 6.0F).sound(SoundType.METAL)
+                    .requiresCorrectToolForDrops().noOcclusion().mapColor(net.minecraft.world.level.material.MapColor.METAL)));
+
     public static final DeferredBlock<com.reiko.trains.shed.EngineShedBlock> ENGINE_SHED = BLOCKS.register("engine_shed",
             () -> new com.reiko.trains.shed.EngineShedBlock(BlockBehaviour.Properties.of().strength(2.0F, 4.0F).sound(SoundType.WOOD)
                     .noOcclusion().noLootTable().pushReaction(PushReaction.BLOCK).ignitedByLava()

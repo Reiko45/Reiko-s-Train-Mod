@@ -71,6 +71,8 @@ public final class ModItems {
             () -> new com.reiko.trains.turntable.TurntableItem(new Item.Properties(), ModBlocks.TURNTABLE));
     public static final DeferredItem<com.reiko.trains.turntable.TurntableItem> SMALL_TURNTABLE = ITEMS.register("small_turntable",
             () -> new com.reiko.trains.turntable.TurntableItem(new Item.Properties(), ModBlocks.SMALL_TURNTABLE));
+    public static final DeferredItem<BlockItem> CAR_RAMP = ITEMS.register("car_ramp",
+            () -> new BlockItem(ModBlocks.CAR_RAMP.get(), new Item.Properties()));
     public static final DeferredItem<com.reiko.trains.shed.EngineShedItem> ENGINE_SHED = ITEMS.register("engine_shed",
             () -> new com.reiko.trains.shed.EngineShedItem(new Item.Properties()));
     public static final DeferredItem<BlockItem> CHARGING_POINT = ITEMS.register("charging_point",

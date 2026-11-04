@@ -43,10 +43,22 @@ public class CarTransporter extends TrainCarEntity {
             EntityDataSerializers.COMPOUND_TAG);
 
     /**
-     * Where a car is on the deck: how far along from the middle (forwards positive), which way it faces (+1 forwards),
-     * and how long it is.
+     * Where a car (or a trailer left standing) is on the deck: how far along from the middle (forwards positive), which
+     * way it faces (+1 forwards), how long it is, and how much of the deck behind it the trailer it's towing takes up.
      */
-    public record Slot(double along, int facing, double length) {
+    public record Slot(double along, int facing, double length, double tail) {
+        public Slot(double along, int facing, double length) {
+            this(along, facing, length, 0);
+        }
+
+        /** The ends of the deck it takes up, back and front. */
+        public double low() {
+            return along - length / 2 - (facing > 0 ? tail : 0);
+        }
+
+        public double high() {
+            return along + length / 2 + (facing < 0 ? tail : 0);
+        }
     }
 
     private final Map<UUID, Slot> slots = new HashMap<>();
@@ -120,7 +132,7 @@ public class CarTransporter extends TrainCarEntity {
         // Measured from the far end towards this one: the nearest of the cars aboard (to this end) stops it.
         double reached = -DECK_HALF - GAP;
         for (Slot slot : slots.values()) {
-            reached = Math.max(reached, end * slot.along() + slot.length() / 2);
+            reached = Math.max(reached, end > 0 ? slot.high() : -slot.low());
         }
         double centre = reached + GAP + length / 2;
         if (centre + length / 2 > DECK_HALF + 1.0E-6) {
@@ -143,15 +155,104 @@ public class CarTransporter extends TrainCarEntity {
         return true;
     }
 
+    /**
+     * Where something {@code length} blocks long could go aboard, as near as can be to {@code want} (along from the
+     * middle): in the gap between the cars aboard nearest it that's long enough. Null if there's none.
+     */
+    @Nullable
+    public Double placeNear(double want, double length) {
+        List<Slot> taken = new java.util.ArrayList<>(slots.values());
+        taken.sort(java.util.Comparator.comparingDouble(Slot::low));
+        Double best = null;
+        double from = -DECK_HALF;
+        for (int i = 0; i <= taken.size(); i++) {
+            double to = i < taken.size() ? taken.get(i).low() - GAP : DECK_HALF;
+            if (to - from >= length - 1.0E-6) {
+                double centre = Math.max(from + length / 2, Math.min(to - length / 2, want));
+                if (best == null || Math.abs(centre - want) < Math.abs(best - want)) {
+                    best = centre;
+                }
+            }
+            if (i < taken.size()) {
+                from = Math.max(from, taken.get(i).high() + GAP);
+            }
+        }
+        return best;
+    }
+
     /** Takes {@code car} ({@code length} blocks long) aboard, at {@code along} facing {@code facing}. */
     public boolean carry(Entity car, double along, int facing, double length) {
-        slots.put(car.getUUID(), new Slot(along, facing, length));
+        return carry(car, along, facing, length, 0);
+    }
+
+    /** ... towing a trailer that takes up {@code tail} blocks of the deck behind it. */
+    public boolean carry(Entity car, double along, int facing, double length, double tail) {
+        slots.put(car.getUUID(), new Slot(along, facing, length, tail));
         if (!car.startRiding(this, true)) {
             slots.remove(car.getUUID());
             return false;
         }
         sync();
         return true;
+    }
+
+    /** How much of the deck behind a car its trailer takes up, now (it's been hitched or left standing). */
+    void setTail(Entity car, double tail) {
+        Slot slot = slots.get(car.getUUID());
+        if (slot != null && Math.abs(slot.tail() - tail) > 1.0E-6) {
+            slots.put(car.getUUID(), new Slot(slot.along(), slot.facing(), slot.length(), tail));
+            sync();
+        }
+    }
+
+    // Trailers aboard: a car's trailer rides on it, and if it's unhitched (the car mod's hitch key) it's left standing
+    // on the deck behind the car, and stays aboard; the hitch key, sat in the car, hitches it up again (see CarCargo).
+
+    /** The trailer each car aboard is towing, so one left standing can be kept aboard. */
+    private final Map<UUID, UUID> towing = new HashMap<>();
+    /** Trailers to hitch up to cars aboard, and in how many ticks (after the car mod's done with the key). */
+    private final Map<UUID, UUID> hitching = new HashMap<>();
+    private int hitchIn;
+
+    void hitchSoon(Entity car, Entity trailer) {
+        hitching.put(car.getUUID(), trailer.getUUID());
+        hitchIn = 2;
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (!(level() instanceof net.minecraft.server.level.ServerLevel server) || !CarCargo.CAR_MOD) {
+            return;
+        }
+        for (Entity car : cars()) {
+            if (!CarCargo.isCar(car)) {
+                continue;
+            }
+            Entity trailer = CarModAccess.trailer(car);
+            if (trailer != null) {
+                towing.put(car.getUUID(), trailer.getUUID());
+                continue;
+            }
+            UUID was = towing.remove(car.getUUID());
+            if (was != null) {
+                setTail(car, 0);
+                Entity left = server.getEntity(was);
+                if (left != null && left.isAlive() && !left.isPassenger() && left.distanceToSqr(this) < 12 * 12) {
+                    CarCargo.leaveStanding(this, left);
+                }
+            }
+        }
+        if (!hitching.isEmpty() && --hitchIn <= 0) {
+            for (Map.Entry<UUID, UUID> entry : Map.copyOf(hitching).entrySet()) {
+                Entity car = server.getEntity(entry.getKey());
+                Entity trailer = server.getEntity(entry.getValue());
+                if (car != null && trailer != null) {
+                    CarCargo.hitchUp(this, car, trailer);
+                }
+            }
+            hitching.clear();
+        }
     }
 
     /** Only cars it's making room for (see {@link #carry}). */
@@ -222,6 +323,7 @@ public class CarTransporter extends TrainCarEntity {
             car.putDouble("Along", entry.getValue().along());
             car.putByte("Facing", (byte) entry.getValue().facing());
             car.putDouble("Length", entry.getValue().length());
+            car.putDouble("Tail", entry.getValue().tail());
             list.add(car);
         }
         tag.put("Cars", list);
@@ -233,7 +335,8 @@ public class CarTransporter extends TrainCarEntity {
         for (Tag t : tag.getList("Cars", Tag.TAG_COMPOUND)) {
             CompoundTag car = (CompoundTag) t;
             if (car.hasUUID("Id")) {
-                slots.put(car.getUUID("Id"), new Slot(car.getDouble("Along"), car.getByte("Facing") < 0 ? -1 : 1, car.getDouble("Length")));
+                slots.put(car.getUUID("Id"), new Slot(car.getDouble("Along"), car.getByte("Facing") < 0 ? -1 : 1, car.getDouble("Length"),
+                        car.getDouble("Tail")));
             }
         }
     }
