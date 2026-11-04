@@ -56,6 +56,8 @@ public final class ModEntities {
             EntityType.Builder.<LivestockWagon>of(LivestockWagon::new, MobCategory.MISC));
     public static final Supplier<EntityType<FreightWagon>> FREIGHT_WAGON = register("freight_wagon",
             EntityType.Builder.<FreightWagon>of(FreightWagon::new, MobCategory.MISC));
+    public static final Supplier<EntityType<com.reiko.trains.train.TrackLayer>> TRACK_LAYER = register("track_layer",
+            EntityType.Builder.<com.reiko.trains.train.TrackLayer>of(com.reiko.trains.train.TrackLayer::new, MobCategory.MISC));
 
     private ModEntities() {
     }

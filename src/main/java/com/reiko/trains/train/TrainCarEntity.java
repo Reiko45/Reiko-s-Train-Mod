@@ -73,6 +73,9 @@ public abstract class TrainCarEntity extends VehicleEntity {
     final Map<Long, EdgeRef> routes = new HashMap<>();
     /** Ticks spent waiting for a coupled car that isn't loaded. */
     int waiting;
+    /** When (game time) this car, at the front of its moving train, ran up against the end of the track, and which end of it did. */
+    long endBumpTime = Long.MIN_VALUE / 2;
+    int endBumpEnd;
 
     // client
     private int lerpSteps;

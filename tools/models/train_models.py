@@ -618,6 +618,43 @@ def freight_wagon():
     return parts
 
 
+def track_layer():
+    """
+    The track-laying wagon, six blocks long: a low yellow-edged steel flat with a gantry at its front end, a panel of
+    track hanging from it on chains ready to go down, a control cabinet with a beacon, and track panels stacked along
+    the rest of the deck (the cargo_ parts: as many show as it has track).
+    """
+    body = Part("body")
+    b = body.boxes
+    b.append(box(-42, -16, -12, 42, -12, 12, "frame"))
+    b.append(box(-44, -18, -14, -42, -10, 14, "beam_dark"))
+    b.append(box(42, -18, -14, 44, -10, 14, "beam_dark"))
+    b += buffers(48)
+    b.append(box(-44, -19, -15, 44, -16, 15, "tl_deck"))
+    # The gantry: four posts, beams along the top each side and across each end
+    for x in (-44, -28):
+        b += mirrored(x, -46, 13, x + 2, -19, 15, "tl_gantry")
+        b.append(box(x, -48, -15, x + 2, -46, 15, "tl_gantry"))
+    b += mirrored(-42, -48, 13, -28, -46, 15, "tl_gantry")
+    # The hoist, its chains, and the panel of track hanging from them
+    b.append(box(-38, -46, -3, -34, -44, 3, "tl_hoist"))
+    b += mirrored(-37, -44, 4, -36, -27, 5, "tl_chain")
+    b.append(box(-42, -27, -11, -30, -25, 11, "tl_sleepers"))
+    b += mirrored(-42, -29, 6, -30, -27, 8, "tl_rail")
+    # The control cabinet and its beacon
+    b.append(box(-26, -30, 7, -20, -19, 14, "tl_cabinet"))
+    b.append(box(-24, -32, 9, -22, -30, 11, "tl_beacon"))
+    parts = [body]
+    # Stacked panels of track: sleepers across, a pair of rails on top
+    for i in range(4):
+        y1 = -19 - 4 * i
+        p = Part(f"cargo_{i}", (0, 0, 0))
+        p.boxes.append(box(-16, y1 - 2, -11, 42, y1, 11, "tl_sleepers"))
+        p.boxes += mirrored(-16, y1 - 4, 6, 42, y1 - 2, 8, "tl_rail")
+        parts.append(p)
+    return parts
+
+
 def livestock_wagon():
     """
     A livestock wagon: a roofed van with slatted sides, so the animals get air and you can see them, a sliding door in
@@ -1593,6 +1630,50 @@ def ct_plate(t):
     return jitter((60, 62, 66), (t.x, t.y, t.z), 0.04)
 
 
+def tl_deck(t):
+    """The flat's deck: dark steel plate on top, hazard stripes on the ends, a yellow edge along the sides."""
+    if t.face == "down":
+        c = jitter((58, 60, 64), (t.x, t.z), 0.05)
+        return shade(c, 1.12) if (int(math.floor(t.x)) + int(math.floor(t.z))) % 4 == 0 else c
+    if t.face == "up":
+        return jitter((40, 42, 46), (t.x, t.z), 0.05)
+    if t.end:
+        stripe = int(math.floor((t.z + t.y + 64) / 2)) % 2
+        return SAFETY_YELLOW if stripe else (30, 30, 32)
+    c = jitter(SAFETY_YELLOW, (t.x, t.y, t.z), 0.04)
+    return shade(c, 0.8) if t.edge else c
+
+
+def tl_gantry(t):
+    c = jitter(SAFETY_YELLOW, (t.x, t.y, t.z, t.face), 0.04)
+    return shade(c, 0.78) if t.edge else c
+
+
+def tl_sleepers(t):
+    """Wooden sleepers across, a gap between each: seen from above and from the sides."""
+    c = jitter((112, 78, 46), (t.x, t.y, t.z, t.face), 0.08)
+    if t.face in ("down", "north", "south") and (int(math.floor(t.x)) + 64) % 4 == 3:
+        return (40, 30, 22)
+    return shade(c, 0.85) if t.edge else c
+
+
+def tl_rail(t):
+    c = jitter((150, 152, 158), (t.x, t.y, t.z, t.face), 0.04)
+    if t.face == "down":
+        return shade(c, 1.15)
+    return shade(c, 0.8) if t.edge else c
+
+
+def tl_cabinet(t):
+    """A yellow cabinet: a dark panel of dials on the side facing the gantry."""
+    c = jitter(SAFETY_YELLOW, (t.x, t.y, t.z, t.face), 0.04)
+    if t.face == "west" and 1 <= t.i < t.fw - 1 and 1 <= t.j < t.fh - 3:
+        if t.j == 2 and t.i in (2, 4):
+            return (120, 220, 120) if t.i == 2 else (230, 80, 60)
+        return (36, 38, 42)
+    return shade(c, 0.8) if t.edge else c
+
+
 def panto_arm(t):
     c = jitter((132, 136, 142), (t.x, t.y, t.z, t.face), 0.05)
     return shade(c, 0.8) if t.edge else c
@@ -1783,6 +1864,14 @@ MATERIALS = {
     "ct_sill": ct_sill,
     "ct_rail": ct_rail,
     "ct_plate": ct_plate,
+    "tl_deck": tl_deck,
+    "tl_gantry": tl_gantry,
+    "tl_sleepers": tl_sleepers,
+    "tl_rail": tl_rail,
+    "tl_cabinet": tl_cabinet,
+    "tl_hoist": plain((54, 56, 60), 0.8),
+    "tl_chain": plain((86, 88, 94), 0.75),
+    "tl_beacon": plain((255, 168, 40), 0.9),
     "stock_side": stock_side,
     "stock_end": stock_end,
     "vt_saloon": vt_saloon,
@@ -1949,6 +2038,9 @@ def main():
     build("bullet_train", "BulletTrainGeometry", bullet_train(), 512)
     build("bullet_coach", "BulletCoachGeometry", bullet_coach(), 512)
     build("car_transporter", "CarTransporterGeometry", car_transporter(), 512)
+    build("track_layer", "TrackLayerGeometry", track_layer(), 512,
+          "    /** The stacked panels of track, one to four: as many show as it has track. */\n"
+          '    public static final String[] CARGO = {"cargo_0", "cargo_1", "cargo_2", "cargo_3"};\n')
     angle = trolley_angle()
     reach = (TROLLEY_TIP[0] * math.cos(angle) - TROLLEY_TIP[1] * math.sin(angle)) / 16
     build("vintage_tram", "VintageTramGeometry", vintage_tram(), 512,

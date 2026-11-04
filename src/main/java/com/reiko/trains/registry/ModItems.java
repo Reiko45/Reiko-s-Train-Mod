@@ -48,6 +48,8 @@ public final class ModItems {
             () -> new TrainCarItem(ModEntities.LIVESTOCK_WAGON, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<TrainCarItem> FREIGHT_WAGON = ITEMS.register("freight_wagon",
             () -> new TrainCarItem(ModEntities.FREIGHT_WAGON, new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<TrainCarItem> TRACK_LAYER = ITEMS.register("track_layer",
+            () -> new TrainCarItem(ModEntities.TRACK_LAYER, new Item.Properties().stacksTo(1)));
     public static final DeferredItem<CouplerItem> COUPLER = ITEMS.register("coupler",
             () -> new CouplerItem(new Item.Properties().stacksTo(1)));
 

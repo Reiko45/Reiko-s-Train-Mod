@@ -65,6 +65,8 @@ choice of way at every junction) or give them a timetable and let them run betwe
   off again, from wagon to wagon along the train.
 - **Guard's Van**: for the back of the train. Two seats and a stove inside, tail lamps, and a brake that makes the
   whole train stop quicker.
+- **Track-Laying Wagon**: push it off the end of the line and it lays track ahead of itself, straight on or round a
+  bend as you steer, digging through hills and filling in dips to keep the line level.
 - **Wagon Loader**: fills the freight wagons of a train standing beside it from the chests next to it, or empties
   them into the chests, all of it or (with its filter) just the items you choose.
 - **Coupler**: joins cars into trains.
@@ -112,6 +114,40 @@ corners, and are paid for in street track; the road blocks a curve passes over a
 
 ![A junction](docs/screenshots/junction.jpg)
 
+### The track-laying wagon
+
+For a long line, let a train lay it. The **Track-Laying Wagon** is a yellow flat wagon with a gantry at one end and
+panels of track stacked along it (as many as it has track for).
+
+- **Load it**: click it for its store, 27 slots (hoppers and pipes reach it too). Put in Train Track, and something
+  to fill dips with: stone, cobblestone, dirt or gravel (or deepslate, andesite, diorite, granite, tuff, calcite,
+  sandstone, netherrack, blackstone and the like).
+- **Lay track**: couple it at the **front** of a train, drive up to the end of the line and keep going. It lays track
+  ahead of itself, a block at a time, from the end of it with nothing coupled on, and holds the train to a fast walk
+  (about 11 km/h) while it works. Stop, or back away, and it stops laying.
+- **Straight on, or a bend**: it carries the line straight on the way its last block runs, diagonals too. Steer left
+  or right (the same keys as at a junction) and it lays a smooth **45° bend** that way instead, about ten blocks
+  across, then goes straight on again. One bend for each press: press again after it for a right angle.
+- **A level line**: it never climbs or drops. A hill in the way, it digs a cutting through: three blocks wide and four
+  high, and sand or gravel over it comes out too so nothing falls in. What it digs goes in its store (stone comes out
+  as cobblestone; anything that won't fit falls out beside it), so one cutting fills the next dip. A dip up to six
+  blocks deep is filled in under the track.
+- **Where it stops**: when it's out of track or fill, at **water or lava** (in the way or under the line), at a drop
+  too deep to fill (lay a bridge by hand and carry on from its far end), and at bedrock, a chest or anything else
+  with things in it, or other track, right in the way. Its screen says why, and so does a message to the driver.
+  Blocks beside the line that it won't dig, it leaves be.
+- The **switch** in its screen turns it off: then it's an ordinary wagon, and lays nothing.
+
+It lays train track from train track; it doesn't lay street track, or off a turntable.
+
+![The track-laying wagon at the end of the line, in front of a tank engine](docs/screenshots/track_layer.jpg)
+
+![Laying through a hill: the cutting it digs](docs/screenshots/track_layer_cutting.jpg)
+
+![The line it laid: through the hill, over a gully (filled under the track) and round a bend](docs/screenshots/track_layer_line.jpg)
+
+![Its screen: track, the gravel it came with and the dirt it dug](docs/screenshots/track_layer_screen.png)
+
 ## Trains
 
 ### Crafting
@@ -132,6 +168,7 @@ corners, and are paid for in street track; the road blocks a curve passes over a
 | Livestock Wagon | Three planks; fence, hay bale, fence; iron ingot, minecart, iron ingot |
 | Car Transporter | Chain, iron ingot, chain; iron ingot, minecart, iron ingot |
 | Guard's Van | Planks, lantern, planks; planks, furnace, planks; iron ingot, minecart, iron ingot |
+| Track-Laying Wagon | Iron ingot, chain, iron ingot; Train Track, iron pickaxe, Train Track; iron ingot, minecart, iron ingot |
 | Coupler | Iron ingot, chain, iron ingot (a column) |
 | Railway Signal (2) | Redstone lamp, iron ingot, iron ingot (a column) |
 | Three-Light Signal | A Railway Signal, a redstone lamp and yellow dye (any shape) |
@@ -910,6 +947,12 @@ signal at red so a driven train stops at it and letting it go so it goes on, bre
 throwing a switch both ways and not when redstone holds it, not reaching signals or trains past its range; and that
 every block in the mod has a loot table.
 
+`TrackLayerGameTests` covers the track-laying wagon: pushed off the end of the line it lays all its track straight
+on at walking pace and the train follows; it digs a cutting through a hill (no wider than it needs) and fills a dip
+under the track with what it dug; it stops at water, and for want of fill, carrying on once it has more; steering
+lays a 45° bend and then straight on; switched off (from its screen) it lays nothing; and behind the engine it can't
+lay anything.
+
 `TrainMapGameTests` covers the map of trains for minimaps: a train on it once, at its leading locomotive, with its
 kind and length, a timetabled train's next stop, a broken locomotive coming off it (and the other engine taking
 over), players being sent the other trains nearest first and not their own, dropping trains that aren't where the
@@ -1006,6 +1049,12 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
   along the deck (synced to clients, saved with the wagon). The driver's game notices them holding forwards or back
   against a transporter's end (or aboard) and asks the server, which checks it all again and moves the car on, along
   or off. Only `CarModAccess` touches the car mod's classes, so without it nothing loads them.
+- **Track-laying wagon** (`train/TrackLayer`): a train that runs up against the end of the track marks which end of
+  its leading car hit it (`TrainCarEntity.endBumpTime`). A track layer looks ahead from the bogie at its free leading end
+  (the way it's moving, or the end that just hit): if the track ends within reach, it's at work, which holds its train
+  to `LAYING_SPEED`, and every few ticks it lays the next piece off the last block, a straight block or (steering) a
+  bend built with `TrackBuilder`, after working out the whole cutting and fill first so a piece is laid all or
+  nothing.
 - **Minimap** (`train/TrainMap`): a saved list per world of where each train is, kept by its leading locomotive every
   second (and when it unloads), sent to each player every two seconds (`TrainMapPayload`). On the client
   `TrainMinimap` moves the loaded ones as they go, and `TrainsXaero` puts them on Xaero's Minimap as its custom

@@ -221,6 +221,67 @@ def loader_screen():
     img.save(f"{ASSETS}/textures/gui/wagon_loader.png")
 
 
+def track_layer_screen():
+    """The track-laying wagon's screen: its 27-slot store, a row for its switch and what it's doing, and the inventory."""
+    width, height = 176, 196
+    img = Image.new("RGBA", (256, 256), (0, 0, 0, 0))
+    bg, light, dark, black = (198, 198, 198, 255), (255, 255, 255, 255), (85, 85, 85, 255), (0, 0, 0, 255)
+    for y in range(height):
+        for x in range(width):
+            img.putpixel((x, y), bg)
+    for x in range(2, width - 2):
+        img.putpixel((x, 0), black)
+        img.putpixel((x, height - 1), black)
+        img.putpixel((x, 1), light)
+        img.putpixel((x, 2), light)
+        img.putpixel((x, height - 2), dark)
+        img.putpixel((x, height - 3), dark)
+    for y in range(2, height - 2):
+        img.putpixel((0, y), black)
+        img.putpixel((width - 1, y), black)
+        img.putpixel((1, y), light)
+        img.putpixel((2, y), light)
+        img.putpixel((width - 2, y), dark)
+        img.putpixel((width - 3, y), dark)
+    for (x, y) in ((1, 1), (width - 2, height - 2)):
+        img.putpixel((x, y), black)
+    for (x, y) in ((0, 0), (1, 0), (0, 1), (width - 1, 0), (width - 2, 0), (width - 1, 1), (0, height - 1), (1, height - 1),
+                   (0, height - 2), (width - 1, height - 1), (width - 2, height - 1), (width - 1, height - 2)):
+        img.putpixel((x, y), (0, 0, 0, 0))
+    img.putpixel((width - 2, 1), bg)
+    img.putpixel((1, height - 2), bg)
+
+    def slot(sx, sy):
+        for i in range(18):
+            img.putpixel((sx - 1 + i, sy - 1), (55, 55, 55, 255))
+            img.putpixel((sx - 1, sy - 1 + i), (55, 55, 55, 255))
+            img.putpixel((sx - 1 + i, sy + 16), light)
+            img.putpixel((sx + 16, sy - 1 + i), light)
+        for i in range(16):
+            for j in range(16):
+                img.putpixel((sx + i, sy + j), (139, 139, 139, 255))
+        img.putpixel((sx - 1, sy + 16), bg)
+        img.putpixel((sx + 16, sy - 1), bg)
+
+    for r in range(3):
+        for c in range(9):
+            slot(8 + c * 18, 18 + r * 18)
+    # The read-out beside the switch: a dark recessed panel
+    x0, y0, x1, y1 = 62, 76, 169, 98
+    for y in range(y0, y1):
+        for x in range(x0, x1):
+            edge_dark = x == x0 or y == y0
+            edge_light = x == x1 - 1 or y == y1 - 1
+            img.putpixel((x, y), (55, 55, 55, 255) if edge_dark else light if edge_light else (40, 44, 40, 255))
+    for r in range(3):
+        for c in range(9):
+            slot(8 + c * 18, 114 + r * 18)
+    for c in range(9):
+        slot(8 + c * 18, 172)
+    os.makedirs(f"{ASSETS}/textures/gui", exist_ok=True)
+    img.save(f"{ASSETS}/textures/gui/track_layer.png")
+
+
 def main():
     textures()
     models()
@@ -1462,3 +1523,4 @@ if __name__ == "__main__":
     main()
     signals_and_stations()
     loader_screen()
+    track_layer_screen()

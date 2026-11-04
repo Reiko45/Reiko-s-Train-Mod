@@ -149,6 +149,26 @@ public final class DevShowcase {
         });
     }
 
+    /** Looks from somewhere else than where the player is (say, while they're driving): a stand-in for the camera. */
+    private static void camera(Minecraft minecraft, double x, double y, double z, float yaw, float pitch) {
+        net.minecraft.world.entity.decoration.ArmorStand stand = new net.minecraft.world.entity.decoration.ArmorStand(minecraft.level, x, y, z);
+        stand.setPos(x, y - stand.getEyeHeight(), z);
+        stand.setYRot(yaw);
+        stand.yRotO = yaw;
+        stand.setYHeadRot(yaw);
+        stand.yHeadRotO = yaw;
+        stand.setXRot(pitch);
+        stand.xRotO = pitch;
+        stand.xo = stand.getX();
+        stand.yo = stand.getY();
+        stand.zo = stand.getZ();
+        stand.xOld = stand.getX();
+        stand.yOld = stand.getY();
+        stand.zOld = stand.getZ();
+        stand.setInvisible(true);
+        minecraft.setCameraEntity(stand);
+    }
+
     private static void shot(Minecraft minecraft, String name) {
         Screenshot.grab(minecraft.gameDirectory, name + ".png", minecraft.getMainRenderTarget(),
                 message -> ReikoTrains.LOGGER.info("Showcase screenshot: {}", message.getString()));
@@ -194,6 +214,8 @@ public final class DevShowcase {
     private static final int SIGNAL_LINE = -340;
     /** A signal box in the middle of the loop, looking after it, the main line and the lines north of it. */
     private static final BlockPos SIGNAL_BOX = new BlockPos(27, Y, 26);
+    /** A line ending in open country, with a track-laying wagon at its end: a hill ahead of it, then a gully. */
+    private static final int LAYER_LINE = -380;
     /** The switch stand for the junction at x = 52. */
     private static final BlockPos SWITCH = new BlockPos(52, Y, -2);
 
@@ -436,6 +458,7 @@ public final class DevShowcase {
 
         turntableYard(level);
         signalLine(level);
+        trackLayerLine(level);
 
         Locomotive limited = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(24, Y, SPEED_LINE), EAST);
         PassengerCoach limitedCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(17, Y, SPEED_LINE), EAST);
@@ -928,6 +951,106 @@ public final class DevShowcase {
         });
     }
 
+    /**
+     * The track-laying wagon's line: track from x = 0 to 30, then open country: a grassy hill across the way
+     * (x 44-56, four blocks high), a dry gully (x 62-66, two deep), then flat. A steam engine stands with the wagon in
+     * front of it at the end of the line, the wagon loaded with track and some gravel.
+     */
+    private static void trackLayerLine(ServerLevel level) {
+        int z = LAYER_LINE;
+        TestTracks.line(level, new BlockPos(0, Y, z), TrackAxis.X, 31);
+        for (int x = 44; x <= 56; x++) {
+            int height = Math.min(4, Math.min(x - 43, 57 - x));
+            for (int dz = -7; dz <= 7; dz++) {
+                int h = height - Math.max(0, Math.abs(dz) - 3);
+                for (int y = 0; y < h; y++) {
+                    level.setBlock(new BlockPos(x, Y + y, z + dz), y == h - 1 ? Blocks.GRASS_BLOCK.defaultBlockState() : Blocks.DIRT.defaultBlockState(), 2);
+                }
+            }
+        }
+        for (int x = 62; x <= 66; x++) {
+            for (int dz = -7; dz <= 7; dz++) {
+                level.setBlock(new BlockPos(x, Y - 1, z + dz), Blocks.AIR.defaultBlockState(), 2);
+                level.setBlock(new BlockPos(x, Y - 2, z + dz), Blocks.AIR.defaultBlockState(), 2);
+                level.setBlock(new BlockPos(x, Y - 3, z + dz), Blocks.COARSE_DIRT.defaultBlockState(), 2);
+            }
+        }
+        com.reiko.trains.train.SteamLocomotive loco = put(level, ModEntities.STEAM_LOCOMOTIVE.get(), 19, z);
+        com.reiko.trains.train.TrackLayer layer = put(level, ModEntities.TRACK_LAYER.get(), 25, z);
+        Trains.couple(loco, layer);
+        loco.setFuel(com.reiko.trains.train.SteamLocomotive.FUEL_CAPACITY);
+        loco.setWater(com.reiko.trains.train.SteamLocomotive.WATER_CAPACITY);
+        for (int i = 0; i < 8; i++) {
+            layer.store(new ItemStack(ModItems.TRACK.get(), 64));
+        }
+        layer.store(new ItemStack(Items.GRAVEL, 64));
+    }
+
+    /**
+     * The track-laying wagon: standing at the end of the line; then, driven on, laying track through the hill (the
+     * cutting dug out of it) and over the gully (filled under the track), and a bend to the right; the line it laid,
+     * from above; and its screen.
+     */
+    private static void trackLayerScene() {
+        int z = LAYER_LINE;
+        at(5090, mc -> look(mc, 31.0, Y + 1.9, z + 5.0, 124.0F, 9.0F));
+        at(5150, mc -> shot(mc, "62_track_layer"));
+        at(5152, mc -> server(mc, player -> {
+            ServerLevel level = player.serverLevel();
+            com.reiko.trains.train.SteamLocomotive loco = find(level, com.reiko.trains.train.SteamLocomotive.class, 19.5, z + 0.5);
+            player.getAbilities().flying = false;
+            player.onUpdateAbilities();
+            player.teleportTo(level, loco.getX(), loco.getY(), loco.getZ(), -90.0F, 4.0F);
+            player.startRiding(loco);
+            loco.control(TrainControlPayload.THROTTLE_UP);
+            loco.control(TrainControlPayload.THROTTLE_UP);
+        }));
+        // The player's driving: the pictures are taken from a stand-in camera beside the line.
+        at(5156, mc -> camera(mc, 52.0, Y + 9.0, z + 8.5, 155.0F, 44.0F));
+        boolean[] cutting = {false};
+        boolean[] steered = {false};
+        boolean[] above = {false};
+        for (int time = 5160; time <= 5700; time++) {
+            boolean last = time == 5700;
+            at(time, mc -> {
+                List<com.reiko.trains.train.TrackLayer> layers = mc.level.getEntitiesOfClass(com.reiko.trains.train.TrackLayer.class,
+                        new AABB(0, Y - 4, z - 30, 160, Y + 6, z + 60));
+                double x = layers.isEmpty() ? 0 : layers.getFirst().getX();
+                if (!cutting[0] && (x >= 50.5 || last)) {
+                    cutting[0] = true;
+                    shot(mc, "63_track_layer_cutting");
+                }
+                if (!steered[0] && x >= 74.5) {
+                    steered[0] = true;
+                    server(mc, player -> {
+                        for (com.reiko.trains.train.SteamLocomotive loco : player.serverLevel().getEntitiesOfClass(
+                                com.reiko.trains.train.SteamLocomotive.class, new AABB(0, Y - 4, z - 30, 160, Y + 6, z + 60))) {
+                            loco.control(TrainControlPayload.STEER_RIGHT);
+                        }
+                    });
+                }
+                if (steered[0] && !above[0] && (x >= 92.0 || last)) {
+                    above[0] = true;
+                    camera(mc, 58.5, Y + 12.0, z - 7.5, -49.0F, 33.0F);
+                }
+            });
+        }
+        at(5760, mc -> shot(mc, "64_track_layer_line"));
+        at(5762, mc -> server(mc, player -> {
+            ServerLevel level = player.serverLevel();
+            List<com.reiko.trains.train.TrackLayer> layers = level.getEntitiesOfClass(com.reiko.trains.train.TrackLayer.class,
+                    new AABB(0, Y - 4, z - 30, 160, Y + 6, z + 60));
+            if (!layers.isEmpty()) {
+                com.reiko.trains.train.TrackLayer layer = layers.getFirst();
+                player.openMenu(new SimpleMenuProvider((id, inventory, p) -> new com.reiko.trains.menu.TrackLayerMenu(id, inventory, layer),
+                        layer.getDisplayName()));
+            }
+        }));
+        at(5762, mc -> mc.setCameraEntity(mc.player));
+        at(5790, mc -> shot(mc, "65_track_layer_screen"));
+        at(5792, mc -> mc.setScreen(null));
+    }
+
     private static void script() {
         at(20, mc -> {
             mc.options.hideGui = false;
@@ -1245,6 +1368,7 @@ public final class DevShowcase {
         turntableScene();
         signalScene();
         signalBoxScene();
-        at(5090, Minecraft::stop);
+        trackLayerScene();
+        at(5800, Minecraft::stop);
     }
 }

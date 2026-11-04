@@ -63,6 +63,8 @@ public final class ReikoTrains {
         event.registerEntity(Capabilities.ItemHandler.ENTITY, ModEntities.FREIGHT_WAGON.get(), wagon);
         event.registerEntity(Capabilities.ItemHandler.ENTITY_AUTOMATION, ModEntities.FREIGHT_WAGON.get(), wagonSided);
         event.registerEntity(Capabilities.ItemHandler.ENTITY, ModEntities.TENDER.get(), wagon);
+        event.registerEntity(Capabilities.ItemHandler.ENTITY, ModEntities.TRACK_LAYER.get(), wagon);
+        event.registerEntity(Capabilities.ItemHandler.ENTITY_AUTOMATION, ModEntities.TRACK_LAYER.get(), wagonSided);
         event.registerEntity(Capabilities.ItemHandler.ENTITY_AUTOMATION, ModEntities.TENDER.get(), wagonSided);
         // A diesel's tank takes diesel from buckets, pipes and other mods' fluid containers (its hitbox parts too).
         event.registerEntity(Capabilities.FluidHandler.ENTITY, ModEntities.DIESEL_LOCOMOTIVE.get(), ReikoTrains::dieselTank);

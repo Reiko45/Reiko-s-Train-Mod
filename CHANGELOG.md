@@ -2,6 +2,20 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.27.0
+
+The track-laying wagon.
+
+- New: the **Track-Laying Wagon** (iron ingots, a chain, Train Track either side of an iron pickaxe, and a minecart).
+  Load it with track and stone, dirt or gravel, couple it at the front of a train and drive off the end of the line:
+  it lays track ahead of itself at a walking pace.
+- It goes straight on; steer left or right and it lays a smooth 45° bend that way (one for each press).
+- It keeps the line level: it digs a cutting through hills (keeping what it digs) and fills dips up to six blocks
+  deep under the track. It stops at water, lava, bedrock and anything with things in it in the way, at a drop too deep
+  to fill, and when it runs out of track or fill, saying why. A switch in its screen turns it off.
+- The mod's network version changes, so clients and servers both need 0.27.0.
+- Seven new game tests (183 in all).
+
 ## 0.26.0
 
 The signal box.

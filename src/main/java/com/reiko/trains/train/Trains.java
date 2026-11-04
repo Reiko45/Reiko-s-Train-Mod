@@ -239,6 +239,12 @@ public final class Trains {
             }
         }
         head.speed = nextSpeed(head.speed, cars, signs, drive, leaderIndex);
+        for (TrainCarEntity car : cars) {
+            // Laying track: no faster than it can lay it.
+            if (car instanceof TrackLayer layer && layer.isWorking() && Math.abs(head.speed) > TrackLayer.LAYING_SPEED) {
+                head.speed = Math.signum(head.speed) * TrackLayer.LAYING_SPEED;
+            }
+        }
         for (int i = 0; i < cars.size(); i++) {
             if (cars.get(i) instanceof Locomotive loco) {
                 loco.reportSpeed(head.speed * signs[i]);
@@ -391,6 +397,10 @@ public final class Trains {
             return remembered != null && options.contains(remembered) ? remembered : TrackGraph.choose(options, heading, 0);
         };
         double moved = probe.walk(level, leadDelta, leaderChooser);
+        if (moved < Math.abs(leadDelta) - 1.0E-6) {
+            leadCar.endBumpTime = level.getGameTime();
+            leadCar.endBumpEnd = leadIsFront ? 1 : -1;
+        }
         double actual = Math.signum(distance) * moved;
         for (int i = 0; i < cars.size(); i++) {
             TrainCarEntity car = cars.get(i);

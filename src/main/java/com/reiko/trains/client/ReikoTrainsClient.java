@@ -79,6 +79,7 @@ public final class ReikoTrainsClient {
     static final ModelLayerLocation TRAM_CAB_LAYER = new ModelLayerLocation(ReikoTrains.id("tram_cab"), "main");
     static final ModelLayerLocation TRAM_MIDDLE_LAYER = new ModelLayerLocation(ReikoTrains.id("tram_middle"), "main");
     static final ModelLayerLocation CAR_TRANSPORTER_LAYER = new ModelLayerLocation(ReikoTrains.id("car_transporter"), "main");
+    static final ModelLayerLocation TRACK_LAYER_LAYER = new ModelLayerLocation(ReikoTrains.id("track_layer"), "main");
 
     /** Ticks until a held throttle key moves another notch. */
     private static int throttleRepeat;
@@ -120,6 +121,7 @@ public final class ReikoTrainsClient {
         event.registerLayerDefinition(TRAM_CAB_LAYER, com.reiko.trains.client.model.geometry.TramCabGeometry::create);
         event.registerLayerDefinition(TRAM_MIDDLE_LAYER, com.reiko.trains.client.model.geometry.TramMiddleGeometry::create);
         event.registerLayerDefinition(CAR_TRANSPORTER_LAYER, CarTransporterGeometry::create);
+        event.registerLayerDefinition(TRACK_LAYER_LAYER, com.reiko.trains.client.model.geometry.TrackLayerGeometry::create);
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -179,6 +181,10 @@ public final class ReikoTrainsClient {
         event.registerEntityRenderer(ModEntities.FREIGHT_WAGON.get(), context -> new TrainCarRenderer<>(context,
                 c -> new TrainModel(c.bakeLayer(WAGON_LAYER), new String[0], new float[0], new String[0], 0.0F, 1.0F, FreightWagonGeometry.CARGO),
                 bogie, ReikoTrains.id("textures/entity/freight_wagon.png")));
+        event.registerEntityRenderer(ModEntities.TRACK_LAYER.get(), context -> new TrainCarRenderer<>(context,
+                c -> new TrainModel(c.bakeLayer(TRACK_LAYER_LAYER), new String[0], new float[0], new String[0], 0.0F, 1.0F,
+                        com.reiko.trains.client.model.geometry.TrackLayerGeometry.CARGO),
+                bogie, ReikoTrains.id("textures/entity/track_layer.png")));
         event.registerBlockEntityRenderer(ModBlockEntities.TRACK.get(), TrackRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.STATION.get(), StationRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.LEVEL_CROSSING.get(), LevelCrossingRenderer::new);
@@ -198,6 +204,7 @@ public final class ReikoTrainsClient {
 
     private static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.FREIGHT_WAGON.get(), FreightWagonScreen::new);
+        event.register(ModMenus.TRACK_LAYER.get(), TrackLayerScreen::new);
         event.register(ModMenus.WAGON_LOADER.get(), WagonLoaderScreen::new);
         event.register(ModMenus.SIGNAL_BOX.get(), SignalBoxScreen::new);
     }

@@ -19,6 +19,9 @@ public final class ModMenus {
     public static final Supplier<MenuType<WagonLoaderMenu>> WAGON_LOADER = MENUS.register("wagon_loader",
             () -> IMenuTypeExtension.create(WagonLoaderMenu::new));
 
+    public static final Supplier<MenuType<com.reiko.trains.menu.TrackLayerMenu>> TRACK_LAYER = MENUS.register("track_layer",
+            () -> new MenuType<>(com.reiko.trains.menu.TrackLayerMenu::new, FeatureFlags.DEFAULT_FLAGS));
+
     public static final Supplier<MenuType<com.reiko.trains.menu.SignalBoxMenu>> SIGNAL_BOX = MENUS.register("signal_box",
             () -> IMenuTypeExtension.create(com.reiko.trains.menu.SignalBoxMenu::new));
 
