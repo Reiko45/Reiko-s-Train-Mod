@@ -13,6 +13,7 @@
     "reikotrains:catenary_mast",
     "reikotrains:substation",
     "reikotrains:street_track",
-    "reikotrains:turntable"
+    "reikotrains:turntable",
+    "reikotrains:three_light_signal"
   ]
 }

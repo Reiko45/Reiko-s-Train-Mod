@@ -25,6 +25,10 @@ public final class TrainsConfig {
             .comment("Whether trains people are driving stop for red signals by themselves, like trains on a timetable",
                     "do. Turn off to leave it to the drivers.")
             .define("signalsStopDrivers", true);
+    public static final ModConfigSpec.IntValue CAUTION_SPEED = BUILDER
+            .comment("How fast trains may go past a yellow (three-light) signal, until the next signal, in km/h. Drivers keep",
+                    "to it too while signalsStopDrivers is on.")
+            .defineInRange("cautionSpeedKmh", 40, 5, 200);
     public static final ModConfigSpec.BooleanValue SPEED_LIMITS_FOR_DRIVERS = BUILDER
             .comment("Whether trains people are driving keep to speed limit signs by themselves, like trains on a timetable",
                     "do. Turn off to leave it to the drivers.")

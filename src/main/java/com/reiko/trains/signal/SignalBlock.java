@@ -29,7 +29,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 /**
  * A railway signal. Placed beside the track (up to three blocks away), it guards the track ahead in the direction
  * you're looking as you place it, and faces back towards the trains coming that way. Red while the track ahead is
- * occupied or the signal's powered by redstone; a comparator next to it reads 15 while there's a train ahead.
+ * occupied or the signal's powered by redstone; a comparator next to it reads 15 while there's a train ahead (and, for a
+ * three-light signal, 7 while it shows yellow).
  */
 public class SignalBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public static final com.mojang.serialization.MapCodec<SignalBlock> CODEC = simpleCodec(SignalBlock::new);
@@ -104,7 +105,10 @@ public class SignalBlock extends HorizontalDirectionalBlock implements EntityBlo
 
     @Override
     protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
-        return level.getBlockEntity(pos) instanceof SignalBlockEntity signal && signal.isOccupied() ? 15 : 0;
+        if (!(level.getBlockEntity(pos) instanceof SignalBlockEntity signal)) {
+            return 0;
+        }
+        return signal.isOccupied() ? 15 : signal.showsCaution() ? 7 : 0;
     }
 
     @Nullable

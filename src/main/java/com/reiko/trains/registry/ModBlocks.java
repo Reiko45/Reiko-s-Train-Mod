@@ -28,6 +28,9 @@ public final class ModBlocks {
 
     public static final DeferredBlock<SignalBlock> SIGNAL = BLOCKS.register("signal", () -> new SignalBlock(BlockBehaviour.Properties.of()
             .strength(1.5F).sound(SoundType.METAL).noOcclusion().lightLevel(state -> 5).pushReaction(PushReaction.BLOCK)));
+    public static final DeferredBlock<com.reiko.trains.signal.ThreeLightSignalBlock> THREE_LIGHT_SIGNAL = BLOCKS.register("three_light_signal",
+            () -> new com.reiko.trains.signal.ThreeLightSignalBlock(BlockBehaviour.Properties.of().strength(1.5F).sound(SoundType.METAL)
+                    .noOcclusion().lightLevel(state -> 5).pushReaction(PushReaction.BLOCK)));
     public static final DeferredBlock<StationBlock> STATION = BLOCKS.register("station", () -> new StationBlock(BlockBehaviour.Properties.of()
             .strength(1.5F).sound(SoundType.WOOD).noOcclusion().pushReaction(PushReaction.BLOCK)));
 

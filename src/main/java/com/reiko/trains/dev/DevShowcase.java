@@ -189,6 +189,8 @@ public final class DevShowcase {
     /** A turntable yard: the turntable's pivot is at x = 40 on this z, with an engine shed east of it. */
     private static final int TURNTABLE_YARD = -300;
     private static final BlockPos TURNTABLE = new BlockPos(40, Y - 1, TURNTABLE_YARD);
+    /** A line with three-light signals on it, along x at this z. */
+    private static final int SIGNAL_LINE = -340;
     /** The switch stand for the junction at x = 52. */
     private static final BlockPos SWITCH = new BlockPos(52, Y, -2);
 
@@ -429,6 +431,7 @@ public final class DevShowcase {
         thirstyTender.setFuel(Tender.FUEL_CAPACITY * 0.7);
 
         turntableYard(level);
+        signalLine(level);
 
         Locomotive limited = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(24, Y, SPEED_LINE), EAST);
         PassengerCoach limitedCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(17, Y, SPEED_LINE), EAST);
@@ -792,6 +795,85 @@ public final class DevShowcase {
         at(4470, mc -> shot(mc, "57b_engine_shed_shut"));
     }
 
+
+    /**
+     * Three-light signals: three in a row (x = 60, 80, 100) guarding the way east, a goods train standing beyond the
+     * last, so it's red, the one before it yellow and the first green; and an electric with a coach to come along.
+     */
+    private static void signalLine(ServerLevel level) {
+        int z = SIGNAL_LINE;
+        TestTracks.line(level, new BlockPos(0, Y, z), TrackAxis.X, 200);
+        for (int x : new int[] {60, 80, 100}) {
+            TestTracks.threeLightSignal(level, new BlockPos(x, Y, z + 2), new BlockPos(x, Y, z), 1);
+        }
+        Locomotive goods = TestTracks.car(level, ModEntities.DIESEL_LOCOMOTIVE.get(), new BlockPos(150, Y, z), EAST);
+        FreightWagon first = TestTracks.car(level, ModEntities.FREIGHT_WAGON.get(), new BlockPos(142, Y, z), EAST);
+        FreightWagon second = TestTracks.car(level, ModEntities.FREIGHT_WAGON.get(), new BlockPos(136, Y, z), EAST);
+        Trains.couple(goods, first);
+        Trains.couple(first, second);
+        TestTracks.station(level, new BlockPos(185, Y, z - 3), new BlockPos(185, Y, z), "Goods Yard", 10);
+        ElectricLocomotive electric = TestTracks.car(level, ModEntities.ELECTRIC_LOCOMOTIVE.get(), new BlockPos(13, Y, z), EAST);
+        PassengerCoach coach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(5, Y, z), EAST);
+        Trains.couple(electric, coach);
+        electric.setFuel(electric.batteryCapacity());
+    }
+
+    /**
+     * Three-light signals: the three in a row, green, yellow and red; then in the electric's cab coming up to the yellow
+     * one, slowing to caution speed (the gauges show it); then the train stopped at the red one.
+     */
+    private static void signalScene() {
+        int z = SIGNAL_LINE;
+        at(4480, mc -> {
+            mc.options.fov().set(30); // a long lens, to see the three in a row
+            look(mc, 40.5, Y + 0.6, z + 9.5, -100.8F, 2.0F);
+        });
+        at(4530, mc -> shot(mc, "58_three_light_signals"));
+        at(4532, mc -> server(mc, player -> {
+            ServerLevel level = player.serverLevel();
+            ElectricLocomotive electric = find(level, ElectricLocomotive.class, 13.5, z + 0.5);
+            player.getAbilities().flying = false;
+            player.onUpdateAbilities();
+            player.teleportTo(level, electric.getX(), electric.getY(), electric.getZ(), -90.0F, 4.0F);
+            player.startRiding(electric);
+            StationBlockEntity yard = (StationBlockEntity) level.getBlockEntity(new BlockPos(185, Y, z - 3));
+            electric.autopilot().start(List.of(TestTracks.stop(yard)));
+        }));
+        at(4538, mc -> {
+            mc.options.fov().set(70);
+            mc.player.setYRot(-90.0F);
+            mc.player.setXRot(4.0F);
+        });
+        boolean[] cab = {false};
+        for (int time = 4560; time <= 4760; time++) {
+            boolean last = time == 4760;
+            at(time, mc -> {
+                if (cab[0] || !(mc.player.getVehicle() instanceof Locomotive loco)) {
+                    return;
+                }
+                if (last || (loco.signalAspect() == 3 && loco.getX() + loco.halfLength() >= 66)) {
+                    cab[0] = true;
+                    shot(mc, "59_caution_cab");
+                }
+            });
+        }
+        at(4765, mc -> look(mc, 89.5, Y + 0.6, z + 7.5, -118.0F, 3.0F));
+        boolean[] stopped = {false};
+        for (int time = 4800; time <= 4950; time++) {
+            boolean last = time == 4950;
+            at(time, mc -> {
+                if (stopped[0]) {
+                    return;
+                }
+                List<ElectricLocomotive> trains = mc.level.getEntitiesOfClass(ElectricLocomotive.class, new AABB(60, Y - 2, z - 3, 110, Y + 4, z + 3));
+                if (last || (!trains.isEmpty() && Math.abs(trains.getFirst().getX() - trains.getFirst().xo) < 1.0E-4)) {
+                    stopped[0] = true;
+                    shot(mc, "58b_three_light_red");
+                }
+            });
+        }
+    }
+
     private static void script() {
         at(20, mc -> {
             mc.options.hideGui = false;
@@ -1107,6 +1189,7 @@ public final class DevShowcase {
         tramScene();
         waterScene();
         turntableScene();
-        at(4475, Minecraft::stop);
+        signalScene();
+        at(4955, Minecraft::stop);
     }
 }

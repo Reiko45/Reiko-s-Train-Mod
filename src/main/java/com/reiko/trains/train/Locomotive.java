@@ -73,6 +73,17 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
     @Nullable
     private Lookahead.SpeedSign nextSign;
     private double nextSignDistance = Double.POSITIVE_INFINITY;
+    /**
+     * Past a yellow signal: whether it's keeping to caution speed (until the next signal, or that signal clears), and
+     * which way it's going. And the first signal ahead last tick: where, how far, and whether it showed yellow, to
+     * notice going by it.
+     */
+    private boolean caution;
+    private int cautionWay;
+    @Nullable
+    private net.minecraft.core.BlockPos signalAhead;
+    private double signalAheadDistance;
+    private boolean signalAheadYellow;
     /** When it's one of several locomotives in a train and another is in charge: that one, and until when (game time). */
     @Nullable
     private Locomotive helping;
@@ -374,6 +385,7 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
     }
 
     /** For the gauges: the next signal ahead, 0 if none in sight, else 1 (clear) or 2 (red). */
+    /** For the gauges: the next signal's aspect: 0 none in sight, 1 green, 2 red, 3 yellow. */
     public int signalAspect() {
         return entityData.get(DATA_SIGNAL) / 10000;
     }
@@ -411,7 +423,62 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
         if (TrainsConfig.SPEED_LIMITS_FOR_DRIVERS.getAsBoolean()) {
             limit = Math.min(limit, speedLimit);
         }
+        double cautionLimit = cautionLimit(look, signs[index], speed);
+        if (TrainsConfig.SIGNALS_STOP_DRIVERS.getAsBoolean()) {
+            limit = Math.min(limit, cautionLimit);
+        }
         return new Drive(direction, null, limit, false, 0);
+    }
+
+    /**
+     * Keeps track of yellow signals, run each tick with what's ahead (after {@link #speedLimit}; {@code sign} is which
+     * way this locomotive faces in its train). A train slows to caution speed by the time it passes a yellow signal,
+     * and keeps to it until it passes the next signal, ready to stop there; if that one turns green, it's let go.
+     * Returns the fastest it may go for it now.
+     */
+    double cautionLimit(Lookahead look, int sign, double speed) {
+        double cautionSpeed = TrainsConfig.CAUTION_SPEED.get() / 72.0;
+        if (Math.abs(speed) > 1.0E-4) {
+            int way = (speed > 0 ? 1 : -1) * sign;
+            if (way != cautionWay) {
+                cautionWay = way;
+                caution = false;
+                signalAhead = null;
+            }
+        }
+        net.minecraft.core.BlockPos ahead = look.signalDistance < 0 ? null : look.signalPos;
+        if (signalAhead != null && !signalAhead.equals(ahead) && signalAheadDistance <= Math.abs(speed) * 2 + 1.5) {
+            // Gone by the signal it was coming to: past a yellow, it goes carefully; past anything else, it needn't.
+            caution = signalAheadYellow;
+        }
+        signalAhead = ahead;
+        signalAheadDistance = look.signalDistance;
+        signalAheadYellow = look.signalCaution;
+        if (caution && ahead != null && look.signalClear && !look.signalCaution) {
+            caution = false; // the signal it was ready to stop at is green now
+        }
+        double cap = caution ? cautionSpeed : Double.POSITIVE_INFINITY;
+        boolean slowing = false;
+        if (look.signalCaution) {
+            // Down to caution speed half a block before the yellow.
+            double reach = Math.max(0, look.signalDistance - 0.5);
+            double approach = Math.sqrt(cautionSpeed * cautionSpeed + 2 * Drive.SERVICE_BRAKE * reach);
+            if (approach < cap) {
+                cap = approach;
+                slowing = approach < maxSpeed();
+            }
+        }
+        // On the gauges, as a speed limit, if it's lower than the one shown.
+        int shown = entityData.get(DATA_LIMIT);
+        int kmh = kmh(cautionSpeed);
+        int showing = shown % 1000;
+        if ((caution || slowing) && (showing == 0 || showing > kmh)) {
+            int now = (caution ? 0 : 1000) + kmh;
+            if (now != shown) {
+                entityData.set(DATA_LIMIT, now);
+            }
+        }
+        return cap;
     }
 
     /**
@@ -487,7 +554,8 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
 
     /** Puts what's ahead on the gauges: the next signal, and (when not on a timetable) the next station. */
     void showLookahead(Lookahead look) {
-        int signal = look.signalDistance < 0 ? 0 : (look.signalClear ? 1 : 2) * 10000 + Mth.clamp((int) Math.round(look.signalDistance / 2) * 2, 0, 9999);
+        int aspect = look.signalClear ? (look.signalCaution ? 3 : 1) : 2;
+        int signal = look.signalDistance < 0 ? 0 : aspect * 10000 + Mth.clamp((int) Math.round(look.signalDistance / 2) * 2, 0, 9999);
         if (entityData.get(DATA_SIGNAL) != signal) {
             entityData.set(DATA_SIGNAL, signal);
         }

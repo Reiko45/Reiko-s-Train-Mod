@@ -69,6 +69,8 @@ choice of way at every junction) or give them a timetable and let them run betwe
   them into the chests, all of it or (with its filter) just the items you choose.
 - **Coupler**: joins cars into trains.
 - **Railway Signal**: red while there's a train on the line ahead, green when it's clear. Trains stop for red.
+- **Three-Light Signal**: red, yellow and green. Yellow while the next signal is red, so trains come up to it at
+  caution speed, ready to stop.
 - **Switch Stand**: sets which way trains go at a junction. Flip it by hand, or set and hold it with redstone.
 - **Track Sensor**: gives a redstone signal while a train is over the track beside it: any train, or only trains
   going one way, with a certain kind of car, carrying something, or running a certain timetable.
@@ -130,6 +132,7 @@ corners, and are paid for in street track; the road blocks a curve passes over a
 | Guard's Van | Planks, lantern, planks; planks, furnace, planks; iron ingot, minecart, iron ingot |
 | Coupler | Iron ingot, chain, iron ingot (a column) |
 | Railway Signal (2) | Redstone lamp, iron ingot, iron ingot (a column) |
+| Three-Light Signal | A Railway Signal, a redstone lamp and yellow dye (any shape) |
 | Switch Stand | Lever, iron ingot, iron ingot (a column) |
 | Station | Any sign, iron ingot, iron ingot (a column) |
 | Track Sensor (2) | Observer, redstone, iron ingot (a column) |
@@ -482,7 +485,8 @@ In `serverconfig/reikotrains-server.toml` in each world:
 | `fuelUse` | `1.0` | How fast fuel burns (1.0: a coal lasts about 3 minutes at full throttle) |
 | `maxSpeed` | `0.6` | Top speed in blocks per tick (0.6 is 12 blocks a second) |
 | `acceleration` | `0.004` | How quickly a locomotive with two coaches picks up speed |
-| `signalsStopDrivers` | `true` | Whether trains people drive stop for red signals by themselves |
+| `signalsStopDrivers` | `true` | Whether trains people drive stop for red signals by themselves (and keep to caution speed past yellow ones) |
+| `cautionSpeedKmh` | `40` | How fast trains may go past a yellow signal, until the next signal |
 | `trainsOnMinimaps` | `true` | Whether players are told where every train is, for Xaero's Minimap |
 | `speedLimitsForDrivers` | `true` | Whether trains people drive keep to speed limit signs by themselves |
 | `maxTrainLength` | `16` | The most cars in one train |
@@ -516,6 +520,28 @@ when it's clear. Its lamps face the trains coming towards it.
   round is run that way round.
 
 ![A signal turns red behind a train](docs/screenshots/signals.jpg)
+
+### Three-light signals
+
+A **Three-Light Signal** goes up just like a Railway Signal, guards its stretch of track the same way, and shows red
+while there's a train on it. But while it's clear itself and the **next** signal along the line (the way the switches
+are set) is red, it shows **yellow**: a warning that the train will have to stop at the next one.
+
+- A train going past a yellow signal keeps to **caution speed** (40 km/h; servers can change it with
+  `cautionSpeedKmh`) until it gets to the next signal, slowing in time to pass the yellow at that speed, so it can stop
+  for the red one in good time however fast it was going. If the next signal turns green before it gets there, it's
+  let go and speeds up again. Trains on a timetable always do this; trains you're driving do too unless the server's
+  `signalsStopDrivers` is off.
+- The cab gauges show the yellow lamp, and the caution speed as a speed limit.
+- A **comparator** reads 15 while there's a train on the stretch ahead, and 7 while it shows yellow.
+- Mix them with the two-light signals as you like: a three-light signal looks at whatever kind of signal comes next.
+  Put them where trains need warning, like before a station's platform signal or on a fast main line.
+
+![Green, yellow and red, with a goods train in the section beyond the red](docs/screenshots/three_light_signals.jpg)
+
+![A train stopped at the red, having come past the yellow at caution speed](docs/screenshots/three_light_red.jpg)
+
+![The gauges: a yellow signal ahead, slowing to caution speed](docs/screenshots/caution_gauge.png)
 
 ## Speed limits
 
@@ -846,6 +872,12 @@ standing inside from its store (which takes coal, not dirt), but not an engine o
 the shed to be topped up; clicks and redstone holding the doors open; and breaking any of it taking it all down,
 giving back the doors and the coal in its store (and leaving the track).
 
+`ThreeLightSignalGameTests` covers three-light signals: yellow before a red one (with a train in its section, or held
+by redstone) and green again once it clears, with comparators reading 15, 7 and 0; following the way a switch is set
+(yellow for the line with a red signal, green for the branch with a clear one); and a driven express and a timetabled
+one each going faster than caution speed before a yellow, no faster past it, stopping at the red, and speeding up (or
+going on to its station) once it clears.
+
 `TrainMapGameTests` covers the map of trains for minimaps: a train on it once, at its leading locomotive, with its
 kind and length, a timetabled train's next stop, a broken locomotive coming off it (and the other engine taking
 over), players being sent the other trains nearest first and not their own, dropping trains that aren't where the
@@ -855,7 +887,8 @@ map says, and saving it with the world.
 screenshots to `run/screenshots/` (that's where the pictures above come from). Add `-PxaeroJars=/path/to/folder` for
 the minimap shot, `-PcarJars=/path/to/folder` for the car transporter scene, and `-PshowcaseFrom=<tick>` to skip to the
 scene starting at that tick (`2202` for the Bullet Train, `2810` for the car transporters, `3105` for overhead wires,
-`3505` for trams, `3915` for water, `4100` for the turntable and engine shed).
+`3505` for trams, `3915` for water, `4100` for the turntable and engine shed, `4480` for three-light signals; start a
+scene from the one before it, so the world round it is loaded).
 
 ### Models, textures and sounds
 
@@ -883,7 +916,10 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
   choices, so a train never splits at a junction. Cars are made of several hitbox parts along their length, as entity
   boxes can't turn.
 - **Signals, switches and stations** (`signal/`): each is tied to a track block. A signal works out its section (the
-  track ahead up to the next signals) and checks it for trains. A switch stand works one side of a junction block.
+  track ahead up to the next signals; again soon if it runs into chunks still loading) and checks it for trains. A
+  three-light signal also finds the next signal along the way the switches are set, and shows yellow while it's clear
+  and that one's red; a train keeps to caution speed from passing a yellow to passing the next signal
+  (`Locomotive.cautionLimit`). A switch stand works one side of a junction block.
   `TrackSide` keeps track of which are at which block, so trains look them up as they go: wherever a train chooses
   its way (driving, looking ahead, or a timetable's route), a switch there decides. A track sensor checks every tick
   for a car alongside its block (`Trains.over`) and matches the train against its direction and filter. A level crossing maps the track

@@ -276,5 +276,6 @@
   "message.reikotrains.shed.held_open": "Doors held open",
   "message.reikotrains.shed.shut": "Doors let shut (they open for trains)",
   "message.reikotrains.shed.store": "Store: %s fuel, %s/%s buckets of water, %s/%s of diesel, %s MJ",
-  "hud.reikotrains.auto.servicing": "At %s: topping up"
+  "hud.reikotrains.auto.servicing": "At %s: topping up",
+  "block.reikotrains.three_light_signal": "Three-Light Signal"
 }

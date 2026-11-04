@@ -271,6 +271,8 @@ def signal_textures():
     lamp("signal_red_off", (255, 60, 40), False)
     lamp("signal_green_on", (60, 255, 110), True)
     lamp("signal_green_off", (60, 255, 110), False)
+    lamp("signal_yellow_on", (255, 196, 40), True)
+    lamp("signal_yellow_off", (255, 196, 40), False)
     # The station board: navy with a cream border round the 16 x 9 face; the posts are painted metal.
     board = Image.new("RGBA", (16, 16))
     for y in range(16):
@@ -328,6 +330,44 @@ def signal_models():
             variants[f"clear={clear},facing={facing}"] = v
     with open(f"{ASSETS}/blockstates/signal.json", "w") as out:
         json.dump({"variants": variants}, out, indent=2)
+
+
+def three_light_signal_models():
+    """
+    The three-light signal: the same post as the two-light one, with a taller head carrying red over yellow over
+    green, each with a hood; one model for each aspect, with its lamp lit.
+    """
+    for name, lit in (("three_light_signal_stop", "red"), ("three_light_signal_caution", "yellow"), ("three_light_signal_clear", "green")):
+        tex = {"particle": "reikotrains:block/signal_metal", "metal": "reikotrains:block/signal_metal",
+               "head": "reikotrains:block/signal_head"}
+        for colour in ("red", "yellow", "green"):
+            tex[colour] = f"reikotrains:block/signal_{colour}_{'on' if colour == lit else 'off'}"
+        elements = [
+            element([5, 0, 5], [11, 1, 11], all_faces("#metal")),
+            element([7, 1, 7], [9, 16, 9], all_faces("#metal")),
+            element([5.5, 14, 7], [10.5, 31.5, 9.5], all_faces("#head")),
+        ]
+        for colour, y0 in (("red", 26.5), ("yellow", 21.5), ("green", 16.5)):
+            elements.append(element([6.5, y0, 6.5], [9.5, y0 + 3, 7], {
+                "north": ("#" + colour, [0, 0, 16, 16]), "east": ("#head", [0, 0, 1, 3]), "west": ("#head", [0, 0, 1, 3]),
+                "up": ("#head", [0, 0, 3, 1]), "down": ("#head", [0, 0, 3, 1])}, lit="north" if colour == lit else None))
+            elements.append(element([6, y0 + 3, 5], [10, y0 + 3.5, 7], all_faces("#head", (0, 0, 4, 2))))
+        model = {"parent": "block/block", "ambientocclusion": False, "textures": tex, "elements": elements}
+        with open(f"{ASSETS}/models/block/{name}.json", "w") as out:
+            json.dump(model, out, indent=2)
+    variants = {}
+    for facing, y in (("north", 0), ("east", 90), ("south", 180), ("west", 270)):
+        for clear in ("true", "false"):
+            for caution in ("true", "false"):
+                aspect = "stop" if clear == "false" else "caution" if caution == "true" else "clear"
+                v = {"model": f"reikotrains:block/three_light_signal_{aspect}"}
+                if y:
+                    v["y"] = y
+                variants[f"caution={caution},clear={clear},facing={facing}"] = v
+    with open(f"{ASSETS}/blockstates/three_light_signal.json", "w") as out:
+        json.dump({"variants": variants}, out, indent=2)
+    with open(f"{ASSETS}/models/item/three_light_signal.json", "w") as out:
+        json.dump({"parent": "minecraft:item/generated", "textures": {"layer0": "reikotrains:item/three_light_signal"}}, out, indent=2)
 
 
 def station_models():
@@ -1315,6 +1355,7 @@ def engine_shed_models():
 def signals_and_stations():
     signal_textures()
     signal_models()
+    three_light_signal_models()
     station_models()
     switch_textures()
     switch_models()

@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "caution=true,clear=true,facing=north": {
+      "model": "reikotrains:block/three_light_signal_caution"
+    },
+    "caution=false,clear=true,facing=north": {
+      "model": "reikotrains:block/three_light_signal_clear"
+    },
+    "caution=true,clear=false,facing=north": {
+      "model": "reikotrains:block/three_light_signal_stop"
+    },
+    "caution=false,clear=false,facing=north": {
+      "model": "reikotrains:block/three_light_signal_stop"
+    },
+    "caution=true,clear=true,facing=east": {
+      "model": "reikotrains:block/three_light_signal_caution",
+      "y": 90
+    },
+    "caution=false,clear=true,facing=east": {
+      "model": "reikotrains:block/three_light_signal_clear",
+      "y": 90
+    },
+    "caution=true,clear=false,facing=east": {
+      "model": "reikotrains:block/three_light_signal_stop",
+      "y": 90
+    },
+    "caution=false,clear=false,facing=east": {
+      "model": "reikotrains:block/three_light_signal_stop",
+      "y": 90
+    },
+    "caution=true,clear=true,facing=south": {
+      "model": "reikotrains:block/three_light_signal_caution",
+      "y": 180
+    },
+    "caution=false,clear=true,facing=south": {
+      "model": "reikotrains:block/three_light_signal_clear",
+      "y": 180
+    },
+    "caution=true,clear=false,facing=south": {
+      "model": "reikotrains:block/three_light_signal_stop",
+      "y": 180
+    },
+    "caution=false,clear=false,facing=south": {
+      "model": "reikotrains:block/three_light_signal_stop",
+      "y": 180
+    },
+    "caution=true,clear=true,facing=west": {
+      "model": "reikotrains:block/three_light_signal_caution",
+      "y": 270
+    },
+    "caution=false,clear=true,facing=west": {
+      "model": "reikotrains:block/three_light_signal_clear",
+      "y": 270
+    },
+    "caution=true,clear=false,facing=west": {
+      "model": "reikotrains:block/three_light_signal_stop",
+      "y": 270
+    },
+    "caution=false,clear=false,facing=west": {
+      "model": "reikotrains:block/three_light_signal_stop",
+      "y": 270
+    }
+  }
+}

@@ -43,6 +43,10 @@ final class Lookahead {
     /** The next signal: how far, and whether it's clear. Negative distance if there's none in range. */
     double signalDistance = -1;
     boolean signalClear = true;
+    /** ... whether it's showing yellow (a three-light signal, clear, but the one after it red), and where it is. */
+    boolean signalCaution;
+    @Nullable
+    BlockPos signalPos;
     /** Where the train has to stop for a red signal (infinite if it doesn't). */
     double signalStop = Double.POSITIVE_INFINITY;
     @Nullable
@@ -148,7 +152,9 @@ final class Lookahead {
                 SignalBlockEntity signal = TrackSide.signal(level, node, -arrivedSide);
                 if (signal != null) {
                     look.signalDistance = buffer;
+                    look.signalPos = signal.getBlockPos();
                     look.signalClear = signal.isClearFor(cars);
+                    look.signalCaution = look.signalClear && signal.showsCaution();
                     if (!look.signalClear) {
                         look.signalStop = buffer - SIGNAL_MARGIN;
                     }

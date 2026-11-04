@@ -44,10 +44,10 @@ public final class TrainHud implements LayeredDraw.Layer {
         graphics.fill(x, top, x + WIDTH, top + height, 0xA0101014);
         graphics.renderOutline(x, top, WIDTH, height, 0x60FFFFFF);
         if (info) {
-            // The next signal: a lamp, red or green, and how far
+            // The next signal: a lamp, red, yellow or green, and how far
             int sy = top + 4;
             if (aspect != 0) {
-                int lamp = aspect == 1 ? 0xFF3CE05A : 0xFFFF3B30;
+                int lamp = aspect == 1 ? 0xFF3CE05A : aspect == 3 ? 0xFFFFC21E : 0xFFFF3B30;
                 graphics.fill(x + 5, sy + 1, x + 11, sy + 7, 0xFF000000);
                 graphics.fill(x + 6, sy + 2, x + 10, sy + 6, lamp);
                 graphics.drawString(font, Component.translatable("hud.reikotrains.signal", locomotive.signalDistance()), x + 14, sy, 0xFFD0D0D0, false);

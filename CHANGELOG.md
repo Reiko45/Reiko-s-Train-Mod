@@ -2,6 +2,22 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.25.0
+
+Three-light signals.
+
+- New: the **Three-Light Signal** (a Railway Signal, a redstone lamp and yellow dye). It guards its section like any
+  signal, and shows yellow while it's clear but the next signal along the way the switches are set is red.
+- Trains passing a yellow signal keep to caution speed (40 km/h, the new server setting `cautionSpeedKmh`) until the
+  next signal, slowing in time to pass the yellow at it; they speed up again if the next signal turns green. Trains on
+  a timetable always; driven trains too, unless `signalsStopDrivers` is off.
+- The cab gauges show a yellow signal ahead, and caution speed as the speed limit. Comparators read 7 off a yellow
+  signal.
+- Fixed: a signal that worked out its section while the world beyond it was still loading kept the short section for
+  twenty seconds, and could let a train past into a train it couldn't see; it looks again soon now.
+- The mod's network version changes, so clients and servers both need 0.25.0.
+- Four new game tests (171 in all).
+
 ## 0.24.0
 
 Turntables and engine sheds.
