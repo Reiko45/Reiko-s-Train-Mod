@@ -34,12 +34,13 @@ public class CouplerItem extends Item {
         TrainCarEntity cart = car;
         if (player.isSecondaryUseActive()) {
             stack.remove(ModDataComponents.COUPLING_FROM.get());
-            int undone = Trains.uncouple(car);
+            boolean tram = com.reiko.trains.train.LowFloorTram.sections(car).size() > 1;
+            int undone = Trains.uncoupleKeepingTrams(car);
             if (undone > 0) {
                 level.playSound(null, cart.getX(), cart.getY(), cart.getZ(), ModSounds.COUPLE.get(), SoundSource.NEUTRAL, 0.8F, 0.75F);
             }
-            player.displayClientMessage(Component.translatable(undone > 0 ? "message.reikotrains.uncoupled" : "message.reikotrains.not_coupled",
-                    cart.getDisplayName()), true);
+            player.displayClientMessage(Component.translatable(undone > 0 ? "message.reikotrains.uncoupled"
+                    : tram ? "message.reikotrains.tram_sections" : "message.reikotrains.not_coupled", cart.getDisplayName()), true);
             return InteractionResult.CONSUME;
         }
         UUID firstId = stack.get(ModDataComponents.COUPLING_FROM.get());

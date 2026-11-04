@@ -336,4 +336,27 @@ public final class OverheadLineGameTests {
         helper.assertTrue(line.equals(loaded.lineAbove(over)), "and know where its wire runs");
         helper.succeed();
     }
+
+    @GameTest(template = LINE)
+    public static void wireWontRunThroughBlocks(GameTestHelper helper) {
+        line(helper);
+        BlockPos a = mast(helper, 10, 6).getBlockPos();
+        BlockPos b = mast(helper, 30, 6).getBlockPos();
+        OverheadLines lines = lines(helper);
+        Vec3 wireA = lines.wire(a);
+        Vec3 wireB = lines.wire(b);
+        helper.assertTrue(com.reiko.trains.wire.OverheadWireItem.blockedAt(helper.getLevel(), wireA, wireB) == null, "nothing in the way");
+        BlockPos block = BlockPos.containing(wireA.lerp(wireB, 0.5));
+        helper.getLevel().setBlock(block, net.minecraft.world.level.block.Blocks.STONE.defaultBlockState(), 3);
+        helper.assertTrue(block.equals(com.reiko.trains.wire.OverheadWireItem.blockedAt(helper.getLevel(), wireA, wireB)), "a block in the way, found");
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.OVERHEAD_WIRE.get(), 4));
+        click(player, a);
+        click(player, b);
+        helper.assertTrue(!lines.connected(a, b) && player.getMainHandItem().getCount() == 4, "so no span is strung, and no wire used");
+        helper.getLevel().setBlock(block, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
+        click(player, b);
+        helper.assertTrue(lines.connected(a, b), "with it cleared away, the span goes up");
+        helper.succeed();
+    }
 }

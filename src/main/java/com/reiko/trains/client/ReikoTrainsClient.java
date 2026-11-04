@@ -97,7 +97,10 @@ public final class ReikoTrainsClient {
         modBus.addListener(ReikoTrainsClient::registerScreens);
         container.registerConfig(ModConfig.Type.CLIENT, TrainsClientConfig.SPEC);
         NeoForge.EVENT_BUS.addListener(ReikoTrainsClient::onClientTick);
-        NeoForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> TrainMinimap.reset());
+        NeoForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> {
+            TrainMinimap.reset();
+            ServerSettings.reset();
+        });
         NeoForge.EVENT_BUS.addListener(ReikoTrainsClient::onEntityJoin);
         NeoForge.EVENT_BUS.addListener(TrackPreview::render);
     }

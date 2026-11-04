@@ -122,17 +122,18 @@ public final class ReikoTrainsJeiPlugin implements IModPlugin {
         List<LocomotiveFuel.Slot> slots = new ArrayList<>();
         for (Map.Entry<Integer, List<ItemStack>> group : byBurn.entrySet()) {
             int burn = group.getKey();
-            Component note = tankUse > 0 && expressUse > 0
-                    ? Component.translatable("jei.reikotrains.fuel.steam", time(burn / tankUse), time(burn / expressUse))
-                    : Component.translatable("jei.reikotrains.fuel.burns", burn / 20);
+            java.util.function.DoubleFunction<Component> note = tankUse > 0 && expressUse > 0
+                    ? use -> Component.translatable("jei.reikotrains.fuel.steam", time(burn / tankUse / use), time(burn / expressUse / use))
+                    : LocomotiveFuel.fixed(Component.translatable("jei.reikotrains.fuel.burns", burn / 20));
             slots.add(new LocomotiveFuel.Slot(group.getValue(), note));
         }
         slots.add(new LocomotiveFuel.Slot(List.of(new ItemStack(Items.WATER_BUCKET), new ItemStack(ModItems.WATER_TOWER.get())),
-                Component.translatable("jei.reikotrains.fuel.water")));
+                LocomotiveFuel.fixed(Component.translatable("jei.reikotrains.fuel.water"))));
         return new LocomotiveFuel(slots, List.of(),
                 List.of(new ItemStack(ModItems.STEAM_LOCOMOTIVE.get()), new ItemStack(ModItems.EXPRESS_LOCOMOTIVE.get()),
                         new ItemStack(ModItems.TENDER.get())),
-                List.of(Component.translatable("jei.reikotrains.fuel.steam_line"), Component.translatable("jei.reikotrains.fuel.steam_line2")));
+                List.of(LocomotiveFuel.fixed(Component.translatable("jei.reikotrains.fuel.steam_line")),
+                        LocomotiveFuel.fixed(Component.translatable("jei.reikotrains.fuel.steam_line2"))));
     }
 
     /** The fluids in the diesel tag (BuildCraft's Dense Fuel and Mixed Heavy Fuels, other mods' diesel). */
@@ -146,31 +147,33 @@ public final class ReikoTrainsJeiPlugin implements IModPlugin {
                     continue; // just the still fluid, once
                 }
                 double energy = energy(fluid);
-                Component note = energy > 0 && use > 0 ? Component.translatable("jei.reikotrains.fuel.diesel", time(energy / use))
-                        : Component.translatable("jei.reikotrains.fuel.diesel_unknown");
+                java.util.function.DoubleFunction<Component> note = energy > 0 && use > 0
+                        ? fuelUse -> Component.translatable("jei.reikotrains.fuel.diesel", time(energy / use / fuelUse))
+                        : LocomotiveFuel.fixed(Component.translatable("jei.reikotrains.fuel.diesel_unknown"));
                 fluids.add(new LocomotiveFuel.FluidSlot(fluid, note));
             }
         });
         return new LocomotiveFuel(List.of(), fluids.subList(0, Math.min(fluids.size(), LocomotiveFuelCategory.PER_ROW * 2)),
                 List.of(new ItemStack(ModItems.DIESEL_LOCOMOTIVE.get())),
-                List.of(Component.translatable("jei.reikotrains.fuel.diesel_line"), Component.translatable("jei.reikotrains.fuel.diesel_line2")));
+                List.of(LocomotiveFuel.fixed(Component.translatable("jei.reikotrains.fuel.diesel_line")),
+                        LocomotiveFuel.fixed(Component.translatable("jei.reikotrains.fuel.diesel_line2"))));
     }
 
     /** BuildCraft power: from a charging point, or an overhead line. */
     private static LocomotiveFuel electric(@Nullable Level level) {
         double electricUse = use(level, ModEntities.ELECTRIC_LOCOMOTIVE.get());
         List<LocomotiveFuel.Slot> slots = List.of(
-                new LocomotiveFuel.Slot(List.of(new ItemStack(ModItems.CHARGING_POINT.get())), Component.translatable("jei.reikotrains.fuel.charging_point")),
-                new LocomotiveFuel.Slot(List.of(new ItemStack(ModItems.CATENARY_MAST.get())), Component.translatable("jei.reikotrains.fuel.mast")),
-                new LocomotiveFuel.Slot(List.of(new ItemStack(ModItems.OVERHEAD_WIRE.get())), Component.translatable("jei.reikotrains.fuel.wire")),
-                new LocomotiveFuel.Slot(List.of(new ItemStack(ModItems.SUBSTATION.get())), Component.translatable("jei.reikotrains.fuel.substation")));
-        Component battery = electricUse > 0
-                ? Component.translatable("jei.reikotrains.fuel.battery", time(ElectricLocomotive.BATTERY_CAPACITY / electricUse))
-                : Component.translatable("jei.reikotrains.fuel.battery_plain");
+                new LocomotiveFuel.Slot(List.of(new ItemStack(ModItems.CHARGING_POINT.get())), LocomotiveFuel.fixed(Component.translatable("jei.reikotrains.fuel.charging_point"))),
+                new LocomotiveFuel.Slot(List.of(new ItemStack(ModItems.CATENARY_MAST.get())), LocomotiveFuel.fixed(Component.translatable("jei.reikotrains.fuel.mast"))),
+                new LocomotiveFuel.Slot(List.of(new ItemStack(ModItems.OVERHEAD_WIRE.get())), LocomotiveFuel.fixed(Component.translatable("jei.reikotrains.fuel.wire"))),
+                new LocomotiveFuel.Slot(List.of(new ItemStack(ModItems.SUBSTATION.get())), LocomotiveFuel.fixed(Component.translatable("jei.reikotrains.fuel.substation"))));
+        java.util.function.DoubleFunction<Component> battery = electricUse > 0
+                ? use -> Component.translatable("jei.reikotrains.fuel.battery", time(ElectricLocomotive.BATTERY_CAPACITY / electricUse / use))
+                : LocomotiveFuel.fixed(Component.translatable("jei.reikotrains.fuel.battery_plain"));
         return new LocomotiveFuel(slots, List.of(),
                 List.of(new ItemStack(ModItems.ELECTRIC_LOCOMOTIVE.get()), new ItemStack(ModItems.BULLET_TRAIN.get()),
                         new ItemStack(ModItems.VINTAGE_TRAM.get()), new ItemStack(ModItems.LOW_FLOOR_TRAM.get())),
-                List.of(battery, Component.translatable("jei.reikotrains.fuel.electric_line2")));
+                List.of(battery, LocomotiveFuel.fixed(Component.translatable("jei.reikotrains.fuel.electric_line2"))));
     }
 
     /** How much a locomotive uses a tick at full throttle, or 0 if there's no world to make one in to ask. */

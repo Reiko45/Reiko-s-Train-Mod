@@ -397,4 +397,50 @@ public final class TramGameTests {
         helper.assertTrue(TrainsConfig.WIRE_CHARGE_RATE.get() > 0, "trams charge from the wire");
         helper.succeed();
     }
+
+    @GameTest(template = LINE, timeoutTicks = 500)
+    public static void tramNudgesAnimalsOffTheTrackAfterAWhile(GameTestHelper helper) {
+        street(helper);
+        VintageTram tram = vintage(helper, 8);
+        tram.setFuel(VintageTram.BATTERY_CAPACITY);
+        Player driver = board(helper, tram);
+        throttle(tram, 4);
+        net.minecraft.world.entity.animal.Cow cow = EntityType.COW.create(helper.getLevel());
+        BlockPos pos = at(helper, 30);
+        cow.moveTo(pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5, 90, 0);
+        cow.setNoAi(true);
+        helper.getLevel().addFreshEntity(cow);
+        double cowX = cow.getX();
+        helper.runAfterDelay(150, () -> {
+            helper.assertTrue(Math.abs(tram.trainSpeed()) < 0.001 && frontX(tram) < cowX, "first it stops for the cow, ringing");
+            helper.assertTrue(Math.abs(cow.getZ() - (pos.getZ() + 0.5)) < 0.05, "and leaves it be for a while");
+        });
+        helper.succeedWhen(() -> {
+            helper.assertTrue(frontX(tram) > cowX + 4, "after a few seconds it nudges the cow off the track and goes on");
+            helper.assertTrue(cow.isAlive() && Math.abs(cow.getZ() - (pos.getZ() + 0.5)) > 0.8, "the cow beside the track, unhurt");
+            shut(tram);
+            driver.stopRiding();
+        });
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 60)
+    public static void couplerWontSplitALowFloorTram(GameTestHelper helper) {
+        street(helper);
+        ServerLevel level = helper.getLevel();
+        helper.assertTrue(LowFloorTram.place(level, at(helper, 30), EAST) == null, "the tram should go on");
+        TramMiddle middle = level.getEntitiesOfClass(TramMiddle.class, new AABB(at(helper, 30)).inflate(3)).getFirst();
+        FreightWagon wagon = TestTracks.car(level, ModEntities.FREIGHT_WAGON.get(), at(helper, 42), EAST);
+        TrainCarEntity east = Trains.train(middle).stream().max(java.util.Comparator.comparingDouble(TrainCarEntity::getX)).orElseThrow();
+        Trains.CoupleResult coupled = Trains.couple(east, wagon);
+        helper.assertTrue(coupled == Trains.CoupleResult.COUPLED, "a wagon couples on behind the tram: " + coupled);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.COUPLER.get()));
+        player.setShiftKeyDown(true);
+        com.reiko.trains.item.CouplerItem.useOnCar(player.getMainHandItem(), player, middle);
+        helper.assertTrue(Trains.train(middle).size() == 3, "sneak-clicking its middle keeps the tram's three sections together");
+        helper.assertTrue(Trains.train(wagon).size() == 1, "and uncouples the wagon from it");
+        com.reiko.trains.item.CouplerItem.useOnCar(player.getMainHandItem(), player, middle);
+        helper.assertTrue(Trains.train(middle).size() == 3, "clicking it again still doesn't split it");
+        helper.succeed();
+    }
 }

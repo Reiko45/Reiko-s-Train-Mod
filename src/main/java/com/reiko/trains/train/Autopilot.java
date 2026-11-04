@@ -247,6 +247,7 @@ public final class Autopilot {
         waitingFor = !waitingAtSignal ? "hud.reikotrains.auto.signal"
                 : look.obstacleStop <= look.stopFor() ? "hud.reikotrains.auto.obstacle"
                 : look.lightStop <= look.stopFor() ? "hud.reikotrains.auto.light" : "hud.reikotrains.auto.signal";
+        loco.waitForObstacles(look, speed, true);
         // A tram held up by something on the track rings its bell at it now and then.
         if (stopped && waitingFor.equals("hud.reikotrains.auto.obstacle") && look.obstacleStop < 3) {
             if (++ringing % 100 == 1) {

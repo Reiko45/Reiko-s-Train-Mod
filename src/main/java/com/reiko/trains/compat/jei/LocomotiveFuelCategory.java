@@ -66,19 +66,17 @@ final class LocomotiveFuelCategory implements IRecipeCategory<LocomotiveFuel> {
     public void setRecipe(IRecipeLayoutBuilder builder, LocomotiveFuel recipe, IFocusGroup focuses) {
         int i = 0;
         for (LocomotiveFuel.Slot slot : recipe.fuels()) {
-            Component note = slot.note().copy().withStyle(ChatFormatting.GRAY);
             builder.addSlot(RecipeIngredientRole.INPUT, 1 + (i % PER_ROW) * 18, 1 + (i / PER_ROW) * 18)
                     .setStandardSlotBackground()
                     .addItemStacks(slot.items())
-                    .addRichTooltipCallback((view, tooltip) -> tooltip.add(note));
+                    .addRichTooltipCallback((view, tooltip) -> tooltip.add(LocomotiveFuel.shown(slot.note(), true).copy().withStyle(ChatFormatting.GRAY)));
             i++;
         }
         for (LocomotiveFuel.FluidSlot slot : recipe.fluids()) {
-            Component note = slot.note().copy().withStyle(ChatFormatting.GRAY);
             builder.addSlot(RecipeIngredientRole.INPUT, 1 + (i % PER_ROW) * 18, 1 + (i / PER_ROW) * 18)
                     .setStandardSlotBackground()
                     .addFluidStack(slot.fluid(), 1000)
-                    .addRichTooltipCallback((view, tooltip) -> tooltip.add(note));
+                    .addRichTooltipCallback((view, tooltip) -> tooltip.add(LocomotiveFuel.shown(slot.note(), true).copy().withStyle(ChatFormatting.GRAY)));
             i++;
         }
         int j = 0;
@@ -95,8 +93,8 @@ final class LocomotiveFuelCategory implements IRecipeCategory<LocomotiveFuel> {
         arrow.draw(graphics, ARROW_X, ARROW_Y);
         Font font = Minecraft.getInstance().font;
         int y = HEIGHT - 9 * recipe.lines().size();
-        for (Component line : recipe.lines()) {
-            graphics.drawString(font, line, 0, y, 0xFF606060, false);
+        for (java.util.function.DoubleFunction<Component> line : recipe.lines()) {
+            graphics.drawString(font, LocomotiveFuel.shown(line, false), 0, y, 0xFF606060, false);
             y += 9;
         }
     }

@@ -373,5 +373,8 @@
   "jei.reikotrains.info.speed_sign": "Put it beside the track facing the trains: they slow down for its limit and keep to it until the next sign. Click it to change the limit.",
   "jei.reikotrains.info.track_sensor": "Gives a redstone signal while a train is over the track beside it. Click it to choose which way trains must be going; click it with an item to sense only some trains.",
   "jei.reikotrains.info.level_crossing": "Put it beside a road where it crosses the line: its lamps flash, its bell rings and its arm comes down across the road while a train goes by.",
-  "jei.reikotrains.info.wagon_loader": "Loads (or unloads) the freight, tank and livestock wagons of a train standing beside it, from the storage next to it. Click it for its filter; sneak-click to switch loading and unloading."
+  "jei.reikotrains.info.wagon_loader": "Loads (or unloads) the freight, tank and livestock wagons of a train standing beside it, from the storage next to it. Click it for its filter; sneak-click to switch loading and unloading.",
+  "message.reikotrains.wire.blocked": "The wire would run through a block at %s %s %s: clear the way first",
+  "message.reikotrains.tram_sections": "A low-floor tram's sections stay together: %s isn't coupled to anything else",
+  "jei.reikotrains.fuel.free": "This server's engines need no fuel"
 }

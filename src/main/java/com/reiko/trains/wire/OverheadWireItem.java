@@ -76,6 +76,12 @@ public class OverheadWireItem extends Item {
                     .withStyle(ChatFormatting.RED), true);
             return InteractionResult.CONSUME;
         }
+        BlockPos blocked = blockedAt(level, lines.wire(from), lines.wire(pos));
+        if (blocked != null) {
+            player.displayClientMessage(Component.translatable("message.reikotrains.wire.blocked", blocked.getX(), blocked.getY(), blocked.getZ())
+                    .withStyle(ChatFormatting.RED), true);
+            return InteractionResult.CONSUME;
+        }
         lines.connect(from, pos);
         CatenaryMastBlockEntity.refresh(level, from);
         CatenaryMastBlockEntity.refresh(level, pos);
@@ -93,6 +99,30 @@ public class OverheadWireItem extends Item {
         level.playSound(null, pos, SoundEvents.CHAIN_PLACE, SoundSource.BLOCKS, 0.8F, 1.2F);
         player.displayClientMessage(Component.translatable("message.reikotrains.wire.strung", length), true);
         return InteractionResult.CONSUME;
+    }
+
+    /**
+     * The first solid block a span between wire points {@code a} and {@code b} would run through (the contact wire, or
+     * the messenger wire above it), or null if the way's clear. Near the masts themselves doesn't count.
+     */
+    @javax.annotation.Nullable
+    public static BlockPos blockedAt(Level level, Vec3 a, Vec3 b) {
+        double length = a.distanceTo(b);
+        for (double up : new double[] {0.0, 0.8}) {
+            for (double d = 0.8; d <= length - 0.8; d += 0.25) {
+                Vec3 at = a.lerp(b, d / length).add(0, up, 0);
+                BlockPos block = BlockPos.containing(at);
+                net.minecraft.world.level.block.state.BlockState state = level.getBlockState(block);
+                if (state.getBlock() instanceof com.reiko.trains.wire.CatenaryMastBlock) {
+                    continue;
+                }
+                net.minecraft.world.phys.shapes.VoxelShape shape = state.getCollisionShape(level, block);
+                if (!shape.isEmpty() && shape.bounds().move(block).inflate(0.02).contains(at)) {
+                    return block.immutable();
+                }
+            }
+        }
+        return null;
     }
 
     /** Sneak and click the air: stop stringing. */

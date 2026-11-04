@@ -722,6 +722,31 @@ public final class Trains {
     }
 
     /**
+     * The Coupler's uncoupling: like {@link #uncouple}, but a low-floor tram's sections stay together, so sneak-clicking
+     * any of them uncouples the whole tram from the cars either side of it. Returns how many couplings it undid.
+     */
+    public static int uncoupleKeepingTrams(TrainCarEntity car) {
+        List<TrainCarEntity> set = LowFloorTram.sections(car);
+        if (set.size() <= 1) {
+            return uncouple(car);
+        }
+        int count = 0;
+        List<TrainCarEntity> cars = train(car);
+        int last = cars.indexOf(set.getLast());
+        if (last >= 0 && last + 1 < cars.size()) {
+            split(cars, last);
+            count++;
+        }
+        cars = train(car);
+        int first = cars.indexOf(set.getFirst());
+        if (first > 0) {
+            split(cars, first - 1);
+            count++;
+        }
+        return count;
+    }
+
+    /**
      * Uncouples a train between its cars {@code k} and {@code k + 1} (in train order, first to last): each half stands
      * where it is, the back half's first car now the front of its own train.
      */

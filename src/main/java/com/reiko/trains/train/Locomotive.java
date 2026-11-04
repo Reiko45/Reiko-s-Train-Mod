@@ -427,6 +427,7 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
                 ? Drive.stoppingSpeed(Math.min(look.signalStop, look.lightStop), look.brake) : Double.POSITIVE_INFINITY;
         // A tram never runs into anything on the track, whoever's driving.
         limit = Math.min(limit, Drive.stoppingSpeed(look.obstacleStop, look.brake));
+        waitForObstacles(look, speed, throttle != 0);
         double speedLimit = speedLimit(look, signs[index], speed);
         if (TrainsConfig.SPEED_LIMITS_FOR_DRIVERS.getAsBoolean()) {
             limit = Math.min(limit, speedLimit);
@@ -437,6 +438,25 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
         }
         return new Drive(direction, null, limit, false, 0);
     }
+
+    /** Ticks a tram has stood waiting for something on the track just ahead of it. */
+    private int blocked;
+
+    /**
+     * A tram held up by something on the track just ahead (and wanting to go): after five seconds it nudges animals and
+     * mobs off the line, as a train would; it still waits for people, cars and trains.
+     */
+    void waitForObstacles(Lookahead look, double speed, boolean wantsToGo) {
+        if (wantsToGo && Math.abs(speed) < 0.002 && !look.nearObstacles.isEmpty()) {
+            if (++blocked >= NUDGE_AFTER) {
+                look.nudgeAnimals();
+            }
+        } else {
+            blocked = 0;
+        }
+    }
+
+    static final int NUDGE_AFTER = 100;
 
     /**
      * Keeps track of yellow signals, run each tick with what's ahead (after {@link #speedLimit}; {@code sign} is which

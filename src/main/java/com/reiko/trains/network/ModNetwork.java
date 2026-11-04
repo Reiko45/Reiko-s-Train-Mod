@@ -34,6 +34,17 @@ public final class ModNetwork {
         registrar.playToClient(SignalBoxStatePayload.TYPE, SignalBoxStatePayload.STREAM_CODEC,
                 (payload, context) -> com.reiko.trains.client.SignalBoxScreen.receive(payload));
         registrar.playToServer(SignalBoxActionPayload.TYPE, SignalBoxActionPayload.STREAM_CODEC, ModNetwork::handleSignalBox);
+        registrar.playToClient(ServerSettingsPayload.TYPE, ServerSettingsPayload.STREAM_CODEC,
+                (payload, context) -> com.reiko.trains.client.ServerSettings.receive(payload));
+    }
+
+    /** Tells each player joining the settings their client shows things by. */
+    @SubscribeEvent
+    static void onLogin(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) {
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player, new ServerSettingsPayload(
+                    com.reiko.trains.config.TrainsConfig.FUEL_USE.get(), com.reiko.trains.config.TrainsConfig.NEEDS_FUEL.getAsBoolean()));
+        }
     }
 
     /** Only the driver (the first one aboard) can work the controls. */

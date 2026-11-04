@@ -66,6 +66,10 @@ final class Lookahead {
 
     /** For a tram ({@link StreetRunning}): where it has to stop short of something on the track ahead (infinite if nothing). */
     double obstacleStop = Double.POSITIVE_INFINITY;
+    /** For a tram: what's on the track just ahead of it (within a few blocks), and the way along the track there. */
+    final List<Entity> nearObstacles = new ArrayList<>();
+    final List<Vec3> nearHeadings = new ArrayList<>();
+    final List<Vec3> nearPoints = new ArrayList<>();
     /** ... and for a red traffic light beside the line (Reiko's Car Mod's), facing it. */
     double lightStop = Double.POSITIVE_INFINITY;
     /** How hard it brakes to stop for them all: a tram brakes harder than a train. */
@@ -226,11 +230,50 @@ final class Lookahead {
                 }
                 if (clearance(sample.at()).intersects(body)) {
                     obstacleStop = Math.max(0, sample.buffer() - OBSTACLE_MARGIN);
+                    if (sample.buffer() < NEAR) {
+                        nearObstacles.add(entity);
+                        nearHeadings.add(sample.heading());
+                        nearPoints.add(sample.at());
+                    }
                     break;
                 }
             }
         }
         lights(level, samples, around.inflate(LIGHT_REACH, 4, LIGHT_REACH), speed);
+    }
+
+    /** How close (blocks ahead of the buffers) something on the track has to be to be nudged off it. */
+    private static final double NEAR = 4.0;
+
+    /**
+     * A tram that's waited a while for animals or mobs on the track ahead gives them a nudge off it, sideways, as
+     * trains do. People, cars and other trains it still waits for.
+     */
+    void nudgeAnimals() {
+        for (int i = 0; i < nearObstacles.size(); i++) {
+            Entity entity = nearObstacles.get(i);
+            if (!(entity instanceof net.minecraft.world.entity.Mob) || entity instanceof net.minecraft.world.entity.npc.AbstractVillager || !entity.isAlive()) {
+                continue;
+            }
+            Vec3 heading = nearHeadings.get(i);
+            double flat = Math.sqrt(heading.x * heading.x + heading.z * heading.z);
+            if (flat < 1.0E-6) {
+                continue;
+            }
+            double hx = heading.x / flat;
+            double hz = heading.z / flat;
+            // Which side of the track it's nearer, from the middle of it: off that way.
+            Vec3 at = entity.position().subtract(nearPoints.get(i));
+            double side = (entity.getId() & 1) == 0 ? 1 : -1;
+            double right = -hz * at.x + hx * at.z;
+            if (Math.abs(right) > 0.05) {
+                side = Math.signum(right);
+            }
+            // Shuffled along a little each tick (whether or not it's minded to move), and given a push the same way.
+            entity.move(net.minecraft.world.entity.MoverType.SELF, new Vec3(-hz * 0.15 * side, 0, hx * 0.15 * side));
+            entity.push(-hz * 0.1 * side, 0.0, hx * 0.1 * side);
+            entity.hurtMarked = true;
+        }
     }
 
     private static AABB clearance(Vec3 at) {

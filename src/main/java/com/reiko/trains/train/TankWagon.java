@@ -72,6 +72,32 @@ public class TankWagon extends TrainCarEntity {
         return entityData.get(DATA_LEVEL);
     }
 
+    /** How much water (millibuckets) a tank wagon passes to each steam engine or tender in its train every half second. */
+    public static final int WATER_FEED = 5000;
+
+    /**
+     * A tank wagon of water in a train keeps its tank engines and tenders topped up, on the move or standing: every half
+     * second each is given up to {@link #WATER_FEED} millibuckets, as much as it has room for.
+     */
+    @Override
+    public void tick() {
+        super.tick();
+        if (level().isClientSide || isRemoved() || (tickCount + getId()) % 10 != 0 || tank.isEmpty()
+                || !tank.getFluid().is(net.minecraft.tags.FluidTags.WATER)) {
+            return;
+        }
+        for (TrainCarEntity car : Trains.train(this)) {
+            if (car instanceof WaterStore store && store.waterRoom() >= 1) {
+                int give = (int) Math.min(WATER_FEED, Math.min(store.waterRoom(), tank.getFluidAmount()));
+                if (give <= 0) {
+                    return;
+                }
+                tank.drain(give, net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction.EXECUTE);
+                store.setWater(store.water() + give);
+            }
+        }
+    }
+
     /** What's in it, for pipes, buckets and wagon loaders. */
     public FluidTank tank() {
         return tank;

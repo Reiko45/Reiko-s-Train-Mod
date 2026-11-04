@@ -287,4 +287,41 @@ public final class WaterGameTests {
             helper.succeed();
         });
     }
+
+    @GameTest(template = LINE, timeoutTicks = 200)
+    public static void tankWagonOfWaterKeepsTheEngineTopped(GameTestHelper helper) {
+        line(helper);
+        ServerLevel level = helper.getLevel();
+        SteamLocomotive loco = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), at(helper, 30), EAST);
+        com.reiko.trains.train.TankWagon tank = TestTracks.car(level, ModEntities.TANK_WAGON.get(), at(helper, 23), EAST);
+        helper.assertTrue(Trains.couple(loco, tank) == Trains.CoupleResult.COUPLED, "the tank wagon should couple");
+        loco.setFuel(SteamLocomotive.FUEL_CAPACITY);
+        loco.setWater(1000);
+        tank.tank().fill(new net.neoforged.neoforge.fluids.FluidStack(net.minecraft.world.level.material.Fluids.WATER, 50_000),
+                net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction.EXECUTE);
+        Player driver = board(helper, loco);
+        throttle(loco, 2);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(loco.water() >= SteamLocomotive.WATER_CAPACITY - 100, "the engine should be topped up from the tank wagon: " + loco.water());
+            helper.assertTrue(tank.tank().getFluidAmount() < 36_000, "out of the wagon's water");
+            helper.assertTrue(loco.getX() > at(helper, 31).getX(), "on the move");
+            driver.stopRiding();
+        });
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 60)
+    public static void tankWagonOfLavaDoesntWaterEngines(GameTestHelper helper) {
+        line(helper);
+        ServerLevel level = helper.getLevel();
+        SteamLocomotive loco = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), at(helper, 30), EAST);
+        com.reiko.trains.train.TankWagon tank = TestTracks.car(level, ModEntities.TANK_WAGON.get(), at(helper, 23), EAST);
+        Trains.couple(loco, tank);
+        loco.setWater(1000);
+        tank.tank().fill(new net.neoforged.neoforge.fluids.FluidStack(net.minecraft.world.level.material.Fluids.LAVA, 50_000),
+                net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction.EXECUTE);
+        helper.runAfterDelay(30, () -> {
+            helper.assertTrue(loco.water() == 1000 && tank.tank().getFluidAmount() == 50_000, "lava isn't water");
+            helper.succeed();
+        });
+    }
 }
