@@ -68,7 +68,9 @@ public final class ModItems {
     public static final DeferredItem<BlockItem> WATER_TOWER = ITEMS.register("water_tower",
             () -> new BlockItem(ModBlocks.WATER_TOWER.get(), new Item.Properties()));
     public static final DeferredItem<com.reiko.trains.turntable.TurntableItem> TURNTABLE = ITEMS.register("turntable",
-            () -> new com.reiko.trains.turntable.TurntableItem(new Item.Properties()));
+            () -> new com.reiko.trains.turntable.TurntableItem(new Item.Properties(), ModBlocks.TURNTABLE));
+    public static final DeferredItem<com.reiko.trains.turntable.TurntableItem> SMALL_TURNTABLE = ITEMS.register("small_turntable",
+            () -> new com.reiko.trains.turntable.TurntableItem(new Item.Properties(), ModBlocks.SMALL_TURNTABLE));
     public static final DeferredItem<com.reiko.trains.shed.EngineShedItem> ENGINE_SHED = ITEMS.register("engine_shed",
             () -> new com.reiko.trains.shed.EngineShedItem(new Item.Properties()));
     public static final DeferredItem<BlockItem> CHARGING_POINT = ITEMS.register("charging_point",

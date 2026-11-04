@@ -23,7 +23,9 @@ import net.minecraft.world.level.block.state.BlockState;
 /**
  * Engine shed doors, in kit form. Used on a straight track block (east-west or north-south), it puts up the frame
  * over it, the doors facing the player: the player stands outside the shed, and the shed's inside is beyond the doors.
- * There must be room: five blocks across the track and five up, clear (apart from the track itself).
+ * There must be room: five blocks across the track and five up, clear (apart from the track itself). Beside another
+ * set of doors facing the same way, on a track four blocks over, they share its post: the two make one shed of two
+ * roads (as do doors post to post, on tracks five apart).
  */
 public class EngineShedItem extends Item {
     public EngineShedItem(Properties properties) {
@@ -72,7 +74,11 @@ public class EngineShedItem extends Item {
                     continue;
                 }
                 BlockPos at = EngineShedBlock.at(track, facing, across, up);
-                if (!level.isInWorldBounds(at) || !level.getBlockState(at).canBeReplaced()) {
+                if (!level.isInWorldBounds(at)) {
+                    return false;
+                }
+                BlockState there = level.getBlockState(at);
+                if (!there.canBeReplaced() && !sharedPost(there, facing, across, up)) {
                     return false;
                 }
             }
@@ -91,11 +97,21 @@ public class EngineShedItem extends Item {
                 if (across == 0 && up == 0) {
                     continue;
                 }
-                level.setBlock(EngineShedBlock.at(track, facing, across, up), block.defaultBlockState().setValue(EngineShedBlock.FACING, facing)
+                BlockPos at = EngineShedBlock.at(track, facing, across, up);
+                if (sharedPost(level.getBlockState(at), facing, across, up)) {
+                    continue; // the post of the doors beside: they share it
+                }
+                level.setBlock(at, block.defaultBlockState().setValue(EngineShedBlock.FACING, facing)
                         .setValue(EngineShedBlock.CELL, EngineShedBlock.cell(across, up)), 3);
             }
         }
         return true;
+    }
+
+    /** Whether a block where these doors' post would go ({@code across} ±2) is the post of doors beside them, facing the same way, that it can share. */
+    public static boolean sharedPost(BlockState there, Direction facing, int across, int up) {
+        return Math.abs(across) == 2 && there.getBlock() instanceof EngineShedBlock && there.getValue(EngineShedBlock.FACING) == facing
+                && EngineShedBlock.across(there) == -across && EngineShedBlock.up(there) == up;
     }
 
     @Override

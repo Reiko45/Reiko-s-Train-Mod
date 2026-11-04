@@ -121,6 +121,9 @@ public final class Autopilot {
             }
             return Component.translatable("hud.reikotrains.auto.at", stop.name(), (timer + 19) / 20);
         }
+        if (turntableWait) {
+            return Component.translatable("hud.reikotrains.auto.turntable");
+        }
         if (waitingAtSignal) {
             return Component.translatable(waitingFor);
         }
@@ -145,6 +148,9 @@ public final class Autopilot {
     private boolean watering;
     /** Whether an engine shed is still topping it up. */
     private boolean servicing;
+    /** Whether it's waiting for a turntable to line up for it, and how long till it looks again. */
+    private boolean turntableWait;
+    private int turntableCooldown;
 
     /** Picks the way at a junction: the one that leads to the current stop, or heads most towards it. */
     EdgeRef choose(Level level, BlockPos node, int side, List<EdgeRef> options, Vec3 heading, boolean setSwitch) {
@@ -270,8 +276,9 @@ public final class Autopilot {
             arrive(level, cars, stop);
             return new Drive(direction, chooser, 0, true, 0);
         }
-        // At the end of the line, and the stop isn't here: turn back.
-        boolean blocked = look.endOfLine && look.endDistance < 0.6 && stopped;
+        lineUpTurntables(level, cars, signs, index, look, stop, stopped);
+        // At the end of the line, and the stop isn't here: turn back (unless a turntable's lining up for it).
+        boolean blocked = look.endOfLine && look.endDistance < 0.6 && stopped && !turntableWait;
         if (blocked && ++stuck > 40) {
             stuck = 0;
             direction = -direction;
@@ -421,6 +428,68 @@ public final class Autopilot {
     /** Which way it's going: +1 the train's forwards (for the tests). */
     public int direction() {
         return direction;
+    }
+
+    /**
+     * Turntables on the way: coming up to one that isn't lined up with its track, when the stop's off one of its other
+     * tracks, it turns the bridge to it (once nothing else is on it); and stood on one, all on its bridge, when the
+     * stop's not straight ahead, it turns the bridge to the track that's the shortest way there, engine first.
+     */
+    private void lineUpTurntables(Level level, List<TrainCarEntity> cars, int[] signs, int locoIndex, Lookahead look, Timetable.Stop stop,
+            boolean stopped) {
+        if (look.targetFound) {
+            turntableWait = false;
+            return;
+        }
+        if (turntableCooldown > 0) {
+            turntableCooldown--; // it looks once a second (and meanwhile waits, or not, as it was)
+            return;
+        }
+        turntableCooldown = 20;
+        turntableWait = false;
+        com.reiko.trains.turntable.TurntableBlockEntity on = stopped ? com.reiko.trains.turntable.TurntableBlockEntity.under(level, cars) : null;
+        if (on != null) {
+            int best = on.bestWayTo(stop.track(), SEARCH, -1);
+            if (best < 0) {
+                return;
+            }
+            Vec3 bridge = com.reiko.trains.turntable.TurntableBlockEntity.direction(on.way());
+            Vec3 forward = loco.flatForward();
+            int front = forward.x * bridge.x + forward.z * bridge.z > 0 ? on.way() : (on.way() + 4) & 7;
+            int forwards = signs[locoIndex];
+            if (front == best) {
+                if (direction != forwards) {
+                    direction = forwards;
+                    choices.clear();
+                }
+                return;
+            }
+            if (on.turnEnd(front, best) == com.reiko.trains.turntable.TurntableBlockEntity.Result.TURNING) {
+                direction = forwards;
+                choices.clear();
+            }
+            turntableWait = true;
+            return;
+        }
+        if (!look.endOfLine || look.endNode == null || look.endDistance > 64) {
+            return;
+        }
+        com.reiko.trains.turntable.TurntableBlockEntity.Approach approach = com.reiko.trains.turntable.TurntableBlockEntity.approachAt(level, look.endNode);
+        if (approach == null) {
+            return;
+        }
+        com.reiko.trains.turntable.TurntableBlockEntity table = approach.table();
+        if (table.isTurning()) {
+            turntableWait = true;
+            return;
+        }
+        if (table.linedUpWith(approach.way()) || table.bestWayTo(stop.track(), SEARCH, approach.way()) < 0) {
+            return;
+        }
+        turntableWait = true;
+        if (!table.hasTrainOver()) {
+            table.lineUpWith(approach.way());
+        }
     }
 
     /** On a turntable, if its locomotive would have to run backwards to the next stop, it's turned round instead. */

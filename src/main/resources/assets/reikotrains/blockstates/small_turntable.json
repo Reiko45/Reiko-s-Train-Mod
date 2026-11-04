@@ -1,0 +1,306 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "reikotrains:block/turntable_pit"
+      }
+    },
+    {
+      "when": {
+        "x": "7",
+        "z": "7"
+      },
+      "apply": {
+        "model": "reikotrains:block/turntable_pivot"
+      }
+    },
+    {
+      "when": {
+        "x": "2",
+        "z": "4"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/2_4"
+      }
+    },
+    {
+      "when": {
+        "x": "2",
+        "z": "5"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/2_5"
+      }
+    },
+    {
+      "when": {
+        "x": "2",
+        "z": "6"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/2_6"
+      }
+    },
+    {
+      "when": {
+        "x": "2",
+        "z": "8"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/2_8"
+      }
+    },
+    {
+      "when": {
+        "x": "2",
+        "z": "9"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/2_9"
+      }
+    },
+    {
+      "when": {
+        "x": "2",
+        "z": "10"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/2_10"
+      }
+    },
+    {
+      "when": {
+        "x": "3",
+        "z": "4"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/3_4"
+      }
+    },
+    {
+      "when": {
+        "x": "3",
+        "z": "10"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/3_10"
+      }
+    },
+    {
+      "when": {
+        "x": "4",
+        "z": "2"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/4_2"
+      }
+    },
+    {
+      "when": {
+        "x": "4",
+        "z": "3"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/4_3"
+      }
+    },
+    {
+      "when": {
+        "x": "4",
+        "z": "11"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/4_11"
+      }
+    },
+    {
+      "when": {
+        "x": "4",
+        "z": "12"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/4_12"
+      }
+    },
+    {
+      "when": {
+        "x": "5",
+        "z": "2"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/5_2"
+      }
+    },
+    {
+      "when": {
+        "x": "5",
+        "z": "12"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/5_12"
+      }
+    },
+    {
+      "when": {
+        "x": "6",
+        "z": "2"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/6_2"
+      }
+    },
+    {
+      "when": {
+        "x": "6",
+        "z": "12"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/6_12"
+      }
+    },
+    {
+      "when": {
+        "x": "8",
+        "z": "2"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/8_2"
+      }
+    },
+    {
+      "when": {
+        "x": "8",
+        "z": "12"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/8_12"
+      }
+    },
+    {
+      "when": {
+        "x": "9",
+        "z": "2"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/9_2"
+      }
+    },
+    {
+      "when": {
+        "x": "9",
+        "z": "12"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/9_12"
+      }
+    },
+    {
+      "when": {
+        "x": "10",
+        "z": "2"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/10_2"
+      }
+    },
+    {
+      "when": {
+        "x": "10",
+        "z": "3"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/10_3"
+      }
+    },
+    {
+      "when": {
+        "x": "10",
+        "z": "11"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/10_11"
+      }
+    },
+    {
+      "when": {
+        "x": "10",
+        "z": "12"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/10_12"
+      }
+    },
+    {
+      "when": {
+        "x": "11",
+        "z": "4"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/11_4"
+      }
+    },
+    {
+      "when": {
+        "x": "11",
+        "z": "10"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/11_10"
+      }
+    },
+    {
+      "when": {
+        "x": "12",
+        "z": "4"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/12_4"
+      }
+    },
+    {
+      "when": {
+        "x": "12",
+        "z": "5"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/12_5"
+      }
+    },
+    {
+      "when": {
+        "x": "12",
+        "z": "6"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/12_6"
+      }
+    },
+    {
+      "when": {
+        "x": "12",
+        "z": "8"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/12_8"
+      }
+    },
+    {
+      "when": {
+        "x": "12",
+        "z": "9"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/12_9"
+      }
+    },
+    {
+      "when": {
+        "x": "12",
+        "z": "10"
+      },
+      "apply": {
+        "model": "reikotrains:block/small_turntable_wall/12_10"
+      }
+    }
+  ]
+}

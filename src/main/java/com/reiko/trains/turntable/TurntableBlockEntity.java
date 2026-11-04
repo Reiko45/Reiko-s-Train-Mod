@@ -6,7 +6,9 @@ import com.reiko.trains.track.EdgeRef;
 import com.reiko.trains.track.TrackAxis;
 import com.reiko.trains.track.TrackBlock;
 import com.reiko.trains.track.TrackEdge;
+import com.reiko.trains.track.TrackGraph;
 import com.reiko.trains.track.TrackPos;
+import com.reiko.trains.track.TrackScanner;
 import com.reiko.trains.train.TrainCarEntity;
 import com.reiko.trains.train.Trains;
 import java.util.ArrayList;
@@ -50,7 +52,7 @@ import net.minecraft.world.phys.Vec3;
  * way its front end points) is kept, and which way along it they face.
  */
 public class TurntableBlockEntity extends BlockEntity {
-    /** The pit's radius, in blocks, from the middle of the pivot. */
+    /** The big pit's radius, in blocks, from the middle of the pivot. */
     public static final double RADIUS = 7.5;
     /** How fast it turns, in degrees a tick: half way round in six seconds. */
     public static final float TURN_RATE = 1.5F;
@@ -105,12 +107,17 @@ public class TurntableBlockEntity extends BlockEntity {
         return worldPosition.above();
     }
 
-    /** The middle of the bridge's rail tops. */
-    /** How far the pit reaches from the middle of the pivot, in blocks. */
-    public double radius() {
-        return RADIUS;
+    /** The pit's blocks (its size). */
+    public TurntableBlock pit() {
+        return getBlockState().getBlock() instanceof TurntableBlock block ? block : com.reiko.trains.registry.ModBlocks.TURNTABLE.get();
     }
 
+    /** How far the pit reaches from the middle of the pivot, in blocks. */
+    public double radius() {
+        return pit().radius();
+    }
+
+    /** The middle of the bridge's rail tops. */
     public Vec3 centre() {
         return TrackEdge.node(hub(), false);
     }
@@ -133,11 +140,15 @@ public class TurntableBlockEntity extends BlockEntity {
         };
     }
 
-    /** How many track blocks the bridge is each side of its middle, pointing this way: 7 straight, 5 diagonally. */
-    public static int reach(int way) {
+    /**
+     * How many track blocks the bridge is each side of its middle, pointing this way: 7 straight and 5 diagonally for
+     * the big one, 5 and 3 for the small one.
+     */
+    public int reach(int way) {
         int[] step = WAYS[way & 7];
         int k = 0;
-        while (TurntableBlock.inPit((k + 1) * step[0], (k + 1) * step[1])) {
+        TurntableBlock pit = pit();
+        while (pit.underBridge((k + 1) * step[0], (k + 1) * step[1])) {
             k++;
         }
         return k;
@@ -175,7 +186,7 @@ public class TurntableBlockEntity extends BlockEntity {
      */
     @Nullable
     public TrackAxis axisAt(int dx, int dz) {
-        if (turning || !TurntableBlock.inPit(dx, dz)) {
+        if (turning || !pit().underBridge(dx, dz)) {
             return null;
         }
         int[] step = WAYS[way];
@@ -337,7 +348,7 @@ public class TurntableBlockEntity extends BlockEntity {
             Vec3 d = new Vec3(c.x - p.x, 0, c.z - p.z);
             double along = Mth.clamp(d.x * f.x + d.z * f.z, -car.halfLength(), car.halfLength());
             double nearest = Math.hypot(d.x - f.x * along, d.z - f.z * along);
-            if (nearest <= RADIUS + 0.05) {
+            if (nearest <= radius() + 0.05) {
                 List<TrainCarEntity> train = Trains.train(car);
                 seen.addAll(train);
                 trains.add(train);
@@ -456,6 +467,97 @@ public class TurntableBlockEntity extends BlockEntity {
         return null;
     }
 
+    /** A turntable a track block runs up to, in line with one of the ways its bridge can point: which way that is. */
+    public record Approach(TurntableBlockEntity table, int way) {
+    }
+
+    /** The turntable (if any) the track block {@code node} runs up to the pit of, in line with the bridge pointing some way. */
+    @Nullable
+    public static Approach approachAt(Level level, BlockPos node) {
+        synchronized (LOADED) {
+            Set<TurntableBlockEntity> tables = LOADED.get(level);
+            if (tables == null) {
+                return null;
+            }
+            for (TurntableBlockEntity table : tables) {
+                BlockPos hub = table.hub();
+                double reach = table.radius() + 2;
+                if (table.isRemoved() || node.getY() != hub.getY() || Math.abs(node.getX() - hub.getX()) > reach
+                        || Math.abs(node.getZ() - hub.getZ()) > reach) {
+                    continue;
+                }
+                for (int way = 0; way < 8; way++) {
+                    if (table.exit(way).equals(node) && table.hasExit(way)) {
+                        return new Approach(table, way);
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /** How far it is along the track to {@code target}, going off the bridge this way (from the track beyond it); -1 if it doesn't lead there. */
+    public double distanceOut(int way, BlockPos target, double limit) {
+        if (level == null || !hasExit(way)) {
+            return -1;
+        }
+        BlockPos out = exit(way);
+        if (out.equals(target)) {
+            return 0;
+        }
+        int side = axisOf(way).sideToward(direction(way));
+        double best = -1;
+        for (EdgeRef edge : TrackGraph.edgesFrom(level, out, side)) {
+            double distance = TrackScanner.distanceVia(level, edge, target, limit);
+            if (distance >= 0 && (best < 0 || distance < best)) {
+                best = distance;
+            }
+        }
+        return best;
+    }
+
+    /** The way off the bridge that's the shortest way along the track to {@code target} (but not {@code except}), or -1 if none leads there. */
+    public int bestWayTo(BlockPos target, double limit, int except) {
+        int best = -1;
+        double nearest = Double.POSITIVE_INFINITY;
+        for (int way = 0; way < 8; way++) {
+            if (way == except) {
+                continue;
+            }
+            double distance = distanceOut(way, target, limit);
+            if (distance >= 0 && distance < nearest) {
+                nearest = distance;
+                best = way;
+            }
+        }
+        return best;
+    }
+
+    /** Turns it, the shorter way round, so that the end of the bridge pointing {@code from} points {@code to}. */
+    public Result turnEnd(int from, int to) {
+        int steps = Math.floorMod(to - from, 8);
+        return turn(steps > 4 ? steps - 8 : steps);
+    }
+
+    /** Turns it, the shorter way round, to line it up with the track running up to it this way (either end will do). */
+    public Result lineUpWith(int exitWay) {
+        int front = Math.floorMod(exitWay - way, 8);
+        int back = Math.floorMod(exitWay + 4 - way, 8);
+        int a = front > 4 ? front - 8 : front;
+        int b = back > 4 ? back - 8 : back;
+        return turn(Math.abs(a) <= Math.abs(b) ? a : b);
+    }
+
+    /** Whether its bridge is lined up with track running up to it this way. */
+    public boolean linedUpWith(int exitWay) {
+        return !turning && (way & 3) == (exitWay & 3);
+    }
+
+    /** Whether any train's over the pit. */
+    public boolean hasTrainOver() {
+        return !trainsOver().isEmpty();
+    }
+
     public static void serverTick(Level level, BlockPos pos, BlockState state, TurntableBlockEntity table) {
         if (table.turning) {
             long elapsed = level.getGameTime() - table.start;
@@ -478,11 +580,11 @@ public class TurntableBlockEntity extends BlockEntity {
         if (level == null) {
             return;
         }
-        int span = TurntableBlock.SPAN;
+        TurntableBlock pit = pit();
+        int span = pit.span();
         for (int dx = -span; dx <= span; dx++) {
             for (int dz = -span; dz <= span; dz++) {
-                if (TurntableBlock.inPit(dx, dz) && (!TurntableBlock.inPit(dx + 1, dz) || !TurntableBlock.inPit(dx - 1, dz)
-                        || !TurntableBlock.inPit(dx, dz + 1) || !TurntableBlock.inPit(dx, dz - 1))) {
+                if (pit.inPit(dx, dz) && (!pit.inPit(dx + 1, dz) || !pit.inPit(dx - 1, dz) || !pit.inPit(dx, dz + 1) || !pit.inPit(dx, dz - 1))) {
                     BlockPos at = worldPosition.offset(dx, 0, dz);
                     level.updateNeighbourForOutputSignal(at, level.getBlockState(at).getBlock());
                 }
@@ -602,6 +704,7 @@ public class TurntableBlockEntity extends BlockEntity {
 
     /** The whole pit and the bridge over it, so it's drawn while any of it is on screen. */
     public AABB renderBox() {
-        return new AABB(worldPosition).inflate(RADIUS + 1, 1, RADIUS + 1).expandTowards(0, 2, 0);
+        double r = radius() + 1;
+        return new AABB(worldPosition).inflate(r, 1, r).expandTowards(0, 2, 0);
     }
 }

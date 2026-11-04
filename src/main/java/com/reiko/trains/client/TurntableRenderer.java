@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -25,9 +26,9 @@ import net.minecraft.world.phys.AABB;
  * z across it.
  */
 public class TurntableRenderer implements BlockEntityRenderer<TurntableBlockEntity> {
-    /** How far the bridge reaches each way from the middle, and the ring rail's radius. */
-    private static final double HALF = 7.45;
-    private static final double RING = 7.12;
+    /** How far short of the pit's edge the bridge stops, and the ring rail is. */
+    private static final double HALF_IN = 0.05;
+    private static final double RING_IN = 0.38;
     /** Where the rail tops are, above the bottom of the pivot's block (a block up, and a quarter). */
     private static final double DECK = 1.25;
     /** The ring rail's top, and the main girders' sides (from the middle of the bridge). */
@@ -52,21 +53,28 @@ public class TurntableRenderer implements BlockEntityRenderer<TurntableBlockEnti
         TextureAtlasSprite girder = Boxes.sprite("block/turntable_girder");
         TextureAtlasSprite deck = Boxes.sprite("block/turntable_deck");
         TextureAtlasSprite iron = Boxes.sprite("block/turntable_iron");
-        TextureAtlasSprite hut = Boxes.sprite("block/turntable_hut");
+        TextureAtlasSprite hutSprite = Boxes.sprite("block/turntable_hut");
         TextureAtlasSprite window = Boxes.sprite("block/turntable_window");
         TextureAtlasSprite roof = Boxes.sprite("block/water_tower_roof");
+        // Everything's measured in from the pit's edge, so the small turntable's a shorter bridge of the same build.
+        double r = table.radius();
+        double half = r - HALF_IN;
+        double ring = r - RING_IN;
+        double girderEnd = r - 0.2;
+        double walk = r - 0.6;
+        double hut = r - 2.35;
 
         // The ring rail round the pit floor, in short straight pieces.
-        int pieces = 72;
-        double piece = 2 * Math.PI * RING / pieces;
+        int pieces = Mth.ceil(9.6 * r);
+        double piece = 2 * Math.PI * ring / pieces;
         for (int i = 0; i < pieces; i++) {
             double a = 360.0 * i / pieces;
             poseStack.pushPose();
             poseStack.translate(0.5, 0, 0.5);
             poseStack.mulPose(Axis.YP.rotationDegrees((float) -a));
             Boxes boxes = new Boxes(consumer, poseStack.last());
-            int at = light(level, pivot, a, RING, 0.5);
-            boxes.box(RING - 0.06, FLOOR, -piece / 2 - 0.01, RING + 0.06, FLOOR + 0.12, piece / 2 + 0.01, rail, at);
+            int at = light(level, pivot, a, ring, 0.5);
+            boxes.box(ring - 0.06, FLOOR, -piece / 2 - 0.01, ring + 0.06, FLOOR + 0.12, piece / 2 + 0.01, rail, at);
             poseStack.popPose();
         }
 
@@ -78,22 +86,23 @@ public class TurntableRenderer implements BlockEntityRenderer<TurntableBlockEnti
         Boxes b = new Boxes(consumer, poseStack.last());
 
         // Rails and the timbers under them
-        for (double x = -HALF; x < HALF - 1.0E-6; x += 1) {
-            double x1 = Math.min(HALF, x + 1);
+        for (double x = -half; x < half - 1.0E-6; x += 1) {
+            double x1 = Math.min(half, x + 1);
             int at = light(level, pivot, angle, x + 0.5, 0);
             for (int side = -1; side <= 1; side += 2) {
                 double z = side * TrackRenderer.GAUGE;
                 b.box(x, -TrackRenderer.RAIL_HEIGHT, z - TrackRenderer.RAIL_HALF_WIDTH, x1, 0, z + TrackRenderer.RAIL_HALF_WIDTH, rail, at);
             }
         }
-        for (double x = -7.25; x <= 7.25 + 1.0E-6; x += 0.5) {
+        double sleepers = Math.floor((r - 0.25) * 2) / 2;
+        for (double x = -sleepers; x <= sleepers + 1.0E-6; x += 0.5) {
             b.box(x - 0.09, -0.25, -0.75, x + 0.09, -TrackRenderer.RAIL_HEIGHT, 0.75, sleeper, light(level, pivot, angle, x, 0));
         }
         // The main girders, a block at a time, deepest in the middle
-        for (double x = -7.3; x < 7.3 - 1.0E-6; x += 0.5) {
-            double x1 = Math.min(7.3, x + 0.5);
+        for (double x = -girderEnd; x < girderEnd - 1.0E-6; x += 0.5) {
+            double x1 = Math.min(girderEnd, x + 0.5);
             double mid = (x + x1) / 2;
-            double bottom = -0.42 - 0.58 * (1 - (mid / 7.3) * (mid / 7.3));
+            double bottom = -0.42 - 0.58 * (1 - (mid / girderEnd) * (mid / girderEnd));
             int at = light(level, pivot, angle, mid, 0);
             for (int side = -1; side <= 1; side += 2) {
                 double z = side * GIRDER;
@@ -103,7 +112,8 @@ public class TurntableRenderer implements BlockEntityRenderer<TurntableBlockEnti
             }
         }
         // Cross girders between them
-        for (double x = -6; x <= 6 + 1.0E-6; x += 1.5) {
+        double cross = Math.floor((r - 1.5) / 1.5) * 1.5;
+        for (double x = -cross; x <= cross + 1.0E-6; x += 1.5) {
             b.box(x - 0.06, -0.42, -GIRDER, x + 0.06, -0.25, GIRDER, girder, light(level, pivot, angle, x, 0));
         }
         // The bearing on the pivot
@@ -114,21 +124,23 @@ public class TurntableRenderer implements BlockEntityRenderer<TurntableBlockEnti
             double out = side * WALK_OUT;
             double z0 = Math.min(in, out);
             double z1 = Math.max(in, out);
-            for (double x = -6.9; x < 6.9 - 1.0E-6; x += 1) {
-                double x1 = Math.min(6.9, x + 1);
+            for (double x = -walk; x < walk - 1.0E-6; x += 1) {
+                double x1 = Math.min(walk, x + 1);
                 int at = light(level, pivot, angle, x + 0.5, side * 1.1);
                 b.box(x, -0.2, z0, x1, -0.12, z1, deck, at);
-                boolean byHut = side > 0 && x1 > 5.0;
+                boolean byHut = side > 0 && x1 > hut - 0.15;
                 if (!byHut) {
                     double zr = side * (WALK_OUT - 0.04);
                     b.box(x, 0.8, zr - 0.025, x1, 0.85, zr + 0.025, iron, at);
                     b.box(x, 0.42, zr - 0.02, x1, 0.46, zr + 0.02, iron, at);
                 }
             }
-            for (double x = -6.9; x <= 6.9 + 1.0E-6; x += 1.15) {
+            int brackets = (int) Math.floor(2 * walk / 1.15);
+            for (int k = 0; k <= brackets; k++) {
+                double x = -walk + k * 2 * walk / brackets;
                 int at = light(level, pivot, angle, x, side * 1.1);
                 b.box(x - 0.04, -0.4, Math.min(side * 0.87, side * 1.28), x + 0.04, -0.2, Math.max(side * 0.87, side * 1.28), girder, at);
-                if (!(side > 0 && x > 5.0)) {
+                if (!(side > 0 && x > hut - 0.15)) {
                     double zr = side * (WALK_OUT - 0.04);
                     b.box(x - 0.03, -0.12, zr - 0.03, x + 0.03, 0.85, zr + 0.03, iron, at);
                 }
@@ -137,7 +149,7 @@ public class TurntableRenderer implements BlockEntityRenderer<TurntableBlockEnti
         // A carriage at each end, with its two wheels on the ring rail
         double wheelY = FLOOR + 0.12 - DECK;
         for (int end = -1; end <= 1; end += 2) {
-            double x = end * 7.05;
+            double x = end * (r - 0.45);
             int at = light(level, pivot, angle, x, 0);
             b.box(x - 0.18, -0.58, -0.98, x + 0.18, -0.4, 0.98, girder, at);
             for (int side = -1; side <= 1; side += 2) {
@@ -148,13 +160,14 @@ public class TurntableRenderer implements BlockEntityRenderer<TurntableBlockEnti
             }
         }
         // The hut at the front end, on the right, with a window out over the pit and one facing the front
-        int at = light(level, pivot, angle, 6.0, 1.4);
-        b.box(5.15, -0.2, 1.08, 6.75, -0.12, 1.8, deck, at);
-        b.box(5.2, -0.12, 1.12, 6.7, 1.55, 1.76, hut, at);
-        b.box(5.6, 0.62, 1.76, 6.3, 1.22, 1.775, window, at);
-        b.box(6.7, 0.62, 1.22, 6.715, 1.22, 1.66, window, at);
-        b.box(5.1, 1.55, 1.02, 6.8, 1.68, 1.86, roof, at);
-        b.box(5.4, 1.68, 1.2, 6.5, 1.74, 1.68, roof, at);
+        double h = hut - 5.15;
+        int at = light(level, pivot, angle, 6.0 + h, 1.4);
+        b.box(5.15 + h, -0.2, 1.08, 6.75 + h, -0.12, 1.8, deck, at);
+        b.box(5.2 + h, -0.12, 1.12, 6.7 + h, 1.55, 1.76, hutSprite, at);
+        b.box(5.6 + h, 0.62, 1.76, 6.3 + h, 1.22, 1.775, window, at);
+        b.box(6.7 + h, 0.62, 1.22, 6.715 + h, 1.22, 1.66, window, at);
+        b.box(5.1 + h, 1.55, 1.02, 6.8 + h, 1.68, 1.86, roof, at);
+        b.box(5.4 + h, 1.68, 1.2, 6.5 + h, 1.74, 1.68, roof, at);
         poseStack.popPose();
     }
 

@@ -219,4 +219,36 @@ public final class EngineShedGameTests {
         helper.assertTrue(doors == 1 && coal == 20, "giving back the doors and the coal in its store: " + doors + ", " + coal);
         helper.succeed();
     }
+
+    @GameTest(template = LINE, timeoutTicks = 200)
+    public static void doorsSideBySideMakeOneShed(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        TestTracks.floor(level, helper.absolutePos(new BlockPos(0, 1, 0)), 64, 9);
+        BlockPos north = helper.absolutePos(new BlockPos(0, 1, 2));
+        BlockPos south = helper.absolutePos(new BlockPos(0, 1, 6));
+        TestTracks.line(level, north, TrackAxis.X, 40);
+        TestTracks.line(level, south, TrackAxis.X, 40);
+        EngineShedBlockEntity one = TestTracks.engineShed(level, north.east(10), Direction.WEST);
+        helper.assertTrue(EngineShedItem.fits(level, south.east(10), Direction.WEST), "doors four blocks over should fit, sharing a post");
+        EngineShedBlockEntity two = TestTracks.engineShed(level, south.east(10), Direction.WEST);
+        BlockPos post = north.east(10).south(2);
+        for (int up = 0; up <= 4; up++) {
+            helper.assertTrue(level.getBlockState(post.above(up)).is(ModBlocks.ENGINE_SHED.get()), "the shared post should stand");
+        }
+        helper.assertTrue(one.roads() == 2 && two.roads() == 2, "making one shed of two roads");
+        helper.assertTrue(one.items().insertItem(0, new ItemStack(Items.COAL, 64), false).isEmpty(), "coal put in at one set of doors");
+        helper.assertTrue(two.fuelCount() == 64, "is in the whole shed's store: " + two.fuelCount());
+        SteamLocomotive loco = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), south.east(20), EAST);
+        loco.setFuel(0);
+        helper.runAfterDelay(60, () -> {
+            helper.assertTrue(loco.fuel() > 0 && two.fuelCount() < 64, "and coals engines on the other road: " + loco.fuel());
+            level.destroyBlock(north.east(10).above(4), true);
+            helper.assertTrue(level.getBlockState(north.east(10).above(2)).isAir(), "taking one set down takes its doors");
+            BlockState shared = level.getBlockState(post.above(2));
+            helper.assertTrue(shared.is(ModBlocks.ENGINE_SHED.get()) && EngineShedBlock.shed(level, shared, post.above(2)) == two,
+                    "but leaves the shared post standing, for the others");
+            helper.assertTrue(two.roads() == 1 && two.fuelCount() > 0, "which keep the store: " + two.fuelCount());
+            helper.succeed();
+        });
+    }
 }

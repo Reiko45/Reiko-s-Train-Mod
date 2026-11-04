@@ -79,9 +79,15 @@ public final class ModBlocks {
                     .pushReaction(PushReaction.BLOCK).isValidSpawn((state, level, pos, type) -> false)));
 
     public static final DeferredBlock<com.reiko.trains.turntable.TurntableBlock> TURNTABLE = BLOCKS.register("turntable",
-            () -> new com.reiko.trains.turntable.TurntableBlock(BlockBehaviour.Properties.of().strength(2.0F, 6.0F).sound(SoundType.STONE)
-                    .noOcclusion().noLootTable().pushReaction(PushReaction.BLOCK).mapColor(net.minecraft.world.level.material.MapColor.STONE)
-                    .isValidSpawn((state, level, pos, type) -> false)));
+            () -> new com.reiko.trains.turntable.TurntableBlock(turntableProperties(), 7.5, ModItems.TURNTABLE));
+    public static final DeferredBlock<com.reiko.trains.turntable.TurntableBlock> SMALL_TURNTABLE = BLOCKS.register("small_turntable",
+            () -> new com.reiko.trains.turntable.TurntableBlock(turntableProperties(), 5.5, ModItems.SMALL_TURNTABLE));
+
+    private static BlockBehaviour.Properties turntableProperties() {
+        return BlockBehaviour.Properties.of().strength(2.0F, 6.0F).sound(SoundType.STONE).noOcclusion().noLootTable()
+                .pushReaction(PushReaction.BLOCK).mapColor(net.minecraft.world.level.material.MapColor.STONE)
+                .isValidSpawn((state, level, pos, type) -> false);
+    }
 
     public static final DeferredBlock<com.reiko.trains.shed.EngineShedBlock> ENGINE_SHED = BLOCKS.register("engine_shed",
             () -> new com.reiko.trains.shed.EngineShedBlock(BlockBehaviour.Properties.of().strength(2.0F, 4.0F).sound(SoundType.WOOD)

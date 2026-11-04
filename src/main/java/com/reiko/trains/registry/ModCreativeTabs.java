@@ -48,6 +48,7 @@ public final class ModCreativeTabs {
                 output.accept(ModItems.WAGON_LOADER.get());
                 output.accept(ModItems.WATER_TOWER.get());
                 output.accept(ModItems.TURNTABLE.get());
+                output.accept(ModItems.SMALL_TURNTABLE.get());
                 output.accept(ModItems.ENGINE_SHED.get());
                 output.accept(ModItems.CHARGING_POINT.get());
                 output.accept(ModItems.COUPLER.get());

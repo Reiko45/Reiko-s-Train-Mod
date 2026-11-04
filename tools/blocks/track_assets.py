@@ -1396,11 +1396,71 @@ def turntable_models():
              element([5, 4, 5], [11, 15, 11], all_faces("#iron", (0, 0, 6, 11)))]
     with open(f"{ASSETS}/models/block/turntable_pivot.json", "w") as out:
         json.dump({"parent": "block/block", "ambientocclusion": False, "textures": tex, "elements": pivot}, out, indent=2)
-    with open(f"{ASSETS}/blockstates/turntable.json", "w") as out:
-        json.dump({"multipart": [{"apply": {"model": "reikotrains:block/turntable_pit"}},
-                                 {"when": {"x": "7", "z": "7"}, "apply": {"model": "reikotrains:block/turntable_pivot"}}]}, out, indent=2)
-    with open(f"{ASSETS}/models/item/turntable.json", "w") as out:
-        json.dump({"parent": "minecraft:item/generated", "textures": {"layer0": "reikotrains:item/turntable"}}, out, indent=2)
+    for name, radius in (("turntable", 7.5), ("small_turntable", 5.5)):
+        parts = [{"apply": {"model": "reikotrains:block/turntable_pit"}},
+                 {"when": {"x": "7", "z": "7"}, "apply": {"model": "reikotrains:block/turntable_pivot"}}]
+        os.makedirs(f"{ASSETS}/models/block/{name}_wall", exist_ok=True)
+        for old in os.listdir(f"{ASSETS}/models/block/{name}_wall"):
+            os.remove(f"{ASSETS}/models/block/{name}_wall/{old}")
+        for dx in range(-7, 8):
+            for dz in range(-7, 8):
+                boxes = pit_wall(radius, dx, dz) if in_pit(radius, dx, dz) else []
+                if not boxes:
+                    continue
+                model = f"{name}_wall/{dx + 7}_{dz + 7}"
+                with open(f"{ASSETS}/models/block/{model}.json", "w") as out:
+                    json.dump({"parent": "block/block",
+                               "textures": {"particle": "minecraft:block/stone_bricks", "side": "minecraft:block/stone_bricks",
+                                            "top": "minecraft:block/smooth_stone"},
+                               "elements": [wall_element(box) for box in boxes]}, out, indent=2)
+                parts.append({"when": {"x": str(dx + 7), "z": str(dz + 7)}, "apply": {"model": f"reikotrains:block/{model}"}})
+        with open(f"{ASSETS}/blockstates/{name}.json", "w") as out:
+            json.dump({"multipart": parts}, out, indent=2)
+        with open(f"{ASSETS}/models/item/{name}.json", "w") as out:
+            json.dump({"parent": "minecraft:item/generated", "textures": {"layer0": f"reikotrains:item/{name}"}}, out, indent=2)
+
+
+def in_pit(radius, dx, dz):
+    """As TurntableBlock.inPit: any of the block's inside the circle; on the bridge's eight lines, only under the bridge."""
+    ax, az = abs(dx), abs(dz)
+    if ax == 0 or az == 0 or ax == az:
+        return dx * dx + dz * dz <= radius * radius
+    r = radius - 0.01
+    return (ax - 0.5) ** 2 + (az - 0.5) ** 2 < r * r
+
+
+def pit_wall(radius, dx, dz):
+    """As TurntableBlock.wall: the parts of a pit block outside the circle, as [x0, z0, x1, z1] boxes in pixels."""
+    boxes = []
+    for j in range(8):
+        run = -1
+        for i in range(9):
+            out = False
+            if i < 8:
+                x = dx - 0.5 + (i + 0.5) / 8
+                z = dz - 0.5 + (j + 0.5) / 8
+                out = x * x + z * z > radius * radius
+            if out and run < 0:
+                run = i
+            elif not out and run >= 0:
+                boxes.append([run * 2, j * 2, i * 2, j * 2 + 2])
+                run = -1
+    return boxes
+
+
+def wall_element(box):
+    """A piece of the pit's wall: stone bricks, a smooth stone coping on top, up to the ground's level."""
+    x0, z0, x1, z1 = box
+    faces = {"up": {"texture": "#top", "uv": [x0, z0, x1, z1]},
+             "down": {"texture": "#side", "uv": [x0, z0, x1, z1], "cullface": "down"},
+             "north": {"texture": "#side", "uv": [16 - x1, 0, 16 - x0, 16]},
+             "south": {"texture": "#side", "uv": [x0, 0, x1, 16]},
+             "west": {"texture": "#side", "uv": [z0, 0, z1, 16]},
+             "east": {"texture": "#side", "uv": [16 - z1, 0, 16 - z0, 16]}}
+    for face, edge in (("north", z0 == 0), ("south", z1 == 16), ("west", x0 == 0), ("east", x1 == 16)):
+        if edge:
+            faces[face]["cullface"] = face
+    return {"from": [x0, 0, z0], "to": [x1, 16, z1], "faces": faces}
 
 
 def engine_shed_textures():

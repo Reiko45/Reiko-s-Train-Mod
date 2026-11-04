@@ -1,9 +1,9 @@
 package com.reiko.trains.turntable;
 
 import com.reiko.trains.registry.ModBlockEntities;
-import com.reiko.trains.registry.ModItems;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -31,15 +32,16 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
- * The floor of a turntable's pit: a circle of these, 15 blocks across, a block below the track. Each knows where it
- * is in the circle ({@link #X} and {@link #Z}, from 0 to 14, the middle being 7), so it can find the middle one, the
- * pivot, which keeps the turntable's workings ({@link TurntableBlockEntity}). The bridge that turns on it is drawn by
- * the pivot. Clicking any of it turns the bridge to the next track (sneaking, the other way round); a redstone signal
+ * The floor of a turntable's pit: a circle of these (15 blocks across, or 11 for the small one), a block below the
+ * track. Each knows where it is in the circle ({@link #X} and {@link #Z}, from 0 to 14, the middle being 7, whatever
+ * the size), so it can find the middle one, the pivot, which keeps the turntable's workings
+ * ({@link TurntableBlockEntity}). The bridge that turns on it is drawn by the pivot. The blocks round the edge have a
+ * curved stone wall in them, so the pit's round. Clicking any of it turns the bridge to the next track (sneaking, the other way round); a redstone signal
  * beside the pit does the same; and a comparator beside it reads which way the bridge points. Breaking any of it
  * takes the whole turntable up (the pit stays dug).
  */
 public class TurntableBlock extends Block implements EntityBlock {
-    /** How far each way the circle reaches from its middle, in blocks. */
+    /** How far each way the biggest circle reaches from its middle, in blocks (and where its middle is in X and Z). */
     public static final int SPAN = 7;
     public static final IntegerProperty X = IntegerProperty.create("x", 0, 2 * SPAN);
     public static final IntegerProperty Z = IntegerProperty.create("z", 0, 2 * SPAN);
@@ -50,9 +52,31 @@ public class TurntableBlock extends Block implements EntityBlock {
     /** Turntables being broken by players in creative mode, which shouldn't drop anything. */
     private static final Set<BlockPos> CREATIVE_BREAKS = ConcurrentHashMap.newKeySet();
 
-    public TurntableBlock(Properties properties) {
+    /** The pit's radius, from the middle of the pivot, in blocks. */
+    private final double radius;
+    /** What it is, taken up. */
+    private final Supplier<? extends ItemLike> item;
+    /** Each block's floor, and the wall round the edge in it. */
+    private final java.util.Map<BlockState, VoxelShape> shapes = new ConcurrentHashMap<>();
+
+    public TurntableBlock(Properties properties, double radius, Supplier<? extends ItemLike> item) {
         super(properties);
+        this.radius = radius;
+        this.item = item;
         registerDefaultState(stateDefinition.any().setValue(X, SPAN).setValue(Z, SPAN));
+    }
+
+    public double radius() {
+        return radius;
+    }
+
+    /** How far each way the pit reaches from the pivot, in blocks. */
+    public int span() {
+        return Math.min(SPAN, (int) Math.ceil(radius + 0.5 - 0.01) - 1);
+    }
+
+    public ItemLike item() {
+        return item.get();
     }
 
     @Override
@@ -60,9 +84,51 @@ public class TurntableBlock extends Block implements EntityBlock {
         builder.add(X, Z);
     }
 
-    /** Whether a block {@code dx}, {@code dz} from the pivot is in the pit: within its 7½-block radius. */
-    public static boolean inPit(int dx, int dz) {
-        return dx * dx + dz * dz <= TurntableBlockEntity.RADIUS * TurntableBlockEntity.RADIUS;
+    /**
+     * Whether a block {@code dx}, {@code dz} from the pivot is dug for the pit: any of it is inside the circle. On the
+     * eight lines the bridge can point along, only the blocks under it are: track runs up to it on the ground beyond.
+     */
+    public boolean inPit(int dx, int dz) {
+        int ax = Math.abs(dx);
+        int az = Math.abs(dz);
+        if (ax == 0 || az == 0 || ax == az) {
+            return underBridge(dx, dz);
+        }
+        double x = ax - 0.5;
+        double z = az - 0.5;
+        double r = radius - 0.01;
+        return x * x + z * z < r * r;
+    }
+
+    /**
+     * The curved wall round the edge of the pit in the block {@code dx}, {@code dz} from the pivot: the parts of it
+     * outside the circle, in columns an eighth of a block across, as boxes in the block (pixels), merged into rows.
+     */
+    public java.util.List<int[]> wall(int dx, int dz) {
+        java.util.List<int[]> boxes = new java.util.ArrayList<>();
+        for (int j = 0; j < 8; j++) {
+            int run = -1;
+            for (int i = 0; i <= 8; i++) {
+                boolean out = false;
+                if (i < 8) {
+                    double x = dx - 0.5 + (i + 0.5) / 8.0;
+                    double z = dz - 0.5 + (j + 0.5) / 8.0;
+                    out = x * x + z * z > radius * radius;
+                }
+                if (out && run < 0) {
+                    run = i;
+                } else if (!out && run >= 0) {
+                    boxes.add(new int[] {run * 2, j * 2, i * 2, j * 2 + 2});
+                    run = -1;
+                }
+            }
+        }
+        return boxes;
+    }
+
+    /** Whether the bridge reaches a track-level block {@code dx}, {@code dz} from its middle: its middle's in the circle. */
+    public boolean underBridge(int dx, int dz) {
+        return dx * dx + dz * dz <= radius * radius;
     }
 
     /** The pit block {@code dx}, {@code dz} from the pivot. */
@@ -87,7 +153,16 @@ public class TurntableBlock extends Block implements EntityBlock {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return isPivot(state) ? PIVOT : FLOOR;
+        if (isPivot(state)) {
+            return PIVOT;
+        }
+        return shapes.computeIfAbsent(state, s -> {
+            VoxelShape shape = FLOOR;
+            for (int[] box : wall(s.getValue(X) - SPAN, s.getValue(Z) - SPAN)) {
+                shape = Shapes.or(shape, Block.box(box[0], 0, box[1], box[2], 16, box[3]));
+            }
+            return shape.optimize();
+        });
     }
 
     @Override
@@ -135,7 +210,7 @@ public class TurntableBlock extends Block implements EntityBlock {
 
     @Override
     public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
-        return new ItemStack(ModItems.TURNTABLE.get());
+        return new ItemStack(item());
     }
 
     @Override
@@ -157,8 +232,9 @@ public class TurntableBlock extends Block implements EntityBlock {
                     if (server.getBlockEntity(pivot) instanceof TurntableBlockEntity table) {
                         table.release();
                     }
-                    for (int dx = -SPAN; dx <= SPAN; dx++) {
-                        for (int dz = -SPAN; dz <= SPAN; dz++) {
+                    int span = span();
+                    for (int dx = -span; dx <= span; dx++) {
+                        for (int dz = -span; dz <= span; dz++) {
                             BlockPos at = pivot.offset(dx, 0, dz);
                             if (!at.equals(pos) && inPit(dx, dz) && server.getBlockState(at).equals(cell(dx, dz))) {
                                 server.setBlock(at, Blocks.AIR.defaultBlockState(), 3);
@@ -167,7 +243,7 @@ public class TurntableBlock extends Block implements EntityBlock {
                     }
                     if (!creative && server.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS)) {
                         Containers.dropItemStack(server, pivot.getX() + 0.5, pivot.getY() + 1.2, pivot.getZ() + 0.5,
-                                new ItemStack(ModItems.TURNTABLE.get()));
+                                new ItemStack(item()));
                     }
                 } finally {
                     DISMANTLING.remove(pivot);

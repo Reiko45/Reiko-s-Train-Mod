@@ -42,7 +42,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * across, from -2 to 2, plus five times up, from 0 to 4) and which way the doors face ({@link #FACING}: out of the
  * shed), so it can find the middle of the lintel, which keeps the workings ({@link EngineShedBlockEntity}). The
  * doorway's blocks are unseen, and stop people walking through while the doors are shut ({@link #OPEN}). The track
- * block under the middle of the doorway is just track.
+ * block under the middle of the doorway is just track. Doors side by side can share a post (it belongs to one of
+ * them; taking that one down leaves it standing for the other).
  */
 public class EngineShedBlock extends Block implements EntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
@@ -201,7 +202,13 @@ public class EngineShedBlock extends Block implements EntityBlock {
                             BlockPos at = at(track, facing, across, up);
                             BlockState there = server.getBlockState(at);
                             if (!at.equals(pos) && there.is(this) && there.getValue(FACING) == facing && there.getValue(CELL) == cell(across, up)) {
-                                server.setBlock(at, Blocks.AIR.defaultBlockState(), 3);
+                                if (Math.abs(across) == 2 && server.getBlockEntity(at(track, facing, 2 * across, 4)) instanceof EngineShedBlockEntity beside
+                                        && beside.facing() == facing) {
+                                    // A post shared with the doors beside: it stays up, as theirs.
+                                    server.setBlock(at, there.setValue(CELL, cell(-across, up)), 3);
+                                } else {
+                                    server.setBlock(at, Blocks.AIR.defaultBlockState(), 3);
+                                }
                             }
                         }
                     }

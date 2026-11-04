@@ -68,7 +68,8 @@ public final class ModBlockEntities {
 
     @SuppressWarnings("DataFlowIssue")
     public static final Supplier<BlockEntityType<com.reiko.trains.turntable.TurntableBlockEntity>> TURNTABLE = BLOCK_ENTITIES.register("turntable",
-            () -> BlockEntityType.Builder.of(com.reiko.trains.turntable.TurntableBlockEntity::new, ModBlocks.TURNTABLE.get()).build(null));
+            () -> BlockEntityType.Builder.of(com.reiko.trains.turntable.TurntableBlockEntity::new, ModBlocks.TURNTABLE.get(),
+                    ModBlocks.SMALL_TURNTABLE.get()).build(null));
 
     @SuppressWarnings("DataFlowIssue")
     public static final Supplier<BlockEntityType<com.reiko.trains.shed.EngineShedBlockEntity>> ENGINE_SHED = BLOCK_ENTITIES.register("engine_shed",

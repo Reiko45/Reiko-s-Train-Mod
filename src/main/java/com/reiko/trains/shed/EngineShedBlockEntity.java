@@ -106,6 +106,38 @@ public class EngineShedBlockEntity extends BlockEntity {
         }
     };
     private final Fluids fluids = new Fluids();
+    /** The fuel store as pipes and hoppers see it: the whole shed's (the keeper's). */
+    private final IItemHandler sharedItems = new IItemHandler() {
+        @Override
+        public int getSlots() {
+            return FUEL_SLOTS;
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            return keeper().fuel.getStackInSlot(slot);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            return keeper().fuel.insertItem(slot, stack, simulate);
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            return keeper().fuel.extractItem(slot, amount, simulate);
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return keeper().fuel.getSlotLimit(slot);
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return isFuel(stack);
+        }
+    };
     private final Receiver receiver = new Receiver();
     private final MjCapabilityHelper capabilities = new MjCapabilityHelper(receiver);
     /** Micro-MJ stored. */
@@ -159,8 +191,56 @@ public class EngineShedBlockEntity extends BlockEntity {
     // ----------------------------------------------------------------------------------------------------------------
     // The store
 
+    // Doors side by side in the same wall (on tracks four or five blocks apart, sharing a post or post to post, facing
+    // the same way) make one shed of several roads: the store is the leftmost doors' (looking out of the shed),
+    // whichever doors fuel, water, diesel or power is put in at, and each set tops up the engines on its own road.
+
+    /** The doors beside these in the same wall, this side (+1 to the right, looking out of the shed), if any. */
+    @Nullable
+    public EngineShedBlockEntity beside(int side) {
+        if (level == null) {
+            return null;
+        }
+        Direction right = facing().getClockWise();
+        for (int gap = 4; gap <= 5; gap++) {
+            BlockPos controller = worldPosition.relative(right, gap * side);
+            if (level.isLoaded(controller) && level.getBlockEntity(controller) instanceof EngineShedBlockEntity shed && !shed.isRemoved()
+                    && shed.facing() == facing()) {
+                return shed;
+            }
+        }
+        return null;
+    }
+
+    /** The doors at the left end of the row these are in, which keep the store for the whole shed. */
+    public EngineShedBlockEntity keeper() {
+        EngineShedBlockEntity at = this;
+        for (int i = 0; i < 32; i++) {
+            EngineShedBlockEntity next = at.beside(-1);
+            if (next == null || next == this) {
+                break;
+            }
+            at = next;
+        }
+        return at;
+    }
+
+    /** How many roads the shed these doors are in has (sets of doors side by side). */
+    public int roads() {
+        EngineShedBlockEntity at = keeper();
+        int roads = 1;
+        for (int i = 0; i < 32; i++) {
+            at = at.beside(1);
+            if (at == null) {
+                break;
+            }
+            roads++;
+        }
+        return roads;
+    }
+
     public IItemHandler items() {
-        return fuel;
+        return sharedItems;
     }
 
     public IFluidHandler fluids() {
@@ -172,23 +252,24 @@ public class EngineShedBlockEntity extends BlockEntity {
     }
 
     public int fuelCount() {
+        ItemStackHandler store = keeper().fuel;
         int count = 0;
-        for (int i = 0; i < fuel.getSlots(); i++) {
-            count += fuel.getStackInSlot(i).getCount();
+        for (int i = 0; i < store.getSlots(); i++) {
+            count += store.getStackInSlot(i).getCount();
         }
         return count;
     }
 
     public int water() {
-        return water.getFluidAmount();
+        return keeper().water.getFluidAmount();
     }
 
     public int diesel() {
-        return diesel.getFluidAmount();
+        return keeper().diesel.getFluidAmount();
     }
 
     public long storedMj() {
-        return stored / MjAPI.MJ;
+        return keeper().stored / MjAPI.MJ;
     }
 
     private static long capacityMicro() {
@@ -197,9 +278,10 @@ public class EngineShedBlockEntity extends BlockEntity {
 
     /** Puts power straight in (tests, admins); returns how much went in. */
     public long addMj(long mj) {
-        long added = Math.max(0, Math.min(mj * MjAPI.MJ, capacityMicro() - stored));
-        stored += added;
-        setChanged();
+        EngineShedBlockEntity store = keeper();
+        long added = Math.max(0, Math.min(mj * MjAPI.MJ, capacityMicro() - store.stored));
+        store.stored += added;
+        store.setChanged();
         return added / MjAPI.MJ;
     }
 
@@ -211,7 +293,7 @@ public class EngineShedBlockEntity extends BlockEntity {
     /** A player hands it something: fuel goes in the store, as much as fits; a bucket of water or diesel is poured in. */
     public boolean offer(Player player, InteractionHand hand, ItemStack stack) {
         if (isFuel(stack)) {
-            ItemStack left = ItemHandlerHelper.insertItem(fuel, stack.copy(), false);
+            ItemStack left = ItemHandlerHelper.insertItem(sharedItems, stack.copy(), false);
             int taken = stack.getCount() - left.getCount();
             if (taken > 0 && !player.getAbilities().instabuild) {
                 stack.shrink(taken);
@@ -227,8 +309,47 @@ public class EngineShedBlockEntity extends BlockEntity {
     }
 
     public Component storeLine() {
-        return Component.translatable("message.reikotrains.shed.store", fuelCount(), water() / 1000, WATER_CAPACITY / 1000, diesel() / 1000,
+        int roads = roads();
+        Component line = Component.translatable("message.reikotrains.shed.store", fuelCount(), water() / 1000, WATER_CAPACITY / 1000, diesel() / 1000,
                 DIESEL_CAPACITY / 1000, storedMj());
+        return roads > 1 ? Component.translatable("message.reikotrains.shed.roads", roads).append(" - ").append(line) : line;
+    }
+
+    /** Joined to doors on the left, it hands what's in its own store over to theirs. */
+    private void handOver() {
+        EngineShedBlockEntity keeper = keeper();
+        if (keeper == this) {
+            return;
+        }
+        boolean moved = false;
+        for (int i = 0; i < fuel.getSlots(); i++) {
+            ItemStack stack = fuel.getStackInSlot(i);
+            if (!stack.isEmpty()) {
+                ItemStack left = ItemHandlerHelper.insertItem(keeper.fuel, stack, false);
+                if (left.getCount() != stack.getCount()) {
+                    fuel.setStackInSlot(i, left);
+                    moved = true;
+                }
+            }
+        }
+        if (!water.isEmpty()) {
+            water.drain(keeper.water.fill(water.getFluid(), IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
+            moved = true;
+        }
+        if (!diesel.isEmpty()) {
+            diesel.drain(keeper.diesel.fill(diesel.getFluid(), IFluidHandler.FluidAction.EXECUTE), IFluidHandler.FluidAction.EXECUTE);
+            moved = true;
+        }
+        if (stored > 0) {
+            long take = Math.max(0, Math.min(stored, capacityMicro() - keeper.stored));
+            keeper.stored += take;
+            stored -= take;
+            moved |= take > 0;
+        }
+        if (moved) {
+            setChanged();
+            keeper.setChanged();
+        }
     }
 
     /** Taken down: the fuel in its store falls out (the water, diesel and power are lost). */
@@ -350,6 +471,10 @@ public class EngineShedBlockEntity extends BlockEntity {
 
     /** Tops up what's standing inside, as much as it can this time round. */
     private void service() {
+        EngineShedBlockEntity store = keeper();
+        ItemStackHandler fuel = store.fuel;
+        FluidTank water = store.water;
+        FluidTank diesel = store.diesel;
         List<TrainCarEntity> inside = carsInside();
         if (serving != null && !inside.contains(serving)) {
             serving = null;
@@ -363,13 +488,13 @@ public class EngineShedBlockEntity extends BlockEntity {
         for (TrainCarEntity car : inside) {
             boolean before = served;
             if (car instanceof ElectricLocomotive electric) {
-                double give = Math.min(Math.min(TrainsConfig.CHARGER_RATE.get() * (double) PERIOD, electric.room()), stored / (double) MjAPI.MJ);
+                double give = Math.min(Math.min(TrainsConfig.CHARGER_RATE.get() * (double) PERIOD, electric.room()), store.stored / (double) MjAPI.MJ);
                 if (give >= 0.001) {
                     electric.charge(give);
-                    stored = Math.max(0, stored - Math.round(give * MjAPI.MJ));
+                    store.stored = Math.max(0, store.stored - Math.round(give * MjAPI.MJ));
                     served = true;
                 }
-                wantsMore |= electric.room() >= 1.0 && stored >= MjAPI.MJ;
+                wantsMore |= electric.room() >= 1.0 && store.stored >= MjAPI.MJ;
             } else if (car instanceof DieselLocomotive engine) {
                 FluidStack drawn = diesel.drain(DIESEL_RATE * PERIOD, IFluidHandler.FluidAction.SIMULATE);
                 if (!drawn.isEmpty()) {
@@ -384,9 +509,9 @@ public class EngineShedBlockEntity extends BlockEntity {
             FuelStore firebox = car instanceof Tender tender ? tender
                     : car instanceof Locomotive loco && !(car instanceof ElectricLocomotive) && !(car instanceof DieselLocomotive) ? loco.fuelStore() : null;
             if (firebox != null && fired.add(firebox)) {
-                int shovelled = shovel(firebox);
+                int shovelled = shovel(fuel, firebox);
                 served |= shovelled > 0;
-                wantsMore |= shovelled > 0 && fuelCount() > 0 && room(firebox) > 0;
+                wantsMore |= shovelled > 0 && fuelCount() > 0 && room(fuel, firebox) > 0;
             }
             WaterStore tank = car instanceof Tender tender ? tender : car instanceof SteamLocomotive steam ? steam.waterStore() : null;
             if (tank != null && WaterStore.needed() && tank.waterCapacity() > 0 && watered.add(tank)) {
@@ -403,7 +528,7 @@ public class EngineShedBlockEntity extends BlockEntity {
             }
         }
         if (served) {
-            setChanged();
+            store.setChanged();
         }
         if (served && wantsMore && servedCar != null) {
             serving = servedCar;
@@ -412,7 +537,7 @@ public class EngineShedBlockEntity extends BlockEntity {
     }
 
     /** How many more of the biggest lump in the store would fit in a firebox. */
-    private int room(FuelStore store) {
+    private static int room(ItemStackHandler fuel, FuelStore store) {
         for (int i = 0; i < fuel.getSlots(); i++) {
             ItemStack stack = fuel.getStackInSlot(i);
             if (!stack.isEmpty()) {
@@ -423,7 +548,7 @@ public class EngineShedBlockEntity extends BlockEntity {
     }
 
     /** Shovels a few lumps of fuel into a firebox (or tender) that has room for them. Returns how many. */
-    private int shovel(FuelStore store) {
+    private static int shovel(ItemStackHandler fuel, FuelStore store) {
         int shovelled = 0;
         for (int i = 0; i < fuel.getSlots() && shovelled < FUEL_ITEMS; i++) {
             ItemStack stack = fuel.getStackInSlot(i);
@@ -468,6 +593,9 @@ public class EngineShedBlockEntity extends BlockEntity {
         }
         if ((level.getGameTime() + pos.hashCode()) % PERIOD == 0) {
             shed.service();
+        }
+        if ((level.getGameTime() + pos.hashCode()) % 20 == 0) {
+            shed.handOver();
         }
     }
 
@@ -563,7 +691,8 @@ public class EngineShedBlockEntity extends BlockEntity {
 
         @Override
         public FluidStack getFluidInTank(int tank) {
-            return tank == 0 ? water.getFluid() : diesel.getFluid();
+            EngineShedBlockEntity store = keeper();
+            return tank == 0 ? store.water.getFluid() : store.diesel.getFluid();
         }
 
         @Override
@@ -578,10 +707,11 @@ public class EngineShedBlockEntity extends BlockEntity {
 
         @Override
         public int fill(FluidStack resource, FluidAction action) {
-            if (water.isFluidValid(resource)) {
-                return water.fill(resource, action);
+            EngineShedBlockEntity store = keeper();
+            if (store.water.isFluidValid(resource)) {
+                return store.water.fill(resource, action);
             }
-            return diesel.isFluidValid(resource) ? diesel.fill(resource, action) : 0;
+            return store.diesel.isFluidValid(resource) ? store.diesel.fill(resource, action) : 0;
         }
 
         @Override
@@ -604,22 +734,23 @@ public class EngineShedBlockEntity extends BlockEntity {
 
         @Override
         public long getPowerRequested() {
-            return Math.max(0, capacityMicro() - stored);
+            return Math.max(0, capacityMicro() - keeper().stored);
         }
 
         @Override
         public long receivePower(long microJoules, boolean simulate) {
-            long taken = Math.max(0, Math.min(microJoules, capacityMicro() - stored));
+            EngineShedBlockEntity store = keeper();
+            long taken = Math.max(0, Math.min(microJoules, capacityMicro() - store.stored));
             if (!simulate && taken > 0) {
-                stored += taken;
-                setChanged();
+                store.stored += taken;
+                store.setChanged();
             }
             return microJoules - taken;
         }
 
         @Override
         public long getStored() {
-            return stored;
+            return keeper().stored;
         }
 
         @Override

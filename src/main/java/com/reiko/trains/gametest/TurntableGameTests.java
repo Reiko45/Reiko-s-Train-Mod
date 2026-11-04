@@ -242,4 +242,78 @@ public final class TurntableGameTests {
         helper.assertTrue(count == 1, "and give back one turntable, gave " + count);
         helper.succeed();
     }
+
+    @GameTest(template = YARD, timeoutTicks = 400)
+    public static void smallTurntableTurnsATankEngine(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        TestTracks.floor(level, helper.absolutePos(new BlockPos(0, 1, 0)), 48, 48);
+        TestTracks.line(level, at(helper, 0, 24), TrackAxis.X, 19);
+        TestTracks.line(level, at(helper, 24, 0), TrackAxis.Z, 19);
+        BlockPos pivot = helper.absolutePos(PIVOT);
+        TurntableBlock small = ModBlocks.SMALL_TURNTABLE.get();
+        helper.assertTrue(TurntableItem.place(level, pivot, 0, small), "a small turntable should fit");
+        TurntableBlockEntity table = (TurntableBlockEntity) level.getBlockEntity(pivot);
+        helper.assertTrue(table != null && table.radius() == 5.5, "its pit is 11 blocks across");
+        helper.assertTrue(level.getBlockState(pivot.offset(5, 0, 0)).is(small) && level.getBlockState(pivot.offset(6, 0, 0)).is(Blocks.STONE),
+                "reaching 5 blocks out");
+        helper.assertTrue(level.getBlockState(pivot.offset(3, 0, 3)).is(small) && level.getBlockState(pivot.offset(4, 0, 4)).is(Blocks.STONE),
+                "and 3 diagonally");
+        helper.assertTrue(level.getBlockState(pivot.offset(5, 0, 3)).is(small) && level.getBlockState(pivot.offset(5, 0, 4)).is(Blocks.STONE),
+                "and round");
+        helper.assertTrue(!level.getBlockState(pivot.offset(5, 0, 3)).getShape(level, pivot.offset(5, 0, 3)).isEmpty()
+                && level.getBlockState(pivot.offset(5, 0, 3)).getShape(level, pivot.offset(5, 0, 3)).max(Direction.Axis.Y) == 1,
+                "with a curved wall at its edge");
+        BlockPos hub = table.hub();
+        helper.assertTrue(TrackGraph.axis(level, hub.offset(-5, 0, 0)) == TrackAxis.X && TrackGraph.axis(level, hub.offset(-6, 0, 0)) == TrackAxis.X,
+                "its bridge is track, up to the track beyond");
+        List<EdgeRef> on = TrackGraph.edgesFrom(level, at(helper, 18, 24), 1);
+        helper.assertTrue(on.size() == 1 && on.getFirst().to().equals(hub.offset(-5, 0, 0)), "joined up: " + on);
+        SteamLocomotive loco = engine(helper, 24, 24, EAST);
+        helper.assertTrue(table.turn(-2) == TurntableBlockEntity.Result.TURNING, "a tank engine fits on it");
+        helper.runAfterDelay(80, () -> {
+            helper.assertTrue(!table.isTurning() && table.way() == 6 && loco.flatForward().z < -0.99, "it should face north now: " + loco.flatForward());
+            Player driver = board(helper, loco);
+            throttle(loco, 4);
+            helper.runAfterDelay(100, () -> {
+                helper.assertTrue(loco.getZ() < at(helper, 24, 14).getZ() && loco.isOnTrack(), "and run off to the north");
+                driver.stopRiding();
+                level.destroyBlock(pivot.offset(-4, 0, 2), true);
+                helper.assertTrue(level.getBlockState(pivot).isAir(), "the whole pit should go");
+                List<ItemEntity> drops = level.getEntitiesOfClass(ItemEntity.class, new AABB(pivot).inflate(7));
+                helper.assertTrue(drops.stream().anyMatch(e -> e.getItem().is(ModItems.SMALL_TURNTABLE.get()))
+                        && drops.stream().noneMatch(e -> e.getItem().is(ModItems.TURNTABLE.get())), "giving back a small turntable");
+                helper.succeed();
+            });
+        });
+    }
+
+    @GameTest(template = YARD, timeoutTicks = 2000)
+    public static void timetabledTrainsLineTheBridgeUpThemselves(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        TurntableBlockEntity table = yard(helper, false, true);
+        table.setWay(2); // north to south: not lined up with the line it comes in on, from the west
+        StationBlockEntity shed = TestTracks.station(level, at(helper, 27, 6), at(helper, 24, 6), "Shed", 1);
+        StationBlockEntity town = TestTracks.station(level, at(helper, 4, 21), at(helper, 4, 24), "Town", 1);
+        SteamLocomotive loco = engine(helper, 8, 24, EAST);
+        loco.autopilot().start(List.of(TestTracks.stop(shed), TestTracks.stop(town)));
+        boolean[] atShed = {false};
+        int[] turns = {0};
+        boolean[] carried = {false};
+        helper.onEachTick(() -> {
+            if (loco.autopilot().isDwelling() && Math.abs(loco.getZ() - at(helper, 24, 6).getZ() - 0.5) < 4) {
+                atShed[0] = true;
+            }
+            if (loco.carriedBy() != null && !carried[0]) {
+                turns[0]++;
+            }
+            carried[0] = loco.carriedBy() != null;
+        });
+        helper.succeedWhen(() -> {
+            helper.assertTrue(atShed[0], "it should have got to the shed, off the turntable's north track");
+            helper.assertTrue(loco.autopilot().isDwelling() && loco.getX() < at(helper, 10, 24).getX(), "and back to the town: " + loco.position());
+            helper.assertTrue(loco.flatForward().x < -0.99, "chimney first");
+            helper.assertTrue(turns[0] == 2, "going round on the bridge twice, it went round " + turns[0]);
+            loco.autopilot().stop();
+        });
+    }
 }

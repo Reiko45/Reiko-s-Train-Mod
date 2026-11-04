@@ -65,6 +65,10 @@ final class Lookahead {
     private double lastBuffer;
     boolean endOfLine;
     double endDistance = Double.POSITIVE_INFINITY;
+    /** The last track block before the end of the line, if it's ahead. */
+    @Nullable
+    BlockPos endNode;
+    private BlockPos lastNode;
 
     /** For a tram ({@link StreetRunning}): where it has to stop short of something on the track ahead (infinite if nothing). */
     double obstacleStop = Double.POSITIVE_INFINITY;
@@ -150,6 +154,7 @@ final class Lookahead {
         TrackScanner.End end = TrackScanner.scan(level, bogie, carDirection, range(speed), watching, (node, arrivedSide, distance) -> {
             double buffer = distance - overhang;
             look.lastBuffer = buffer;
+            look.lastNode = node;
             if (target != null && node.equals(target)) {
                 look.targetFound = true;
                 look.targetDistance = buffer;
@@ -184,6 +189,7 @@ final class Lookahead {
         if (end.endOfTrack()) {
             look.endOfLine = true;
             look.endDistance = end.distance() - overhang;
+            look.endNode = look.lastNode;
         }
         if (streetRunning(cars)) {
             look.brake = Drive.TRAM_BRAKE;
