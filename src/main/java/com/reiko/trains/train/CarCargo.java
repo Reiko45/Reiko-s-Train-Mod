@@ -160,7 +160,11 @@ public final class CarCargo {
         int facing = facing(car, at);
         Entity trailer = trailer(car);
         double tail = trailer == null ? 0 : tail(car, trailer);
-        return at.carry(car, carAlong(car, centre, facing), facing, length(car), tail);
+        boolean aboard = at.carry(car, carAlong(car, centre, facing), facing, length(car), tail);
+        if (aboard) {
+            com.reiko.trains.advancement.TrainAdvancements.award(car.getControllingPassenger(), "car_aboard");
+        }
+        return aboard;
     }
 
     /** A trailer's been unhitched aboard: it's left standing on the deck where it is, and stays aboard. */

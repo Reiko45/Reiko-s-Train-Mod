@@ -76,6 +76,9 @@ public final class ModNetwork {
                 case SignalBoxActionPayload.TURNTABLE -> box.turnTurntable(payload.target());
                 default -> com.reiko.trains.signal.SignalBoxBlockEntity.Done.NOT_FOUND;
             };
+            if (done == com.reiko.trains.signal.SignalBoxBlockEntity.Done.ROUTE_SET) {
+                com.reiko.trains.advancement.TrainAdvancements.award(player, "route");
+            }
             String key = switch (done) {
                 case LOCKED -> payload.action() == SignalBoxActionPayload.ROUTE ? "signal_box.route_locked" : "switch.locked";
                 case NO_ROUTE -> "signal_box.no_route";

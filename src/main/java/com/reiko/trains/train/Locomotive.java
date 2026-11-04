@@ -285,6 +285,12 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
                 driver.displayClientMessage(Component.translatable("message.reikotrains.auto.taken_over"), true);
             }
         }
+        if (action == TrainControlPayload.THROTTLE_UP) {
+            com.reiko.trains.advancement.TrainAdvancements.award(driver(), "drive");
+            if (this instanceof StreetRunning) {
+                com.reiko.trains.advancement.TrainAdvancements.award(driver(), "tram");
+            }
+        }
         switch (action) {
             case TrainControlPayload.THROTTLE_UP -> setThrottle(getThrottle() + 1);
             case TrainControlPayload.THROTTLE_DOWN -> setThrottle(getThrottle() - 1);
@@ -714,6 +720,9 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
         }
         if ((tickCount + getId()) % 20 == 0) {
             TrainMap.note(this);
+            if (driver != null) {
+                com.reiko.trains.advancement.TrainAdvancements.reach(driver, "speed", Math.abs(trainSpeed()) * 72);
+            }
         }
         if (carriedBy() != null && (tickCount & 7) == 0) {
             updateAutoDisplay(); // going round on a turntable, its timetable isn't run: say so

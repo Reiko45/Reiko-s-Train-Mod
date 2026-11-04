@@ -1,0 +1,31 @@
+{
+  "display": {
+    "icon": {
+      "id": "reikotrains:steam_locomotive"
+    },
+    "title": {
+      "translate": "advancements.reikotrains.root.title"
+    },
+    "description": {
+      "translate": "advancements.reikotrains.root.description"
+    },
+    "frame": "task",
+    "show_toast": false,
+    "announce_to_chat": false,
+    "hidden": false,
+    "background": "reikotrains:textures/block/track_sleeper.png"
+  },
+  "criteria": {
+    "place_car": {
+      "trigger": "reikotrains:train",
+      "conditions": {
+        "event": "place_car"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "place_car"
+    ]
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "parent": "reikotrains:root",
+  "display": {
+    "icon": {
+      "id": "reikotrains:express_locomotive"
+    },
+    "title": {
+      "translate": "advancements.reikotrains.full_steam_ahead.title"
+    },
+    "description": {
+      "translate": "advancements.reikotrains.full_steam_ahead.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "drive": {
+      "trigger": "reikotrains:train",
+      "conditions": {
+        "event": "drive"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "drive"
+    ]
+  ]
+}

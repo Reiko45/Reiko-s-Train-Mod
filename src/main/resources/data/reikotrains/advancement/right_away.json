@@ -1,0 +1,31 @@
+{
+  "parent": "reikotrains:root",
+  "display": {
+    "icon": {
+      "id": "reikotrains:timetable"
+    },
+    "title": {
+      "translate": "advancements.reikotrains.right_away.title"
+    },
+    "description": {
+      "translate": "advancements.reikotrains.right_away.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "timetable": {
+      "trigger": "reikotrains:train",
+      "conditions": {
+        "event": "timetable"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "timetable"
+    ]
+  ]
+}

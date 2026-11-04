@@ -64,6 +64,7 @@ public class CouplerItem extends Item {
             level.playSound(null, cart.getX(), cart.getY(), cart.getZ(), ModSounds.COUPLE.get(), SoundSource.NEUTRAL, 1.0F, 1.0F);
             player.displayClientMessage(Component.translatable("message.reikotrains.couple.coupled", first.getDisplayName(),
                     cart.getDisplayName(), Trains.train(car).size()), true);
+            com.reiko.trains.advancement.TrainAdvancements.award(player, "couple");
         } else {
             player.displayClientMessage(result.message(), true);
         }

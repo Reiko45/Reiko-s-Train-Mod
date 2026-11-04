@@ -102,6 +102,7 @@ public class TimetableItem extends Item {
             return InteractionResult.CONSUME;
         }
         loco.autopilot().start(stops);
+        com.reiko.trains.advancement.TrainAdvancements.award(player, "timetable");
         player.displayClientMessage(Component.translatable("message.reikotrains.timetable.started", stops.size(), stops.getFirst().name()), true);
         return InteractionResult.CONSUME;
     }

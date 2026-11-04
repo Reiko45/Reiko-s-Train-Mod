@@ -530,6 +530,12 @@ public class EngineShedBlockEntity extends BlockEntity {
         if (served) {
             store.setChanged();
         }
+        if (served && servedCar != null && (level.getGameTime() % 20) < PERIOD) {
+            com.reiko.trains.train.Locomotive leader = com.reiko.trains.train.Trains.leaderOf(servedCar);
+            if (leader != null) {
+                com.reiko.trains.advancement.TrainAdvancements.award(leader.driver(), "shed");
+            }
+        }
         if (served && wantsMore && servedCar != null) {
             serving = servedCar;
             lastServed = level.getGameTime();

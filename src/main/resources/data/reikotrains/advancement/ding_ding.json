@@ -1,0 +1,31 @@
+{
+  "parent": "reikotrains:full_steam_ahead",
+  "display": {
+    "icon": {
+      "id": "reikotrains:vintage_tram"
+    },
+    "title": {
+      "translate": "advancements.reikotrains.ding_ding.title"
+    },
+    "description": {
+      "translate": "advancements.reikotrains.ding_ding.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "tram": {
+      "trigger": "reikotrains:train",
+      "conditions": {
+        "event": "tram"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "tram"
+    ]
+  ]
+}

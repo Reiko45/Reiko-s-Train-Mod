@@ -179,6 +179,9 @@ public class TurntableBlock extends Block implements EntityBlock {
         TurntableBlockEntity table = turntable(level, state, pos);
         if (table != null) {
             TurntableBlockEntity.Result result = table.turnNext(player.isSecondaryUseActive() ? -1 : 1);
+            if (result == TurntableBlockEntity.Result.TURNING && table.isCarryingAny()) {
+                com.reiko.trains.advancement.TrainAdvancements.award(player, "turntable");
+            }
             player.displayClientMessage(Component.translatable("message.reikotrains.turntable." + result.key()), true);
         }
         return InteractionResult.CONSUME;

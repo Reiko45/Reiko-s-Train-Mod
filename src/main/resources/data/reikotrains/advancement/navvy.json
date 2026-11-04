@@ -1,0 +1,32 @@
+{
+  "parent": "reikotrains:root",
+  "display": {
+    "icon": {
+      "id": "reikotrains:track_layer"
+    },
+    "title": {
+      "translate": "advancements.reikotrains.navvy.title"
+    },
+    "description": {
+      "translate": "advancements.reikotrains.navvy.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "lay": {
+      "trigger": "reikotrains:train",
+      "conditions": {
+        "event": "lay",
+        "min": 64
+      }
+    }
+  },
+  "requirements": [
+    [
+      "lay"
+    ]
+  ]
+}

@@ -376,6 +376,11 @@ public class TurntableBlockEntity extends BlockEntity {
         changed();
     }
 
+    /** Whether it's going round with any train on it. */
+    public boolean isCarryingAny() {
+        return turning && !carried.isEmpty();
+    }
+
     /** Whether this car's going round on it now. */
     public boolean isCarrying(UUID car) {
         if (!turning) {

@@ -97,6 +97,9 @@ public class ElectricLocomotive extends Locomotive {
             line = lines.lineAbove(position().add(flatForward().scale(pantographForward())));
         }
         boolean live = line != null && lines.energy(line) >= 1.0;
+        if (live && (tickCount + getId()) % 20 == 0) {
+            com.reiko.trains.advancement.TrainAdvancements.award(driver(), "wire");
+        }
         if (live) {
             // Charging from the wire as it goes.
             double want = Math.min(TrainsConfig.WIRE_CHARGE_RATE.get(), room());

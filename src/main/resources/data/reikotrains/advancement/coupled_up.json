@@ -1,0 +1,31 @@
+{
+  "parent": "reikotrains:root",
+  "display": {
+    "icon": {
+      "id": "reikotrains:coupler"
+    },
+    "title": {
+      "translate": "advancements.reikotrains.coupled_up.title"
+    },
+    "description": {
+      "translate": "advancements.reikotrains.coupled_up.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "couple": {
+      "trigger": "reikotrains:train",
+      "conditions": {
+        "event": "couple"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "couple"
+    ]
+  ]
+}

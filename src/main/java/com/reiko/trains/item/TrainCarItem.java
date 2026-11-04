@@ -80,6 +80,7 @@ public class TrainCarItem extends Item {
             serverLevel.addFreshEntity(car);
             serverLevel.gameEvent(GameEvent.ENTITY_PLACE, pos, GameEvent.Context.of(player));
             stack.shrink(1);
+            com.reiko.trains.advancement.TrainAdvancements.award(player, "place_car");
             return InteractionResult.CONSUME;
         }
         return InteractionResult.SUCCESS;

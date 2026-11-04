@@ -1,0 +1,31 @@
+{
+  "parent": "reikotrains:coupled_up",
+  "display": {
+    "icon": {
+      "id": "reikotrains:car_transporter"
+    },
+    "title": {
+      "translate": "advancements.reikotrains.car_carrier.title"
+    },
+    "description": {
+      "translate": "advancements.reikotrains.car_carrier.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "car_aboard": {
+      "trigger": "reikotrains:train",
+      "conditions": {
+        "event": "car_aboard"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "car_aboard"
+    ]
+  ]
+}

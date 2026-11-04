@@ -452,6 +452,13 @@ public class TrackLayer extends TrainCarEntity implements Container {
             }
         }
         laid++;
+        Locomotive driving = Trains.leaderOf(this);
+        if (driving != null) {
+            com.reiko.trains.advancement.TrainAdvancements.reach(driving.driver(), "lay", laid);
+            if (!works.bridge.isEmpty()) {
+                com.reiko.trains.advancement.TrainAdvancements.award(driving.driver(), "bridge");
+            }
+        }
         if (wired) {
             putUpWire(level, node, target, endDir, street, shape.length());
         }

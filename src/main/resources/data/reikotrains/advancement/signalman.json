@@ -1,0 +1,31 @@
+{
+  "parent": "reikotrains:right_away",
+  "display": {
+    "icon": {
+      "id": "reikotrains:signal_box"
+    },
+    "title": {
+      "translate": "advancements.reikotrains.signalman.title"
+    },
+    "description": {
+      "translate": "advancements.reikotrains.signalman.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "route": {
+      "trigger": "reikotrains:train",
+      "conditions": {
+        "event": "route"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "route"
+    ]
+  ]
+}

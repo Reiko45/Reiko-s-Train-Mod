@@ -1,0 +1,35 @@
+{
+  "parent": "reikotrains:full_steam_ahead",
+  "display": {
+    "icon": {
+      "id": "reikotrains:bullet_train"
+    },
+    "title": {
+      "translate": "advancements.reikotrains.ninety.title"
+    },
+    "description": {
+      "translate": "advancements.reikotrains.ninety.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "speed": {
+      "trigger": "reikotrains:train",
+      "conditions": {
+        "event": "speed",
+        "min": 90
+      }
+    }
+  },
+  "requirements": [
+    [
+      "speed"
+    ]
+  ],
+  "rewards": {
+    "experience": 50
+  }
+}

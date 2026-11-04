@@ -1,0 +1,31 @@
+{
+  "parent": "reikotrains:navvy",
+  "display": {
+    "icon": {
+      "id": "minecraft:stone_bricks"
+    },
+    "title": {
+      "translate": "advancements.reikotrains.over_the_river.title"
+    },
+    "description": {
+      "translate": "advancements.reikotrains.over_the_river.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "bridge": {
+      "trigger": "reikotrains:train",
+      "conditions": {
+        "event": "bridge"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "bridge"
+    ]
+  ]
+}
