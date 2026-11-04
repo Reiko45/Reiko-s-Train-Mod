@@ -10,7 +10,7 @@
     },
     {
       "type": "patchouli:text",
-      "text": "Street corners can be as tight as a radius of 3 blocks, and are paid for in street track.$(br2)Street track's rails are at the top of the block, so a street running on into train track needs a ramp: any curve between the two is one.$(br2)It's made for $(l:electric/trams)trams$(/l), but any train runs on it."
+      "text": "Street corners can be as tight as a radius of 3 blocks, and are paid for in street track.$(br2)A street runs straight on into train track: lay train track on the ground in line with the street track's end (a block up from it, as the street track's set into the road) and they join up, near enough level.$(br2)It's made for $(l:electric/trams)trams$(/l), but any train runs on it."
     },
     {
       "type": "patchouli:image",
@@ -19,6 +19,14 @@
       ],
       "border": true,
       "text": "Street track round a street corner."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/street_meets_track.png"
+      ],
+      "border": true,
+      "text": "The street running on into train track."
     },
     {
       "type": "patchouli:crafting",

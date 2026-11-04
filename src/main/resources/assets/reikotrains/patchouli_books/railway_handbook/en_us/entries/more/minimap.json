@@ -1,5 +1,5 @@
 {
-  "name": "Trains on the Minimap",
+  "name": "Trains on the Map",
   "icon": "minecraft:compass",
   "category": "reikotrains:more",
   "sortnum": 0,
@@ -15,6 +15,18 @@
       ],
       "border": true,
       "text": "Trains on the minimap, lettered by their engines."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "With $(thing)Xaero's World Map$() they show on the world map too, in their engines' colours. $(l)Click$() one for what it's doing: who's driving it, or whether it's running to its timetable; how fast it's going, and its next stop."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/world_map.png"
+      ],
+      "border": true,
+      "text": "A train on the world map, clicked on."
     }
   ]
 }

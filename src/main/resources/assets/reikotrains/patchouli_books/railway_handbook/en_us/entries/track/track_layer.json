@@ -18,7 +18,19 @@
     },
     {
       "type": "patchouli:text",
-      "text": "It carries the line straight on, diagonals too. $(l)Steer$() left or right ($(k:key.left) / $(k:key.right)) and it lays a smooth 45° bend that way, then goes straight on: one bend for each press.$(br2)The line stays $(l)level$(): it digs a cutting through hills, three wide and four high, keeping what it digs, and fills dips up to six deep under the track."
+      "text": "It carries the line straight on, diagonals too. $(l)Steer$() left or right ($(k:key.left) / $(k:key.right)) and it lays a smooth 45° bend that way, then goes straight on: one bend for each press. Its screen sets the bends $(l)tight$() (about 10 blocks across) or $(l)wide$() (about 20).$(br2)It $(l)follows the ground$() up and down, at no more than 1 in 8; or, set to, it keeps the line $(l)level$()."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/track_layer_slope.png"
+      ],
+      "border": true,
+      "text": "Climbing a rise, at 1 in 8."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Hills in the way are dug through, three wide: an open $(l)cutting$() where they're low, a $(l)tunnel$() where they're tall (its roof made good where sand or gravel would fall in, and water beside the line walled off). It keeps what it digs.$(br2)Dips up to six deep are $(l)filled$(), three wide, with stone, dirt or gravel."
     },
     {
       "type": "patchouli:image",
@@ -26,11 +38,35 @@
         "reikotrains:textures/gui/guide/track_layer_line.png"
       ],
       "border": true,
-      "text": "Through a hill, over a gully and round a bend."
+      "text": "Over a gully, filled three wide, and round a bend."
     },
     {
       "type": "patchouli:text",
-      "text": "It stops when it's out of track or fill, at water or lava, at a drop too deep to fill (bridge it by hand and carry on), and at bedrock, chests or other track right in the way. Its screen says why, and so does a message to the driver.$(br2)The switch in its screen turns it off: then it's an ordinary wagon."
+      "text": "Deeper gaps, and water, are $(l)bridged$(): a deck under the line and a pier every four blocks down to the bottom (up to 48 deep). Load it with stone bricks or other bricks for them, or it uses fill.$(br2)Off the end of $(l:track/street_track)street track$(/l) it lays street track, with that aboard."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/track_layer_bridge.png"
+      ],
+      "border": true,
+      "text": "A bridge on piers, over a pool."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "With $(l:electric/overhead_lines)masts and overhead wire$(/l) aboard, it $(l)wires the line$() too: a mast on its left every sixteen blocks or so, wire strung from the last, and its cuttings and tunnels dug tall enough for the wire.$(br2)It stops when it's out of track or fill, at water where the track would go, at a gap too deep even for a pier, and at bedrock, chests or other track right in the way."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/track_layer_tunnel.png"
+      ],
+      "border": true,
+      "text": "Into a tall hill in a tunnel, wiring the line."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Its screen says why it's stopped, and so does a message to the driver.$(br2)The switch in its screen turns it off: then it's an ordinary wagon. The buttons under it set the slopes (following the ground, or level) and the bends (tight or wide)."
     },
     {
       "type": "patchouli:image",
@@ -38,7 +74,7 @@
         "reikotrains:textures/gui/guide/track_layer_screen.png"
       ],
       "border": true,
-      "text": "Its screen: the store, the switch and what it's doing."
+      "text": "Its screen: the store, the switch, what it's doing, and how it lays."
     },
     {
       "type": "patchouli:crafting",

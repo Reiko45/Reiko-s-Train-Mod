@@ -76,4 +76,32 @@ final class CarShowcase {
             loco.autopilot().start(List.of(TestTracks.stop(docks)));
         }
     }
+
+    /** A siding with a car transporter by a loading dock of Car Ramps, along x at this z. */
+    static final int RAMP_LINE = -560;
+
+    /**
+     * The dock: track along x, a car transporter at x = 30 with a pickup towing a camper aboard, and a row of Car Ramps
+     * on its south side (rising towards it) with a sedan on them, lined up to drive aboard sideways.
+     */
+    static void buildRamp(ServerLevel level, int y) {
+        TestTracks.line(level, new BlockPos(0, y, RAMP_LINE), TrackAxis.X, 70);
+        CarTransporter wagon = TestTracks.car(level, ModEntities.CAR_TRANSPORTER.get(), new BlockPos(30, y, RAMP_LINE), EAST);
+        for (int x = 22; x <= 38; x++) {
+            level.setBlock(new BlockPos(x, y, RAMP_LINE + 3), com.reiko.trains.registry.ModBlocks.CAR_RAMP.get().defaultBlockState()
+                    .setValue(com.reiko.trains.freight.CarRampBlock.FACING, net.minecraft.core.Direction.NORTH), 3);
+            for (int dz = 4; dz <= 6; dz++) {
+                level.setBlock(new BlockPos(x, y, RAMP_LINE + dz), net.minecraft.world.level.block.Blocks.SMOOTH_STONE.defaultBlockState(), 3);
+            }
+        }
+        CarEntity pickup = car(level, "pickup_truck", wagon.position(), -90.0F);
+        Entity camper = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.fromNamespaceAndPath("reikocars", "camper")).create(level);
+        camper.moveTo(wagon.getX() - 3, wagon.getY() + 1, wagon.getZ(), -90.0F, 0.0F);
+        level.addFreshEntity(camper);
+        camper.startRiding(pickup, true);
+        double length = CarCargo.length(pickup);
+        double tail = CarCargo.tail(pickup, camper);
+        wagon.carry(pickup, CarTransporter.DECK_HALF - length / 2, 1, length, tail);
+        car(level, "sedan", new Vec3(27.5, y + 1.0, RAMP_LINE + 3.5), 90.0F);
+    }
 }

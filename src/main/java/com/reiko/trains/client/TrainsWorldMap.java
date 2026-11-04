@@ -128,7 +128,7 @@ public final class TrainsWorldMap {
         GuiGraphics graphics = event.getGuiGraphics();
         Font font = minecraft.font;
         graphics.pose().pushPose();
-        graphics.pose().translate(0, 0, 400);
+        graphics.pose().translate(0, 0, 1500); // over the map's own markers and the player's arrow
         TrainMinimap.Shown hovered = null;
         TrainMinimap.Shown chosen = null;
         for (TrainMinimap.Shown train : trains(minecraft)) {

@@ -2,7 +2,7 @@
   "name": "Switches",
   "icon": "reikotrains:switch_stand",
   "category": "reikotrains:signals",
-  "sortnum": 4,
+  "sortnum": 5,
   "pages": [
     {
       "type": "patchouli:text",

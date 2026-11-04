@@ -110,6 +110,7 @@ public final class DevShowcase {
             rules.getRule(GameRules.RULE_DAYLIGHT).set(false, null);
             rules.getRule(GameRules.RULE_WEATHER_CYCLE).set(false, null);
             rules.getRule(GameRules.RULE_DOMOBSPAWNING).set(false, null);
+            rules.getRule(GameRules.RULE_ANNOUNCE_ADVANCEMENTS).set(false, null);
             LevelSettings settings = new LevelSettings("showcase-" + System.currentTimeMillis(), GameType.CREATIVE, false,
                     Difficulty.PEACEFUL, true, rules, WorldDataConfiguration.DEFAULT);
             minecraft.createWorldOpenFlows().createFreshLevel(settings.levelName(), settings, new WorldOptions(1L, false, false),
@@ -130,6 +131,7 @@ public final class DevShowcase {
             return;
         }
         tick++;
+        minecraft.getToasts().clear(); // advancements earned along the way: not in the pictures
         for (Step step : STEPS) {
             if (step.at == tick) {
                 try {
@@ -222,6 +224,12 @@ public final class DevShowcase {
     private static final BlockPos SIGNAL_BOX = new BlockPos(27, Y, 26);
     /** A line ending in open country, with a track-laying wagon at its end: a hill ahead of it, then a gully. */
     private static final int LAYER_LINE = -380;
+    /** A line with four-aspect signals on it, along x at this z. */
+    private static final int FOUR_ASPECT_LINE = -440;
+    /** A depot: a small turntable (its pivot at x = 30) and a two-road engine shed (doors at x = 60) east of it, at this z. */
+    private static final int DEPOT = -470;
+    /** A second track-laying wagon's line: up a rise, over a river, into a tall hill, with masts and wire aboard. */
+    private static final int NEW_LAYER_LINE = -520;
     /** The switch stand for the junction at x = 52. */
     private static final BlockPos SWITCH = new BlockPos(52, Y, -2);
 
@@ -465,6 +473,7 @@ public final class DevShowcase {
         turntableYard(level);
         signalLine(level);
         trackLayerLine(level);
+        followUpsBuild(level);
 
         Locomotive limited = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(24, Y, SPEED_LINE), EAST);
         PassengerCoach limitedCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(17, Y, SPEED_LINE), EAST);
@@ -990,6 +999,8 @@ public final class DevShowcase {
             layer.store(new ItemStack(ModItems.TRACK.get(), 64));
         }
         layer.store(new ItemStack(Items.GRAVEL, 64));
+        layer.store(new ItemStack(Items.GRAVEL, 64));
+        layer.setFollowGround(false); // this one keeps the line level: a cutting through the hill
     }
 
     /**
@@ -1055,6 +1066,214 @@ public final class DevShowcase {
         at(5762, mc -> mc.setCameraEntity(mc.player));
         at(5790, mc -> shot(mc, "65_track_layer_screen"));
         at(5792, mc -> mc.setScreen(null));
+    }
+
+    /**
+     * The follow-ups (0.29.0): four-aspect signals; a depot with a small turntable and a two-road engine shed; a street
+     * running on into train track; a second track-laying wagon's line (up a rise, over a river, into a tall hill, wired
+     * as it goes); with Reiko's Car Mod, a loading dock of Car Ramps.
+     */
+    private static void followUpsBuild(ServerLevel level) {
+        // Four-aspect signals at x = 60 and 80, a three-light one at 100, and a goods train standing beyond it.
+        int z = FOUR_ASPECT_LINE;
+        TestTracks.line(level, new BlockPos(0, Y, z), TrackAxis.X, 160);
+        TestTracks.fourAspectSignal(level, new BlockPos(60, Y, z + 2), new BlockPos(60, Y, z), 1);
+        TestTracks.fourAspectSignal(level, new BlockPos(80, Y, z + 2), new BlockPos(80, Y, z), 1);
+        TestTracks.threeLightSignal(level, new BlockPos(100, Y, z + 2), new BlockPos(100, Y, z), 1);
+        Locomotive goods = TestTracks.car(level, ModEntities.DIESEL_LOCOMOTIVE.get(), new BlockPos(130, Y, z), EAST);
+        FreightWagon goodsWagon = TestTracks.car(level, ModEntities.FREIGHT_WAGON.get(), new BlockPos(122, Y, z), EAST);
+        Trains.couple(goods, goodsWagon);
+
+        // The depot: a small turntable with a tank engine on it, track off it east and west; east, two roads into a
+        // two-road shed (its doors side by side, sharing a post), a diesel inside on the second.
+        z = DEPOT;
+        TestTracks.line(level, new BlockPos(0, Y, z), TrackAxis.X, 25);
+        TestTracks.line(level, new BlockPos(36, Y, z), TrackAxis.X, 45);
+        TestTracks.line(level, new BlockPos(44, Y, z + 4), TrackAxis.X, 37);
+        com.reiko.trains.turntable.TurntableItem.place(level, new BlockPos(30, Y - 1, z), 0, ModBlocks.SMALL_TURNTABLE.get());
+        com.reiko.trains.train.SteamLocomotive tank = put(level, ModEntities.STEAM_LOCOMOTIVE.get(), 30, z);
+        tank.setFuel(com.reiko.trains.train.SteamLocomotive.FUEL_CAPACITY);
+        int doors = 60;
+        TestTracks.engineShed(level, new BlockPos(doors, Y, z), net.minecraft.core.Direction.WEST);
+        TestTracks.engineShed(level, new BlockPos(doors, Y, z + 4), net.minecraft.core.Direction.WEST);
+        for (int x = doors + 1; x <= doors + 17; x++) {
+            for (int y = Y; y < Y + 5; y++) {
+                for (int wall : new int[] {z - 2, z + 6}) {
+                    level.setBlock(new BlockPos(x, y, wall), (x - doors) % 4 == 2 && y == Y + 2 ? Blocks.GLASS_PANE.defaultBlockState()
+                            : Blocks.BRICKS.defaultBlockState(), 2);
+                }
+                if (x == doors + 17) {
+                    for (int dz = -1; dz <= 5; dz++) {
+                        level.setBlock(new BlockPos(x, y, z + dz), Blocks.BRICKS.defaultBlockState(), 2);
+                    }
+                }
+            }
+            for (int dz = -2; dz <= 6; dz++) {
+                level.setBlock(new BlockPos(x, Y + 5, z + dz), Blocks.DARK_OAK_SLAB.defaultBlockState(), 2);
+            }
+        }
+        put(level, ModEntities.DIESEL_LOCOMOTIVE.get(), 70, z + 4);
+
+        // The street's west end runs on into train track, on the ground beside it.
+        TestTracks.line(level, new BlockPos(-30, Y, STREET), TrackAxis.X, 26);
+
+        // The second track-laying wagon's country: a rise a block high from x = 40, a river across it (x 66-75), a tall
+        // hill (x 100-118).
+        z = NEW_LAYER_LINE;
+        TestTracks.line(level, new BlockPos(0, Y, z), TrackAxis.X, 31);
+        for (int x = 40; x <= 140; x++) {
+            for (int dz = -9; dz <= 9; dz++) {
+                level.setBlock(new BlockPos(x, Y - 1, z + dz), Blocks.DIRT.defaultBlockState(), 2);
+                level.setBlock(new BlockPos(x, Y, z + dz), Blocks.GRASS_BLOCK.defaultBlockState(), 2);
+            }
+        }
+        for (int x = 66; x <= 75; x++) {
+            for (int dz = -7; dz <= 7; dz++) {
+                for (int y = Y - 2; y <= Y; y++) {
+                    level.setBlock(new BlockPos(x, y, z + dz), Blocks.WATER.defaultBlockState(), 2);
+                }
+                level.setBlock(new BlockPos(x, Y - 3, z + dz), Blocks.GRAVEL.defaultBlockState(), 2);
+            }
+        }
+        for (int x = 100; x <= 118; x++) {
+            for (int dz = -9; dz <= 9; dz++) {
+                for (int y = Y + 1; y <= Y + 10; y++) {
+                    level.setBlock(new BlockPos(x, y, z + dz), (y == Y + 10 ? Blocks.GRASS_BLOCK : y >= Y + 8 ? Blocks.DIRT : Blocks.STONE)
+                            .defaultBlockState(), 2);
+                }
+            }
+        }
+        com.reiko.trains.train.SteamLocomotive loco = put(level, ModEntities.STEAM_LOCOMOTIVE.get(), 19, z);
+        com.reiko.trains.train.TrackLayer layer = put(level, ModEntities.TRACK_LAYER.get(), 25, z);
+        Trains.couple(loco, layer);
+        loco.setFuel(com.reiko.trains.train.SteamLocomotive.FUEL_CAPACITY);
+        loco.setWater(com.reiko.trains.train.SteamLocomotive.WATER_CAPACITY);
+        for (int i = 0; i < 4; i++) {
+            layer.store(new ItemStack(ModItems.TRACK.get(), 64));
+        }
+        layer.store(new ItemStack(Items.GRAVEL, 64));
+        layer.store(new ItemStack(Items.GRAVEL, 64));
+        layer.store(new ItemStack(Items.STONE_BRICKS, 64));
+        layer.store(new ItemStack(Items.STONE_BRICKS, 64));
+        layer.store(new ItemStack(ModItems.CATENARY_MAST.get(), 10));
+        layer.store(new ItemStack(ModItems.OVERHEAD_WIRE.get(), 10));
+
+        if (com.reiko.trains.train.CarCargo.CAR_MOD) {
+            CarShowcase.buildRamp(level, Y);
+        }
+    }
+
+    private static void followUpsScene() {
+        // Four-aspect signals: double yellow, yellow, red, the goods train beyond.
+        at(5800, mc -> {
+            mc.options.fov().set(30);
+            look(mc, 44.5, Y + 0.8, FOUR_ASPECT_LINE + 8.5, -114.0F, 2.0F);
+        });
+        at(5880, mc -> shot(mc, "66_four_aspect_signals"));
+        at(5882, mc -> {
+            mc.options.fov().set(70);
+            look(mc, 56.5, Y + 2.0, FOUR_ASPECT_LINE + 4.5, -150.0F, 4.0F);
+        });
+        at(5920, mc -> shot(mc, "66b_double_yellow"));
+        // The signal box: a route set (in blue) from a signal on the loop round to the next.
+        at(5925, mc -> look(mc, SIGNAL_BOX.getX() - 0.6, Y - 0.35, SIGNAL_BOX.getZ() - 1.6, -32.0F, 38.0F));
+        at(6005, mc -> server(mc, player -> {
+            ServerLevel level = player.serverLevel();
+            player.getAbilities().flying = false;
+            player.onUpdateAbilities();
+            if (level.getBlockEntity(SIGNAL_BOX) instanceof com.reiko.trains.signal.SignalBoxBlockEntity box) {
+                ReikoTrains.LOGGER.info("Showcase: route: {}", box.setRoute(new BlockPos(38, Y, 12), new BlockPos(40, Y, 40)));
+            }
+            level.getBlockState(SIGNAL_BOX).useWithoutItem(level, player, new net.minecraft.world.phys.BlockHitResult(
+                    net.minecraft.world.phys.Vec3.atCenterOf(SIGNAL_BOX), net.minecraft.core.Direction.NORTH, SIGNAL_BOX, false));
+        }));
+        at(6025, mc -> {
+            if (mc.screen instanceof com.reiko.trains.client.SignalBoxScreen screen) {
+                screen.view(5.0F, -6.0F, 0.0F);
+                screen.routeMode(true, null);
+            }
+        });
+        at(6055, mc -> shot(mc, "67_signal_box_route"));
+        at(6057, mc -> mc.setScreen(null));
+        // The depot: the small turntable with its tank engine, its pit round; then the two-road shed's doors.
+        at(6060, mc -> look(mc, 19.5, Y + 6.5, DEPOT + 9.5, -132.0F, 30.0F));
+        at(6150, mc -> shot(mc, "68_small_turntable"));
+        at(6152, mc -> {
+            look(mc, 49.5, Y + 2.4, DEPOT + 2.0, -90.0F, 4.0F);
+            server(mc, player -> {
+                if (player.serverLevel().getBlockEntity(new BlockPos(60, Y + 4, DEPOT + 4)) instanceof com.reiko.trains.shed.EngineShedBlockEntity shed) {
+                    shed.redstone(new BlockPos(62, Y, DEPOT + 6), true);
+                }
+            });
+        });
+        at(6200, mc -> shot(mc, "69_two_road_shed"));
+        // The street running on into train track.
+        at(6202, mc -> look(mc, -2.0, Y + 1.0, STREET + 2.8, 122.0F, 16.0F));
+        at(6290, mc -> shot(mc, "70_street_meets_track"));
+        // The second track-laying wagon: up the rise, over the river on a bridge, into the hill in a tunnel, wiring the
+        // line as it goes.
+        int z = NEW_LAYER_LINE;
+        at(6292, mc -> look(mc, 30.0, Y + 3.0, z + 8.0, 150.0F, 10.0F));
+        at(6370, mc -> server(mc, player -> {
+            ServerLevel level = player.serverLevel();
+            com.reiko.trains.train.SteamLocomotive loco = find(level, com.reiko.trains.train.SteamLocomotive.class, 19.5, z + 0.5);
+            player.getAbilities().flying = false;
+            player.onUpdateAbilities();
+            player.teleportTo(level, loco.getX(), loco.getY(), loco.getZ(), -90.0F, 4.0F);
+            player.startRiding(loco);
+            loco.control(TrainControlPayload.THROTTLE_UP);
+            loco.control(TrainControlPayload.THROTTLE_UP);
+        }));
+        at(6374, mc -> camera(mc, 38.0, Y + 3.5, z + 13.0, 160.0F, 12.0F));
+        boolean[] slope = {false};
+        boolean[] bridge = {false};
+        boolean[] level = {false};
+        boolean[] tunnel = {false};
+        for (int time = 6380; time <= 7200; time++) {
+            boolean last = time == 7200;
+            at(time, mc -> {
+                List<com.reiko.trains.train.TrackLayer> layers = mc.level.getEntitiesOfClass(com.reiko.trains.train.TrackLayer.class,
+                        new AABB(0, Y - 4, z - 30, 200, Y + 12, z + 30));
+                double x = layers.isEmpty() ? 0 : layers.getFirst().getX();
+                if (!slope[0] && (x >= 45.0 || last)) {
+                    slope[0] = true;
+                    shot(mc, "71_track_layer_slope");
+                    camera(mc, 70.5, Y + 4.0, z + 15.0, 175.0F, 14.0F);
+                }
+                if (slope[0] && !bridge[0] && (x >= 83.0 || last)) {
+                    bridge[0] = true;
+                    shot(mc, "72_track_layer_bridge");
+                    camera(mc, 88.0, Y + 5.5, z + 7.5, -112.0F, 10.0F);
+                }
+                if (!level[0] && x >= 86.0) {
+                    level[0] = true;
+                    server(mc, player -> {
+                        for (com.reiko.trains.train.TrackLayer layer : player.serverLevel().getEntitiesOfClass(com.reiko.trains.train.TrackLayer.class,
+                                new AABB(0, Y - 4, z - 30, 200, Y + 12, z + 30))) {
+                            layer.setFollowGround(false);
+                        }
+                    });
+                }
+                if (bridge[0] && !tunnel[0] && (x >= 106.0 || last)) {
+                    tunnel[0] = true;
+                    shot(mc, "73_track_layer_tunnel");
+                    camera(mc, 52.0, Y + 13.0, z - 16.0, -60.0F, 26.0F);
+                }
+            });
+        }
+        at(7240, mc -> shot(mc, "74_wired_line"));
+        at(7242, mc -> mc.setCameraEntity(mc.player));
+        // With Reiko's Car Mod: the loading dock.
+        if (com.reiko.trains.train.CarCargo.CAR_MOD) {
+            at(7245, mc -> look(mc, 40.0, Y + 5.0, CarShowcase.RAMP_LINE + 13.0, 150.0F, 20.0F));
+            at(7330, mc -> shot(mc, "75_car_ramp"));
+        }
+        // With Xaero's World Map: the trains round the loop on it, one clicked on.
+        at(7335, mc -> look(mc, 27.0, Y + 30.0, 26.0, 0.0F, 90.0F));
+        at(7420, mc -> ShowcaseMaps.openWorldMap(mc));
+        at(7440, mc -> ShowcaseMaps.pickLoopTrain(mc, Y));
+        at(7470, mc -> shot(mc, "76_world_map"));
+        at(7472, mc -> mc.setScreen(null));
     }
 
     // ---- the Railway Handbook, its buttons and the JEI pages: ./gradlew runClient -Pshowcase -PshowcaseBook ----
@@ -1433,6 +1652,7 @@ public final class DevShowcase {
         signalScene();
         signalBoxScene();
         trackLayerScene();
-        at(5800, Minecraft::stop);
+        followUpsScene();
+        at(7480, Minecraft::stop);
     }
 }

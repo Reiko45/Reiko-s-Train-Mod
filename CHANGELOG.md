@@ -2,6 +2,48 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.29.0
+
+The follow-ups: something for nearly every part of the mod.
+
+- **Track-laying wagon**: it follows the ground up and down at no more than 1 in 8 (or, set in its screen, keeps the
+  line level); digs through hills three wide, as an open cutting or, under a tall hill, a tunnel (its roof made good
+  where sand or gravel would fall in, water beside it walled off); fills dips three wide; and bridges deeper gaps and
+  rivers with a deck on piers every four blocks, up to 48 deep, of stone bricks (anything tagged
+  `reikotrains:masonry`) or fill. Its bends can be tight or wide (about 10 or 20 blocks across). Off street track it
+  lays street track; with masts and wire aboard it wires the line, a mast every sixteen blocks or so. Its screen has
+  buttons for the slopes and the bends.
+- **Street track** runs straight on into train track laid on the ground in line with it, near enough level, with no
+  ramp.
+- New: the **Four-Aspect Signal** (a three-light signal, a redstone lamp and yellow dye). Double yellow while the next
+  signal is yellow: trains pass it at no more than 80 km/h (new server setting `doubleYellowSpeedKmh`), then the yellow
+  at caution speed. A comparator reads 15, 7, 3 or 0; the gauges and the signal box show two yellow lamps. Trains keep
+  to caution speed past a yellow (or a double yellow) through saving the world.
+- **Signal box**: a Routes button. Click a signal, then the next one along: the switches between are set and held for
+  the route (drawn in blue) until a train has been through. Click a turntable on its map to turn it. Track it has seen
+  stays on the map, greyed, when its chunks unload. A comparator beside it reads how many trains are on its map.
+- New: the **Small Turntable** (like the turntable, with iron ingots for the blocks of iron), in a pit 11 blocks
+  across, for tank engines, diesels and trams. Turntable pits are round now, with a curved stone wall round the edge.
+- **Timetabled trains turn turntables themselves**: coming up to one with their stop off another of its tracks, they
+  turn the bridge to them, drive on, and turn it on to their stop, engine first.
+- **Engine sheds** of several roads: doors side by side (four or five blocks apart, facing the same way) make one shed,
+  with one store for them all, each set of doors topping up the engines on its own road.
+- **Car transporters** take trailers: a pickup or SUV towing a camper or livestock trailer drives on with it, and the
+  car mod's hitch key unhitches and hitches it on the deck.
+- New: the **Car Ramp** (iron ingots and smooth stone slabs; makes four), a loading dock beside the track: a car on it
+  drives aboard a standing car transporter sideways, to the nearest place with room, and off again onto it.
+- **Xaero's World Map** (optional): trains show on it, and clicking one says what it's doing: who's driving it or
+  that it's on its timetable, how fast it's going, its next stop, and where it is.
+- **Trams** nudge an animal or mob that won't get off the track aside after five seconds. The coupler doesn't split a
+  low-floor tram: sneak-clicking any section uncouples the whole tram.
+- A **tank wagon of water** in a steam train keeps its tank engines and tenders topped up.
+- **Overhead wire** won't be strung through solid blocks.
+- **JEI**: the fuel page's times follow the server's `fuelUse`, and say when it needs no fuel.
+- New: thirteen **advancements**, on a *Reiko's Trains* tab.
+- The Railway Handbook has pages and pictures for all of it.
+- The mod's network version changes, so clients and servers both need 0.29.0.
+- Twenty-six new game tests (211 in all).
+
 ## 0.28.0
 
 The Railway Handbook, and JEI pages.

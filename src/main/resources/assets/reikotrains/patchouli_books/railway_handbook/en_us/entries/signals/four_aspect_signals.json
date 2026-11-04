@@ -1,0 +1,29 @@
+{
+  "name": "Four-Aspect Signals",
+  "icon": "reikotrains:four_aspect_signal",
+  "category": "reikotrains:signals",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "A $(item)Four-Aspect Signal$() is a three-light signal with a second yellow lamp: it shows $(l)double yellow$() while the next signal on is yellow, as well as yellow while it's red. Trains pass a double yellow at no more than 80 km/h (a server setting), then the yellow at caution speed, ready to stop.$(br2)For fast lines, where trains need more warning."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/four_aspect_signals.png",
+        "reikotrains:textures/gui/guide/double_yellow.png"
+      ],
+      "border": true,
+      "text": "Double yellow, yellow and red, a train beyond the red; and double yellow close up."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "The gauges show two yellow lamps ahead. A comparator reads 15, 7, 3 or 0 for red, yellow, double yellow or green.$(br2)Trains remember the caution they passed, through saving the world too."
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "reikotrains:four_aspect_signal"
+    }
+  ]
+}

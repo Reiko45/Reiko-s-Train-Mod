@@ -2,7 +2,7 @@
   "name": "Signal Box",
   "icon": "reikotrains:signal_box",
   "category": "reikotrains:signals",
-  "sortnum": 2,
+  "sortnum": 3,
   "pages": [
     {
       "type": "patchouli:text",
@@ -19,6 +19,22 @@
       ],
       "border": true,
       "text": "The map: the loop and its trains, the main line and its junction."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(l)Routes$(): click Routes, then a signal, then the next signal along: the switches between are set and held the way the route goes (in blue) until a train has gone through. Click the first signal again to cancel it.$(br2)Click a $(l)turntable$() on the map to turn it to its next track."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/signal_box_route.png"
+      ],
+      "border": true,
+      "text": "A route set round the loop."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "The box remembers the track it's seen: track out of the loaded world is still drawn, greyed. A comparator by the box reads how many trains are on its map."
     },
     {
       "type": "patchouli:crafting",

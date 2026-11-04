@@ -2,7 +2,7 @@
   "name": "Speed Limits",
   "icon": "reikotrains:speed_sign",
   "category": "reikotrains:signals",
-  "sortnum": 3,
+  "sortnum": 4,
   "pages": [
     {
       "type": "patchouli:text",

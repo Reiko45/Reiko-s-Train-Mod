@@ -21,6 +21,18 @@
       "text": "$(l)Servicing$(): the doors keep a store of fuel (nine stacks), 64 buckets each of water and diesel, and BuildCraft power. Every engine and tender standing still inside, up to 32 blocks in, is topped up from it. A timetabled train with a station inside waits until it's done.$(br2)Fill the store by hand, or with hoppers and pipes. Clicking the doors says what's in it."
     },
     {
+      "type": "patchouli:text",
+      "text": "$(l)More roads$(): put more doors beside them, facing the same way, on a track four blocks over (they share a post) or five. Doors side by side make one shed of several roads: one store for them all, whichever doors you fill, and each set tops up the engines on its own road."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/two_road_shed.png"
+      ],
+      "border": true,
+      "text": "A two-road shed: one set of doors open."
+    },
+    {
       "type": "patchouli:crafting",
       "recipe": "reikotrains:engine_shed"
     }

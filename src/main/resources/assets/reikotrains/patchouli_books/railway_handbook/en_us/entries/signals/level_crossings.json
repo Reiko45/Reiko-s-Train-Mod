@@ -2,7 +2,7 @@
   "name": "Level Crossings",
   "icon": "reikotrains:level_crossing",
   "category": "reikotrains:signals",
-  "sortnum": 6,
+  "sortnum": 7,
   "pages": [
     {
       "type": "patchouli:text",

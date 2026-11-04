@@ -25,8 +25,21 @@
       "text": "A train standing all on the bridge goes round with it. It won't turn with a train half on it.$(br2)Put a $(l:stations/stations)station$(/l) by its far end at the end of a line: a timetabled train that stops there, and would have to back out, is turned round while it waits instead, so steam engines always go chimney first."
     },
     {
+      "type": "patchouli:text",
+      "text": "$(l)Timetabled trains$() turn it themselves: coming up to it with their stop off another of its tracks, they turn the bridge to them (once nothing's on it), drive on, and turn it again to the track that's the shortest way there, engine first.$(br2)The $(item)Small Turntable$() is the same in a pit 11 blocks across: room for a tank engine, a diesel or a tram. Its track runs off 6 blocks out, or 4 on a diagonal."
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "reikotrains:textures/gui/guide/small_turntable.png"
+      ],
+      "border": true,
+      "text": "The small turntable, with a tank engine on it."
+    },
+    {
       "type": "patchouli:crafting",
-      "recipe": "reikotrains:turntable"
+      "recipe": "reikotrains:turntable",
+      "recipe2": "reikotrains:small_turntable"
     }
   ]
 }

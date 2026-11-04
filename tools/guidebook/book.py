@@ -4,7 +4,9 @@ Book: data/reikotrains/patchouli_books/railway_handbook/book.json
 Contents: assets/reikotrains/patchouli_books/railway_handbook/en_us/{categories,entries}/...
 Its pictures are cropped from the README's screenshots by tools/guidebook/pictures.py.
 """
-import json, os, re, shutil
+import json, os, re, shutil, sys
+
+sys.dont_write_bytecode = True  # importing pictures.py leaves no __pycache__ in tools/
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 RES = REPO + '/src/main/resources'
@@ -207,10 +209,12 @@ entry('track', 'street_track', 'Street Track', 'street_track', [
     text(f'{I("street_track")} is set into the road: its grooved rails are level with the top of the block, so cars and people go '
          'over it. Place it in place of a road block.$(br2)Draw curves between street track blocks the same way as train '
          'track; click the top of a road block for a new end, and it\'s set into it.'),
-    text('Street corners can be as tight as a radius of 3 blocks, and are paid for in street track.$(br2)Street track\'s rails are '
-         'at the top of the block, so a street running on into train track needs a ramp: any curve between the two is one.$(br2)It\'s '
-         'made for ' + L('electric/trams', 'trams') + ', but any train runs on it.'),
+    text('Street corners can be as tight as a radius of 3 blocks, and are paid for in street track.$(br2)A street runs straight on '
+         'into train track: lay train track on the ground in line with the street track\'s end (a block up from it, as the street '
+         'track\'s set into the road) and they join up, near enough level.$(br2)It\'s made for ' + L('electric/trams', 'trams')
+         + ', but any train runs on it.'),
     image('street_track', 'Street track round a street corner.'),
+    image('street_meets_track', 'The street running on into train track.'),
     craft('street_track', None, 'Three Train Track over stone and coal make six.'),
 ], sort=1)
 
@@ -221,14 +225,27 @@ entry('track', 'track_layer', 'Track-Laying Wagon', 'track_layer', [
          '$(l)front$() of a train, drive to the end of the line and keep going: it lays track ahead of itself, holding the train to '
          'a walk.'),
     text('It carries the line straight on, diagonals too. $(l)Steer$() left or right (' + K('key.left') + ' / ' + K('key.right')
-         + ') and it lays a smooth 45° bend that way, then goes straight on: one bend for each press.$(br2)The line stays $(l)level$(): '
-         'it digs a cutting through hills, three wide and four high, keeping what it digs, and fills dips up to six deep under the '
-         'track.'),
-    image('track_layer_line', 'Through a hill, over a gully and round a bend.'),
-    text('It stops when it\'s out of track or fill, at water or lava, at a drop too deep to fill (bridge it by hand and carry on), '
-         'and at bedrock, chests or other track right in the way. Its screen says why, and so does a message to the driver.'
-         '$(br2)The switch in its screen turns it off: then it\'s an ordinary wagon.'),
-    image('track_layer_screen', 'Its screen: the store, the switch and what it\'s doing.'),
+         + ') and it lays a smooth 45° bend that way, then goes straight on: one bend for each press. Its screen sets the bends '
+         '$(l)tight$() (about 10 blocks across) or $(l)wide$() (about 20).$(br2)It $(l)follows the ground$() up and down, at no more '
+         'than 1 in 8; or, set to, it keeps the line $(l)level$().'),
+    image('track_layer_slope', 'Climbing a rise, at 1 in 8.'),
+    text('Hills in the way are dug through, three wide: an open $(l)cutting$() where they\'re low, a $(l)tunnel$() where they\'re tall '
+         '(its roof made good where sand or gravel would fall in, and water beside the line walled off). It keeps what it digs.'
+         '$(br2)Dips up to six deep are $(l)filled$(), three wide, with stone, dirt or gravel.'),
+    image('track_layer_line', 'Over a gully, filled three wide, and round a bend.'),
+    text('Deeper gaps, and water, are $(l)bridged$(): a deck under the line and a pier every four blocks down to the bottom (up to '
+         '48 deep). Load it with stone bricks or other bricks for them, or it uses fill.$(br2)Off the end of '
+         + L('track/street_track', 'street track') + ' it lays street track, with that aboard.'),
+    image('track_layer_bridge', 'A bridge on piers, over a pool.'),
+    text('With ' + L('electric/overhead_lines', 'masts and overhead wire') + ' aboard, it $(l)wires the line$() too: a mast on its '
+         'left every sixteen blocks or so, wire strung from the last, and its cuttings and tunnels dug tall enough for the wire.'
+         '$(br2)It stops when it\'s out of track or fill, at water where the track would go, at a gap too deep even for a pier, and '
+         'at bedrock, chests or other track right in the way.'),
+    image('track_layer_tunnel', 'Into a tall hill in a tunnel, wiring the line.'),
+    text('Its screen says why it\'s stopped, and so does a message to the driver.$(br2)The switch in its screen turns it off: then '
+         'it\'s an ordinary wagon. The buttons under it set the slopes (following the ground, or level) and the bends (tight or '
+         'wide).'),
+    image('track_layer_screen', 'Its screen: the store, the switch, what it\'s doing, and how it lays.'),
     craft('track_layer'),
 ], sort=2)
 
@@ -344,6 +361,8 @@ entry('wagons', 'tank_wagon', 'Tank Wagon', 'tank_wagon', [
          'container) to pour it in, or with an empty one to draw some off; empty-handed, to see what\'s in it.$(br2)Pipes fill and '
          'empty it, and so does a ' + L('freight/wagon_loader', 'wagon loader') + ' with tanks beside it. If it\'s broken up, what\'s '
          'in it is lost.'),
+    text('A tank wagon of $(l)water$() in a steam train keeps its engines topped up as it goes: the tank engines and tenders in the '
+         'same train are filled from it, so a long run needs no water tower.'),
     craft('tank_wagon'),
 ], sort=2)
 
@@ -366,9 +385,17 @@ entry('wagons', 'car_transporter', 'Car Transporter', 'car_transporter', [
          'aboard to the far end, or up to the cars already there; a train of them fills from the far end.'),
     text('$(l)Driving off$(): sit in the car with the train stopped and keep going forwards or backwards: off the end of the train '
          'that way, or on to the next transporter.$(br2)Aboard, a car stays put: it doesn\'t drive, burn fuel or wear. It won\'t take '
-         'a car towing something, or one that doesn\'t fit. Clicking it says how many cars are aboard.'),
+         'one that doesn\'t fit. Clicking it says how many cars are aboard.'),
     image('cars_by_rail', 'Cars by rail, on the way to the docks.'),
+    text('$(l)Trailers$(): a pickup or SUV towing a camper or a livestock trailer drives on with it (forwards: no backing a trailer '
+         'on), if there\'s room for both. Aboard, the car mod\'s hitch key (' + K('key.reikocars.hitch') + ') unhitches the trailer, '
+         'leaving it on the deck, and hitches it up again.'),
+    text(f'$(l)Car Ramps$(): put a row of {I("car_ramp", "s")} beside the track, rising towards it, for a loading dock. A car on '
+         'the ramp, lined up with a standing car transporter beside it, drives aboard sideways when you keep driving, to the nearest '
+         'place with room; and a car aboard beside a ramp drives off onto it.'),
+    image('car_ramp', 'A pickup and its camper aboard, beside a row of ramps.'),
     craft('car_transporter'),
+    craft('car_ramp', None, 'Makes four.'),
 ], sort=4)
 
 entry('wagons', 'guards_van', 'Guard\'s Van', 'guards_van', [
@@ -412,7 +439,12 @@ entry('depots', 'turntable', 'Turntable', 'turntable', [
     text('A train standing all on the bridge goes round with it. It won\'t turn with a train half on it.$(br2)Put a ' + L('stations/stations', 'station')
          + ' by its far end at the end of a line: a timetabled train that stops there, and would have to back out, is turned round '
          'while it waits instead, so steam engines always go chimney first.'),
-    craft('turntable'),
+    text('$(l)Timetabled trains$() turn it themselves: coming up to it with their stop off another of its tracks, they turn the '
+         'bridge to them (once nothing\'s on it), drive on, and turn it again to the track that\'s the shortest way there, engine '
+         f'first.$(br2)The {I("small_turntable")} is the same in a pit 11 blocks across: room for a tank engine, a diesel or a tram. '
+         'Its track runs off 6 blocks out, or 4 on a diagonal.'),
+    image('small_turntable', 'The small turntable, with a tank engine on it.'),
+    craft('turntable', 'small_turntable'),
 ], sort=2)
 
 entry('depots', 'engine_shed', 'Engine Shed Doors', 'engine_shed', [
@@ -423,6 +455,10 @@ entry('depots', 'engine_shed', 'Engine Shed Doors', 'engine_shed', [
     text('$(l)Servicing$(): the doors keep a store of fuel (nine stacks), 64 buckets each of water and diesel, and BuildCraft power. '
          'Every engine and tender standing still inside, up to 32 blocks in, is topped up from it. A timetabled train with a station '
          'inside waits until it\'s done.$(br2)Fill the store by hand, or with hoppers and pipes. Clicking the doors says what\'s in it.'),
+    text('$(l)More roads$(): put more doors beside them, facing the same way, on a track four blocks over (they share a post) or '
+         'five. Doors side by side make one shed of several roads: one store for them all, whichever doors you fill, and each set '
+         'tops up the engines on its own road.'),
+    image('two_road_shed', 'A two-road shed: one set of doors open.'),
     craft('engine_shed'),
 ], sort=3)
 
@@ -431,7 +467,8 @@ entry('depots', 'engine_shed', 'Engine Shed Doors', 'engine_shed', [
 entry('electric', 'overhead_lines', 'Overhead Lines', 'catenary_mast', [
     text(f'$(l)Masts$(): put an {I("catenary_mast")} beside the track, up to three blocks from it. Its arm reaches over the track to '
          'hold the wire there, up to 32 blocks apart (closer on curves).$(br2)$(l)Wire$(): '
-         f'hold {I("overhead_wire")}, click a mast, then the next one along, and so on; click the same mast twice to stop.'),
+         f'hold {I("overhead_wire")}, click a mast, then the next one along, and so on; click the same mast twice to stop. Wire won\'t run '
+         'through blocks.'),
     text('A mast holds up to four spans, so lines branch at junctions. Sneak-click a mast with wire to take its spans down.'
          f'$(br2)$(l)Power$(): put a {I("substation")} within four blocks of one of the line\'s masts and feed it like a charging point. '
          'Each substation gives the line room for a million MJ. Its bars show the line\'s store, and its lamp lights while it\'s live.'),
@@ -455,8 +492,8 @@ entry('electric', 'trams', 'Trams', 'vintage_tram', [
          'fourteen seats.'),
     image('low_floor_tram', 'The low-floor tram round a street corner.'),
     text('A tram stops a block or so short of anything on the track ahead, people, animals, cars or other trains, '
-         'and waits for them to clear, ringing its bell. With Reiko\'s Car Mod it stops at red traffic lights beside the line that '
-         'face it, too. It brakes harder than a train.', 'Street Rules'),
+         'and waits for them to clear, ringing its bell; animals that won\'t move are nudged off after a few seconds. With Reiko\'s '
+         'Car Mod it stops at red traffic lights beside the line that face it, too. It brakes harder than a train.', 'Street Rules'),
     craft('vintage_tram', 'low_floor_tram'),
 ], sort=1)
 
@@ -484,6 +521,16 @@ entry('signals', 'three_light_signals', 'Three-Light Signals', 'three_light_sign
     craft('three_light_signal'),
 ], sort=1)
 
+entry('signals', 'four_aspect_signals', 'Four-Aspect Signals', 'four_aspect_signal', [
+    text(f'A {I("four_aspect_signal")} is a three-light signal with a second yellow lamp: it shows $(l)double yellow$() while the '
+         'next signal on is yellow, as well as yellow while it\'s red. Trains pass a double yellow at no more than 80 km/h (a server '
+         'setting), then the yellow at caution speed, ready to stop.$(br2)For fast lines, where trains need more warning.'),
+    image(['four_aspect_signals', 'double_yellow'], 'Double yellow, yellow and red, a train beyond the red; and double yellow close up.'),
+    text('The gauges show two yellow lamps ahead. A comparator reads 15, 7, 3 or 0 for red, yellow, double yellow or green.$(br2)Trains '
+         'remember the caution they passed, through saving the world too.'),
+    craft('four_aspect_signal'),
+], sort=2)
+
 entry('signals', 'signal_box', 'Signal Box', 'signal_box', [
     text(f'Put a {I("signal_box")} wherever you like (build the box round it) and click it: its screen is a live map of the railway '
          'within 96 blocks, north up: the track, turntables, stations, every train car as it moves, each signal\'s lamp and the way '
@@ -492,8 +539,14 @@ entry('signals', 'signal_box', 'Signal Box', 'signal_box', [
          'hold it at red, so trains stop at it, and again to let it go. A held signal has a white ring round its lamp.$(br2)Drag the map '
          'to move it; scroll to zoom. Breaking the box lets go of every signal it held.'),
     image('signal_box', 'The map: the loop and its trains, the main line and its junction.'),
+    text('$(l)Routes$(): click Routes, then a signal, then the next signal along: the switches between are set and held the way '
+         'the route goes (in blue) until a train has gone through. Click the first signal again to cancel it.$(br2)Click a '
+         '$(l)turntable$() on the map to turn it to its next track.'),
+    image('signal_box_route', 'A route set round the loop.'),
+    text('The box remembers the track it\'s seen: track out of the loaded world is still drawn, greyed. A comparator by the box '
+         'reads how many trains are on its map.'),
     craft('signal_box'),
-], sort=2)
+], sort=3)
 
 entry('signals', 'speed_limits', 'Speed Limits', 'speed_sign', [
     text(f'Put a {I("speed_sign")} beside the track (up to three blocks away), its face towards the trains coming. $(l)Click$() it to '
@@ -504,7 +557,7 @@ entry('signals', 'speed_limits', 'Speed Limits', 'speed_sign', [
          'speed, yellow while slowing for a lower one.$(br2)Use them for sharp curves, junctions, stations trains run through, or a '
          'level crossing in a village.'),
     craft('speed_sign', None, 'Makes four.'),
-], sort=3)
+], sort=4)
 
 entry('signals', 'switches', 'Switches', 'switch_stand', [
     text(f'Put a {I("switch_stand")} within three blocks of the block where a line divides: trains heading for the fork go the '
@@ -517,7 +570,7 @@ entry('signals', 'switches', 'Switches', 'switch_stand', [
     text('Timetabled trains set an unheld switch their way as they come to it; a held one they obey. Drivers\' steering only counts '
          'at junctions with no switch.$(br2)Throwing a switch under a train doesn\'t split it: the cars behind follow the engine.'),
     craft('switch_stand'),
-], sort=4)
+], sort=5)
 
 entry('signals', 'track_sensors', 'Track Sensors', 'track_sensor', [
     text(f'A {I("track_sensor")} beside the track (up to three blocks away, its eye facing the track) gives a redstone signal while a '
@@ -528,7 +581,7 @@ entry('signals', 'track_sensors', 'Track Sensors', 'track_sensor', [
          'bucket: tank wagons of that fluid$(li)anything else: trains carrying it$(br)Sneak-click to clear it.'),
     image('track_sensor', 'Sensing trains with an electric, going right.'),
     craft('track_sensor', None, 'Makes two.'),
-], sort=5)
+], sort=6)
 
 entry('signals', 'level_crossings', 'Level Crossings', 'level_crossing', [
     text(f'Where a road crosses the line, put a {I("level_crossing")} at the side of the road, within three blocks of the track: its arm '
@@ -539,7 +592,7 @@ entry('signals', 'level_crossings', 'Level Crossings', 'level_crossing', [
          'while it\'s warning, for your own lamps or bells.'),
     image('crossing_closed', 'The lamps flash and the arms are down.'),
     craft('level_crossing'),
-], sort=6)
+], sort=7)
 
 # -- Stations and timetables --
 
@@ -601,27 +654,36 @@ entry('freight', 'filters', 'Loader Filters', 'wagon_loader', [
 
 # -- Settings and more --
 
-entry('more', 'minimap', 'Trains on the Minimap', 'minecraft:compass', [
+entry('more', 'minimap', 'Trains on the Map', 'minecraft:compass', [
     text('With $(thing)Xaero\'s Minimap$() installed, every train in your dimension shows on it, however far away: a marker at its '
          'leading locomotive, lettered by the kind of engine (St, Ex, Di, El, Bu), with how many cars it has and where it\'s going.'
          '$(br2)Each player can hide them in the client settings, and a server can stop sharing them.'),
     image('trains_on_minimap', 'Trains on the minimap, lettered by their engines.'),
+    text('With $(thing)Xaero\'s World Map$() they show on the world map too, in their engines\' colours. $(l)Click$() one for what '
+         'it\'s doing: who\'s driving it, or whether it\'s running to its timetable; how fast it\'s going, and its next stop.'),
+    image('world_map', 'A train on the world map, clicked on.'),
 ], sort=0)
 
 entry('more', 'jei', 'JEI', 'minecraft:crafting_table', [
-    text('With $(thing)JEI$() installed, every recipe here shows in it, and each of the mod\'s items has an $(l)information$() page '
-         'saying what it does.$(br2)There\'s also a $(l)Locomotive Fuel$() page for each locomotive (what it runs on and how long it '
-         'lasts) and a $(l)Track-Laying Wagon$() page (what it lays, and what fills dips): look up an engine\'s uses, or a fuel\'s.'),
+    text('With $(thing)JEI$() installed, each of the mod\'s items has an $(l)information$() page saying what it does.$(br2)There\'s '
+         'also a $(l)Locomotive Fuel$() page for each locomotive (what it runs on, and how long it lasts as the server has it set) '
+         'and a $(l)Track-Laying Wagon$() page (what it lays and fills dips with): look up an engine\'s uses, or a fuel\'s.'),
 ], sort=1)
+
+entry('more', 'advancements', 'Advancements', 'minecraft:experience_bottle', [
+    text('The mod has its own advancements, under $(l)Reiko\'s Trains$(): putting a train on the track, opening the throttle, a tram, '
+         'an electric under the wires, 90 km/h, coupling up, a car aboard a car transporter, a timetable, a route from a signal box, '
+         'a turntable, an engine shed, and laying track with the track-laying wagon (a bridge, too).'),
+], sort=2)
 
 entry('more', 'settings', 'Server Settings', 'minecraft:command_block', [
     text('A server can change these in its world\'s $(thing)serverconfig/reikotrains-server.toml$():$(li)needsFuel, fuelUse'
-         '$(li)steamNeedsWater, waterTowerRateMB$(li)maxSpeed, acceleration$(li)signalsStopDrivers, cautionSpeedKmh'
+         '$(li)steamNeedsWater, waterTowerRateMB$(li)maxSpeed, acceleration$(li)signalsStopDrivers, cautionSpeedKmh, doubleYellowSpeedKmh'
          '$(li)speedLimitsForDrivers$(li)maxTrainLength (16)'),
     text('$(li)loaderSpeed$(li)chargingPointCapacityMJ, chargingPointRateMJ$(li)substationCapacityMJ, wireChargeRateMJ'
          '$(li)crossingWarningSeconds$(li)trainsOnMinimaps$(li)giveHandbook: give new players this book$(br2)Datapacks can change '
-         'the tags reikotrains:locomotive_fuel, reikotrains:trackbed and reikotrains:diesel.'),
-], sort=2)
+         'the tags reikotrains:locomotive_fuel, reikotrains:trackbed, reikotrains:masonry and reikotrains:diesel.'),
+], sort=3)
 
 
 # ---- writing it out ----
@@ -715,8 +777,16 @@ def main():
                     shown.add(page[key].split(':')[1])
     for recipe in sorted(RECIPES - shown):
         problems.append('recipe not in the book: ' + recipe)
+    # Every picture must have a crop, and its screenshot be there.
+    import pictures
+    for img in sorted(IMAGES - set(pictures.CROPS)):
+        problems.append('no crop for picture: ' + img + ' (add it to pictures.py)')
+    for img in sorted(IMAGES & set(pictures.CROPS)):
+        if not os.path.exists(f'{pictures.SHOTS}/{pictures.CROPS[img][0]}'):
+            problems.append(f'no screenshot for picture {img}: docs/screenshots/{pictures.CROPS[img][0]}')
     if problems:
         raise SystemExit('\n'.join(problems))
+    pictures.main()
     # Every spread, for the dev showcase that reads the whole book (./gradlew runClient -Pshowcase -PshowcaseBook).
     os.makedirs(f'{REPO}/run', exist_ok=True)
     with open(f'{REPO}/run/guide-spreads.txt', 'w') as f:

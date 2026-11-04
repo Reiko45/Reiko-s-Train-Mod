@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "$(l)Masts$(): put an $(item)Overhead Line Mast$() beside the track, up to three blocks from it. Its arm reaches over the track to hold the wire there, up to 32 blocks apart (closer on curves).$(br2)$(l)Wire$(): hold $(item)Overhead Wire$(), click a mast, then the next one along, and so on; click the same mast twice to stop."
+      "text": "$(l)Masts$(): put an $(item)Overhead Line Mast$() beside the track, up to three blocks from it. Its arm reaches over the track to hold the wire there, up to 32 blocks apart (closer on curves).$(br2)$(l)Wire$(): hold $(item)Overhead Wire$(), click a mast, then the next one along, and so on; click the same mast twice to stop. Wire won't run through blocks."
     },
     {
       "type": "patchouli:text",

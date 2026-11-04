@@ -17,8 +17,10 @@ choice of way at every junction) or give them a timetable and let them run betwe
   and the electric locomotive on its power (MJ)
 - Optional: [Xaero's Minimap](https://modrinth.com/mod/xaeros-minimap) 24 or newer (made with 26.6.0): trains show
   on it
+- Optional: [Xaero's World Map](https://modrinth.com/mod/xaeros-world-map) (made with 1.47.0): trains show on it too,
+  and clicking one says what it's doing
 - Optional: [Reiko's Car Mod](https://github.com/Reiko45/Reiko-s-Car-Mod) 1.39 or newer: car transporter wagons
-  carry its cars
+  carry its cars, and their trailers
 - Optional: [Patchouli](https://modrinth.com/mod/patchouli) (made with 1.21.1-93): the **Railway Handbook**, the
   mod's guide book
 - Optional: [JEI](https://modrinth.com/mod/jei) 19 or newer (made with 19.21.2): an information page for each of the
@@ -49,10 +51,12 @@ choice of way at every junction) or give them a timetable and let them run betwe
   turning. It runs on batteries, like the electric.
 - **Water Tower**: a wooden tank on legs beside the track, for steam engines. Fill it with buckets or pipes, and it
   fills the tank engines and tenders of a train standing beside it.
-- **Turntable**: digs its own pit, 15 blocks across, and turns locomotives round in it, or sends them off down
-  whichever track you like. Trains on a timetable are turned round on it at the end of the line.
+- **Turntable**: digs its own round pit, 15 blocks across, and turns locomotives round in it, or sends them off down
+  whichever track you like. Trains on a timetable turn it themselves, to get on and to go off the way they need.
+- **Small Turntable**: the same in a pit 11 blocks across, for tank engines, diesels and trams.
 - **Engine Shed Doors**: a big pair of doors over the track for the end of an engine shed, which open for trains and
-  shut behind them. Engines standing inside are topped up with coal, water, diesel or charge from their store.
+  shut behind them. Engines standing inside are topped up with coal, water, diesel or charge from their store. Doors
+  side by side make a shed of several roads, sharing one store.
 - **Charging Point**: charges the batteries of an electric standing beside it, from BuildCraft engines, kinesis pipes
   or other mods' cables.
 - **Overhead Line Mast**, **Overhead Wire** and **Substation**: electrify a line. Masts stand beside the track with
@@ -65,20 +69,24 @@ choice of way at every junction) or give them a timetable and let them run betwe
   how full it is.
 - **Livestock Wagon**: six stalls for cows, sheep, pigs, horses or any other animal, with slatted sides to see them
   through. Lead animals to it, or have a wagon loader load them from a pen.
-- **Car Transporter**: a long flatbed for the cars, vans and buses of Reiko's Car Mod. Drive them on at the end and
-  off again, from wagon to wagon along the train.
+- **Car Transporter**: a long flatbed for the cars, vans and buses of Reiko's Car Mod, and the trailers they tow.
+  Drive them on at the end and off again, from wagon to wagon along the train.
+- **Car Ramp**: a loading dock beside the track. Cars on it drive aboard a car transporter sideways, and off again.
 - **Guard's Van**: for the back of the train. Two seats and a stove inside, tail lamps, and a brake that makes the
   whole train stop quicker.
 - **Track-Laying Wagon**: push it off the end of the line and it lays track ahead of itself, straight on or round a
-  bend as you steer, digging through hills and filling in dips to keep the line level.
+  bend as you steer, following the ground at gentle slopes: cuttings and tunnels through hills, embankments over dips,
+  bridges on piers over rivers and valleys, and overhead wires on its masts if it has them aboard.
 - **Wagon Loader**: fills the freight wagons of a train standing beside it from the chests next to it, or empties
   them into the chests, all of it or (with its filter) just the items you choose.
 - **Coupler**: joins cars into trains.
 - **Railway Signal**: red while there's a train on the line ahead, green when it's clear. Trains stop for red.
 - **Three-Light Signal**: red, yellow and green. Yellow while the next signal is red, so trains come up to it at
   caution speed, ready to stop.
+- **Four-Aspect Signal**: a second yellow lamp, for fast lines. Double yellow while the next signal is yellow, so
+  trains slow down two signals before a red.
 - **Signal Box**: a desk with a lever frame. Its screen is a live map of the railway round it, trains and all: throw
-  switches and hold signals at red from it.
+  switches, hold signals at red, set routes from signal to signal and turn turntables from it.
 - **Switch Stand**: sets which way trains go at a junction. Flip it by hand, or set and hold it with redstone.
 - **Track Sensor**: gives a redstone signal while a train is over the track beside it: any train, or only trains
   going one way, with a certain kind of car, carrying something, or running a certain timetable.
@@ -90,6 +98,8 @@ choice of way at every junction) or give them a timetable and let them run betwe
 - **Timetable**: a list of stations for a train to run between by itself, leaving wagons at some and picking them up
   at others.
 - **Railway Handbook** (with Patchouli): the guide to all of it, in the game.
+- **Advancements**: thirteen of its own, under *Reiko's Trains*, from putting your first train on the track to
+  laying a bridge with the track-laying wagon.
 
 The coaches and wagons ride on two bogies that swing under them, so long cars go round curves like the real thing.
 
@@ -112,7 +122,8 @@ what it does, as well as its recipe, and there are two pages of its own:
 
 - **Locomotive Fuel**: what the steam engines (coal and the like, grouped by how long they burn, and water), the diesel
   (each kind of diesel) and the electrics (charging points and overhead lines) run on, with how long each lasts at full
-  throttle. Look up the uses of coal, or of a locomotive, to find it.
+  throttle, as the server you're on has `fuelUse` set (or that it needs none, with `needsFuel` off). Look up the uses
+  of coal, or of a locomotive, to find it.
 - **Track-Laying Wagon**: what it lays, and everything it fills dips with.
 
 ![The Railway Handbook, open at its contents](docs/screenshots/handbook.jpg)
@@ -139,13 +150,17 @@ more than 90° at once, and a ramp can't be steeper than about 1 in 2 at its ste
 per block of length, and breaking either end gives it back. Track needs solid ground under its blocks, but a curve
 or ramp can cross gaps between them, so bridges are just long curves. Leave three blocks between parallel lines.
 
-Street track's rails are level with the top of its block, so a street running on into train track needs a ramp (any
-curve between them is one). Curves between two street track blocks can be as tight as a radius of 3 blocks, for street
-corners, and are paid for in street track; the road blocks a curve passes over are up to you.
+Street track's rails are level with the top of its block, as it's set into the road. A street runs straight on into
+train track: lay the train track on the ground in line with the street track's end (on top of the next road block, a
+block up from the street track) and they join up, near enough level, with no ramp. Curves between two street track
+blocks can be as tight as a radius of 3 blocks, for street corners, and are paid for in street track; the road blocks
+a curve passes over are up to you.
 
 ![Laying a curve](docs/screenshots/laying_track.jpg)
 
 ![A junction](docs/screenshots/junction.jpg)
+
+![A street running on into train track, level](docs/screenshots/street_meets_track.jpg)
 
 ### The track-laying wagon
 
@@ -159,27 +174,47 @@ panels of track stacked along it (as many as it has track for).
   ahead of itself, a block at a time, from the end of it with nothing coupled on, and holds the train to a fast walk
   (about 11 km/h) while it works. Stop, or back away, and it stops laying.
 - **Straight on, or a bend**: it carries the line straight on the way its last block runs, diagonals too. Steer left
-  or right (the same keys as at a junction) and it lays a smooth **45° bend** that way instead, about ten blocks
-  across, then goes straight on again. One bend for each press: press again after it for a right angle.
-- **A level line**: it never climbs or drops. A hill in the way, it digs a cutting through: three blocks wide and four
-  high, and sand or gravel over it comes out too so nothing falls in. What it digs goes in its store (stone comes out
-  as cobblestone; anything that won't fit falls out beside it), so one cutting fills the next dip. A dip up to six
-  blocks deep is filled in under the track.
-- **Where it stops**: when it's out of track or fill, at **water or lava** (in the way or under the line), at a drop
-  too deep to fill (lay a bridge by hand and carry on from its far end), and at bedrock, a chest or anything else
-  with things in it, or other track, right in the way. Its screen says why, and so does a message to the driver.
-  Blocks beside the line that it won't dig, it leaves be.
+  or right (the same keys as at a junction) and it lays a smooth **45° bend** that way instead, then goes straight on
+  again. One bend for each press: press again after it for a right angle. Its screen sets the bends **tight** (about
+  ten blocks across) or **wide** (about twenty, for fast lines).
+- **Up and down**: going straight on, it **follows the ground**, climbing and falling with it at no more than 1 in 8.
+  Set it to **keep level** in its screen and it never climbs or drops.
+- **Through hills**: a hill in the way, it digs through it, three blocks wide: an open **cutting** where the hill's
+  low, a **tunnel** where it's tall, its roof made good where sand or gravel would fall in, and water beside the line
+  walled off. What it digs goes in its store (stone comes out as cobblestone; anything that won't fit falls out beside
+  it), so one cutting fills the next dip.
+- **Over dips**: a dip up to six blocks deep is filled in under the track, three blocks wide. A deeper gap, or a river
+  or lake, is **bridged**: a deck under the track, and a pier every four blocks down to the bottom, up to 48 blocks.
+  Load it with stone bricks (or other bricks: anything tagged `reikotrains:masonry`) for its bridges, or it builds them
+  of fill.
+- **Wires**: with **Overhead Line Masts** and **Overhead Wire** aboard, it electrifies the line as it goes: a mast on
+  its left every sixteen blocks or so, wire strung to it from the last one, and its cuttings and tunnels dug six blocks
+  high, tall enough for the wire.
+- **Street track**: run off the end of street track, it lays street track (with street track aboard), set into the
+  road.
+- **Where it stops**: when it's out of track or fill, at **water** or **lava** right where the track would go, at a
+  gap too deep even for a pier, and at bedrock, a chest or anything else with things in it, or other track, right in
+  the way. Its screen says why, and so does a message to the driver. Blocks beside the line that it won't dig, it
+  leaves be.
 - The **switch** in its screen turns it off: then it's an ordinary wagon, and lays nothing.
 
-It lays train track from train track; it doesn't lay street track, or off a turntable.
+It doesn't lay track off a turntable.
 
 ![The track-laying wagon at the end of the line, in front of a tank engine](docs/screenshots/track_layer.jpg)
 
 ![Laying through a hill: the cutting it digs](docs/screenshots/track_layer_cutting.jpg)
 
-![The line it laid: through the hill, over a gully (filled under the track) and round a bend](docs/screenshots/track_layer_line.jpg)
+![The line it laid: over a gully (filled in three wide under the track) and round a bend](docs/screenshots/track_layer_line.jpg)
 
-![Its screen: track, the gravel it came with and the dirt it dug](docs/screenshots/track_layer_screen.png)
+![Its screen: track, the stone it came with and the dirt it dug, and the buttons for slopes and bends](docs/screenshots/track_layer_screen.png)
+
+![Climbing a rise at 1 in 8, following the ground](docs/screenshots/track_layer_slope.jpg)
+
+![A bridge on piers over a pool, under the wires it put up](docs/screenshots/track_layer_bridge.jpg)
+
+![Into a tall hill in a tunnel, wiring the line as it goes](docs/screenshots/track_layer_tunnel.jpg)
+
+![The line it laid and wired: masts every sixteen blocks, over the bridge and into the tunnel](docs/screenshots/wired_line.jpg)
 
 ## Trains
 
@@ -200,11 +235,13 @@ It lays train track from train track; it doesn't lay street track, or off a turn
 | Tank Wagon | Three iron ingots; iron ingot, bucket, iron ingot; iron ingot, minecart, iron ingot |
 | Livestock Wagon | Three planks; fence, hay bale, fence; iron ingot, minecart, iron ingot |
 | Car Transporter | Chain, iron ingot, chain; iron ingot, minecart, iron ingot |
+| Car Ramp (4) | An iron ingot top right, two iron ingots under it (right and middle), three smooth stone slabs along the bottom (a slope) |
 | Guard's Van | Planks, lantern, planks; planks, furnace, planks; iron ingot, minecart, iron ingot |
 | Track-Laying Wagon | Iron ingot, chain, iron ingot; Train Track, iron pickaxe, Train Track; iron ingot, minecart, iron ingot |
 | Coupler | Iron ingot, chain, iron ingot (a column) |
 | Railway Signal (2) | Redstone lamp, iron ingot, iron ingot (a column) |
 | Three-Light Signal | A Railway Signal, a redstone lamp and yellow dye (any shape) |
+| Four-Aspect Signal | A Three-Light Signal, a redstone lamp and yellow dye (any shape) |
 | Signal Box | Three levers; planks, an empty map, planks; three planks |
 | Switch Stand | Lever, iron ingot, iron ingot (a column) |
 | Station | Any sign, iron ingot, iron ingot (a column) |
@@ -215,6 +252,7 @@ It lays train track from train track; it doesn't lay street track, or off a turn
 | Wagon Loader | Iron ingot, hopper, iron ingot; iron ingot, chest, iron ingot |
 | Water Tower | Planks, iron ingot, planks; planks, cauldron, planks; logs in the bottom corners |
 | Turntable | Three Train Track; block of iron, piston, block of iron; three stone bricks |
+| Small Turntable | Three Train Track; iron ingot, piston, iron ingot; three stone bricks |
 | Engine Shed Doors | Three logs; wooden door, hopper, wooden door; logs in the bottom corners |
 | Charging Point | Iron ingot, redstone lamp, iron ingot; copper ingot, block of redstone, copper ingot; three iron ingots |
 | Street Track (6) | Three Train Track; stone, coal, stone; three stone |
@@ -233,7 +271,8 @@ Everything's also in the **Reiko's Trains** creative tab.
 2. Take the **Coupler**, click one car, then the car next to it on the same line (up to 5 blocks between their
    buffers). The second car's train is drawn up until the buffers meet. Cars couple at either end, facing either way,
    and the locomotives can be anywhere in the train: they pull or push.
-3. To uncouple a car, **sneak-click** it with the coupler.
+3. To uncouple a car, **sneak-click** it with the coupler. A low-floor tram's three sections stay together:
+   sneak-clicking any of them uncouples the whole tram from the cars either side.
 
 A train can have up to 16 cars (configurable), and as many locomotives among them as you like (see
 [More than one locomotive](#more-than-one-locomotive)).
@@ -295,6 +334,8 @@ from the works with their tanks full (and ones from before this update are fille
   spout up, and clicking it says how much it holds. An empty bucket draws water from it.
 - **By hand**: click a tank engine, an express or a tender with a bucket of water (or any other mod's fluid
   container); other mods' pipes can fill them too.
+- **On the move**: a **tank wagon** of water in a steam train keeps the tank engines and tenders in the same train
+  topped up from it, moving or standing, so a long run needs no water tower.
 - A server can turn water off (`steamNeedsWater`).
 
 ![A tender taking water](docs/screenshots/water_tower.jpg)
@@ -306,9 +347,9 @@ from the works with their tanks full (and ones from before this update are fille
 ### Turntables and engine sheds
 
 A **Turntable** turns locomotives round at the end of a line, or sends them off down whichever track you like. Use it
-on flat ground: it digs its own pit, 15 blocks across, centred on the block you click (the ground must be solid all
-over the circle, with nothing standing on it but plants), and sets its bridge in it pointing the way you're looking,
-or at track already laid up to the pit's edge. Breaking any of it takes the whole turntable up and gives it back (the
+on flat ground: it digs its own round pit, 15 blocks across, centred on the block you click (the ground must be solid
+all over the circle, with nothing standing on it but plants), lines its edge with stone, and sets its bridge in it
+pointing the way you're looking, or at track already laid up to the pit's edge. Breaking any of it takes the whole turntable up and gives it back (the
 pit stays dug).
 
 - **Track off it**: lay straight track off the pit's edge, in line with its middle: east-west, north-south or
@@ -323,6 +364,12 @@ pit stays dug).
 - **Timetables**: put a station by the far end of a turntable at the end of a line, so trains stop all on the bridge.
   A timetabled train that stops there, and would have to back out to get to its next station, is turned round while
   it waits instead, so steam engines always go chimney first.
+- **Timetabled trains turn it themselves**: a train coming up to a turntable, with its way on to its next stop off
+  another of the turntable's tracks, waits for the bridge to clear and turns it to itself (the gauges say *Waiting
+  for the turntable*), drives on, then turns it to the track that's the shortest way to its stop and goes off down
+  it, engine first. So a turntable can be a junction on a timetabled line, or the way into a roundhouse.
+- **Small Turntable**: the same in a pit 11 blocks across, with room for a tank engine, a diesel or a tram. Its track
+  runs off 6 blocks out from the middle, or 4 diagonally.
 
 ![The turntable turning an express round](docs/screenshots/turntable_turning.jpg)
 
@@ -339,10 +386,18 @@ redstone at the frame holds them open too. Shut, they keep people and animals ou
   holds). Every locomotive and tender standing still on the track inside, up to 32 blocks in from the doors, is topped
   up: coal and water for steam engines and tenders, diesel for diesels, charge for electrics. A timetabled train with
   a station inside waits until it's topped up. Clicking the doors says what's in the store.
+- **More roads**: put more doors beside the first, facing the same way, over a parallel track four blocks over (the
+  two frames share a post) or five. Doors side by side make one shed of several roads: one store for them all,
+  whichever doors you fill, and each set of doors tops up the engines on its own road. Clicking any of them says how
+  many roads the shed has, and what's in its store. Each set opens on its own, for the trains on its road.
 
 ![A tank engine going into the engine shed](docs/screenshots/engine_shed.jpg)
 
 ![The doors shut behind it](docs/screenshots/engine_shed_shut.jpg)
+
+![A two-road shed: one set of doors open for a tank engine](docs/screenshots/two_road_shed.jpg)
+
+![The small turntable, with a tank engine on it](docs/screenshots/small_turntable.jpg)
 
 ### The diesel
 
@@ -429,7 +484,8 @@ the way: no more stopping to charge.
   mast to mast).
 - **Wire**: hold **Overhead Wire**, click a mast, then the next mast along: a span of wire goes up between them (one
   wire a span), the contact wire with the messenger wire sagging above it and droppers between. You're ready to go on
-  to the next mast straight away; click the same mast twice, or sneak-click the air, to stop. A mast holds up to four
+  to the next mast straight away; click the same mast twice, or sneak-click the air, to stop. Wire won't be strung
+  through solid blocks: the masts need a clear run between them. A mast holds up to four
   spans, so lines can branch at junctions. Sneak-click a mast with wire to take its spans down (you get the wire
   back). Breaking a mast drops its spans' wire.
 - **Power**: masts wired together make a line. Put a **Substation** within four blocks of one of its masts and feed
@@ -469,7 +525,8 @@ ring a bell (the whistle key); and both keep to **street rules**.
   50 km/h, and fourteen seats (the two drivers' included). Its bell is an electronic chime.
 - **Street rules**: a tram (or any train with one in it) stops a block or so short of anything on the track ahead:
   people, animals, cars, boats, other trains (it doesn't couple to them). On a timetable it waits for them to clear,
-  ringing its bell now and then. With Reiko's Car Mod, it also stops at **red traffic lights** beside the line that
+  ringing its bell now and then. An animal or mob that won't move is nudged off the track after five seconds; it
+  still waits for people, cars and trains. With Reiko's Car Mod, it also stops at **red traffic lights** beside the line that
   face it (and at amber ones, if it can stop in time), and goes on when they turn green; they show on the gauges like a
   signal. It brakes harder than a train, too. Ordinary trains carry on as before.
 
@@ -529,14 +586,25 @@ rails and hinged plates at each end. It carries the cars, vans, trucks and buses
 - **Driving off**: sit in it with the train stopped and keep going forwards or backwards. It drives off the end of
   the train that way if there's room, or on along the train to the next car transporter. Another car in the way, or
   another kind of car coupled at that end, stops it.
-- It won't take a car that's towing a trailer or another car (unhitch first), or one that doesn't fit.
-- Clicking it says how many cars are aboard. The cars are saved with it, in their places.
+- **Trailers**: a pickup or SUV towing a camper or a livestock trailer drives on with it, forwards (no backing a
+  trailer on), if there's room on the deck for both; the trailer rides behind it, and they drive off together. Aboard,
+  the car mod's hitch key (G) unhitches the trailer, leaving it standing on the deck, and hitches it up again. A
+  trailer left standing stays aboard, in its place, when the car drives off.
+- It won't take a tow truck with a car on its lift (drop it first), or a car that doesn't fit.
+- Clicking it says how many cars are aboard. The cars (and trailers) are saved with it, in their places.
+
+**Car Ramps** make a loading dock beside the track. Put a row of them alongside a car transporter's track, rising to
+about the height of its deck, their top end two or three blocks from the middle of the track. With the train standing, a car on the ramp lined up with the transporter beside it (facing along the train, either way) drives
+aboard **sideways** when you keep driving, to the nearest place on the deck there's room for it; and a car aboard
+beside a ramp drives off sideways onto it, its trailer after it. A ramp crafts as four.
 
 ![Driving a sedan onto a car transporter](docs/screenshots/driving_on.jpg)
 
 ![Two car transporters, one full and one with the sedan aboard](docs/screenshots/car_transporters.jpg)
 
 ![Cars by rail, on the way to the docks](docs/screenshots/cars_by_rail.jpg)
+
+![A pickup and its camper aboard a car transporter, beside a row of Car Ramps](docs/screenshots/car_ramp.jpg)
 
 ### More than one locomotive
 
@@ -560,6 +628,7 @@ In `serverconfig/reikotrains-server.toml` in each world:
 | `acceleration` | `0.004` | How quickly a locomotive with two coaches picks up speed |
 | `signalsStopDrivers` | `true` | Whether trains people drive stop for red signals by themselves (and keep to caution speed past yellow ones) |
 | `cautionSpeedKmh` | `40` | How fast trains may go past a yellow signal, until the next signal |
+| `doubleYellowSpeedKmh` | `80` | How fast trains may go past a double yellow (four-aspect) signal, until the next signal |
 | `trainsOnMinimaps` | `true` | Whether players are told where every train is, for Xaero's Minimap |
 | `speedLimitsForDrivers` | `true` | Whether trains people drive keep to speed limit signs by themselves |
 | `maxTrainLength` | `16` | The most cars in one train |
@@ -617,6 +686,25 @@ are set) is red, it shows **yellow**: a warning that the train will have to stop
 
 ![The gauges: a yellow signal ahead, slowing to caution speed](docs/screenshots/caution_gauge.png)
 
+### Four-aspect signals
+
+A **Four-Aspect Signal** is a three-light signal with a second yellow lamp at the top, for fast lines where a train
+needs more than one signal's warning to stop. It shows red and yellow as a three-light signal does, and **double
+yellow** while the next signal along is showing yellow.
+
+- A train passing a double yellow keeps to no more than 80 km/h (servers can change it with `doubleYellowSpeedKmh`)
+  until the next signal, then slows for the yellow there to caution speed, ready to stop at the red after it. So it's
+  brought down from full speed over two sections, not one.
+- The cab gauges show two yellow lamps, and the signal box's map shows double yellow too.
+- A **comparator** reads 15 for red (a train on the stretch ahead), 7 for yellow, 3 for double yellow and 0 for green.
+- Use them before a three-light signal, as the first warning of a red on a fast main line. Any kind of signal can
+  follow any other.
+- A train keeping to caution speed past a yellow or a double yellow still does after the world's saved and loaded.
+
+![Double yellow, yellow and red, with a train in the section beyond the red](docs/screenshots/four_aspect_signals.jpg)
+
+![A four-aspect signal at double yellow, close up](docs/screenshots/double_yellow.jpg)
+
 ### Signal boxes
 
 A **Signal Box** is a desk with a lever frame along it and a diagram of the line on a board at the back. Put it
@@ -631,6 +719,14 @@ wherever you like (build the signal box round it), and click it: its screen is a
   redstone won't throw).
 - **Hold signals**: click a signal to hold it at **red**, so trains stop at it, and click again to let it go. A held
   signal has a white ring round its lamp. Breaking the box lets go of every signal it was holding.
+- **Set routes**: click **Routes**, then a signal, then the next signal along the way you want the train to go. Every
+  switch between them is set for that route and held there (trains, their stands and the box can't throw them), and
+  the route is drawn in blue on the map, until a train has gone through it. Click the first signal again to cancel
+  it.
+- **Turn turntables**: click a turntable on the map to turn its bridge to the next track round, as clicking it does.
+- **Out of reach**: the box remembers the track it's seen. Track whose chunks aren't loaded is still drawn, greyed,
+  and comes back to light grey when they load again; it's saved with the box.
+- A **comparator** beside the box reads how many trains are on its map (up to 15).
 - Drag the map to move it about and scroll to zoom. The map keeps up five times a second while you have it open; new
   track shows up within a few seconds.
 
@@ -639,6 +735,8 @@ wherever you like (build the signal box round it), and click it: its screen is a
 ![Zoomed in: a signal held at red from the box, and the junction's switch thrown to the branch](docs/screenshots/signal_box_zoomed.jpg)
 
 ![The signal box](docs/screenshots/signal_box_block.jpg)
+
+![A route set round the loop, its switches held](docs/screenshots/signal_box_route.jpg)
 
 ## Speed limits
 
@@ -860,6 +958,27 @@ players where the trains are with `trainsOnMinimaps` in its server settings.
 
 ![The minimap close up](docs/screenshots/minimap.png)
 
+### On the world map
+
+With **Xaero's World Map** installed (with or without the minimap), the trains show on the world map too: a marker
+for each, in its engine's colour and lettered the same. Hover over one for its name.
+**Click** it for what it's doing, in a panel beside it: who's driving it, or that it's running to its timetable (or
+that nobody's driving); how fast it's going, or that it's standing (at its stop, or which station it's at); its next
+stop; and where it is. A train too far off to be followed closely says where it was last seen. Click it again, or
+anywhere else on the map, to close the panel.
+
+The same settings as for the minimap turn them off.
+
+![A train on the world map, clicked on for what it's doing](docs/screenshots/world_map.jpg)
+
+## Advancements
+
+The mod has thirteen advancements of its own, on a **Reiko's Trains** tab: putting a locomotive, coach or wagon on the
+track, opening a locomotive's throttle, driving a tram, driving an electric under the wires, driving at 90 km/h,
+coupling two cars together, driving a car aboard a car transporter, setting a train going on a timetable, setting a
+route from a signal box, turning a train on a turntable, having an engine shed top up the engine you're driving,
+laying 64 pieces of track with the track-laying wagon, and having it build a bridge.
+
 ## Upgrading from 0.1.0
 
 0.1.0's trains ran on minecart rails. In 0.2.0 they're bigger and need Train Track, so any 0.1.0 train cars in a world
@@ -938,58 +1057,70 @@ leading home), driving it from the back car, both driving cars charging at once,
 driving on and rolling to the far end, staying aboard when its driver gets out, cars filling the deck end to end
 until a bus won't fit, driving off either end with another car in the way or not, driving on along the train to the
 far transporter and back off over the empty one, a train carrying its cars along (and not taking any more while it's
-moving), and the cars' places saved with it.
+moving), the cars' places saved with it, a pickup towing a camper aboard (the trailer unhitched on the deck and
+hitched up again), and a car going aboard sideways from a Car Ramp and off onto it again.
 
 `OverheadLineGameTests` covers overhead wires: masts holding the wire over the middle of the track at the right
 height (and not going up too far from it), stringing wire mast to mast with the item (too far, already wired,
 stopping, taking spans down and getting the wire back), four spans to a mast, breaking a mast dropping its wire, a
 substation taking BuildCraft power into its line and only as much as fits (its bars, lamp and comparator), lines
 sharing their power when joined and split, a flat electric running and charging under a live wire and doing nothing
-under a dead one, both of a Bullet Train's driving cars charging from it, and saving the lines.
+under a dead one, both of a Bullet Train's driving cars charging from it, saving the lines, and wire not being strung
+through a wall.
 
 `TramGameTests` covers street track (rails level with the road, a whole block things stand on, tighter street corners
-set into the road, ramps to train track paid in train track) and trams: the vintage tram running and charging from
+set into the road, ramps to train track paid in train track, running straight on into train track a block up) and
+trams: the vintage tram running and charging from
 the wire with its pole trailing, driven from whichever end the driver gets in at, the low-floor tram going on as three
 coupled sections and coming off as one item, and bending round a street corner; a tram stopping short of an armour
 stand on the track and going on when it's gone, a timetabled tram waiting behind a wagon without coupling to it,
-ordinary trains pushing on regardless, and (with the car mod) stopping at a red traffic light and going on at green.
+ordinary trains pushing on regardless, a cow on the track nudged off after a while, the coupler not splitting a
+low-floor tram, and (with the car mod) stopping at a red traffic light and going on at green.
 
 `WaterGameTests` covers water: engines coming full and using water as fast as coal, a dry engine not going until a
 bucket of water goes in, an express's water being its tender's (water only, as much as fits), a water tower filling
 a standing train's tender and no more (its spout, gauge and comparator), taking water from buckets and pipes but not
 lava and giving it to empty buckets, breaking as one, leaving moving trains alone and pausing for redstone, a
-timetabled train waiting at a station while it takes water, and servers turning water off.
+timetabled train waiting at a station while it takes water, servers turning water off, and a tank wagon of water
+keeping the engines in its train topped up (and one of lava not).
 
 `TurntableGameTests` covers the turntable: digging its round pit, its bridge being track when it's lined up (joining
 the track off the pit's edge) so a train runs right across, turning a quarter and a half round with an engine on it
 (still on the rails, the same distance out, facing the new way) and the engine running off afterwards, refusing to
 turn with a train half on it or moving, clicks, sneak-clicks and redstone turning it to the next track (and the
-comparator), a timetabled express being turned round at the end of the line and running back chimney first, and
-breaking any of it taking it all up.
+comparator), a timetabled express being turned round at the end of the line and running back chimney first,
+breaking any of it taking it all up, the small turntable turning a tank engine, and timetabled trains turning the
+bridge to themselves, driving on and turning it on to their stop.
 
 `EngineShedGameTests` covers engine shed doors: going up over the track, shut; opening for a train before it gets
 there and shutting behind it once it's in; topping up a tank engine (coal and water), a diesel and an electric
 standing inside from its store (which takes coal, not dirt), but not an engine outside; a timetabled train waiting in
 the shed to be topped up; clicks and redstone holding the doors open; and breaking any of it taking it all down,
-giving back the doors and the coal in its store (and leaving the track).
+giving back the doors and the coal in its store (and leaving the track); and doors side by side making one shed of
+two roads, sharing a store and each topping up its own road.
 
 `ThreeLightSignalGameTests` covers three-light signals: yellow before a red one (with a train in its section, or held
 by redstone) and green again once it clears, with comparators reading 15, 7 and 0; following the way a switch is set
 (yellow for the line with a red signal, green for the branch with a clear one); and a driven express and a timetabled
 one each going faster than caution speed before a yellow, no faster past it, stopping at the red, and speeding up (or
-going on to its station) once it clears.
+going on to its station) once it clears. It covers four-aspect signals too: double yellow before a yellow (comparator
+3), a fast train slowing to 80 km/h past a double yellow and to caution speed past the yellow, and caution lasting
+through saving the world.
 
 `SignalBoxGameTests` covers the signal box: surveying the line round it (the main line as one straight, the curve
 and branch, the station, both signals with their lamps on the right side, the switch and its ways, a coach), holding a
 signal at red so a driven train stops at it and letting it go so it goes on, breaking the box letting go of it,
-throwing a switch both ways and not when redstone holds it, not reaching signals or trains past its range; and that
-every block in the mod has a loot table.
+throwing a switch both ways and not when redstone holds it, not reaching signals or trains past its range; setting a
+route (its switches set and held) and letting it go once a train's been through; turning a turntable; the comparator
+counting trains; remembering track out of the loaded world; and that every block in the mod has a loot table.
 
 `TrackLayerGameTests` covers the track-laying wagon: pushed off the end of the line it lays all its track straight
 on at walking pace and the train follows; it digs a cutting through a hill (no wider than it needs) and fills a dip
 under the track with what it dug; it stops at water, and for want of fill, carrying on once it has more; steering
-lays a 45° bend and then straight on; switched off (from its screen) it lays nothing; and behind the engine it can't
-lay anything.
+lays a 45° bend and then straight on, and a wide one when set to; switched off (from its screen) it lays nothing;
+behind the engine it can't lay anything; it follows the ground up and down at 1 in 8; it bridges a river on piers and
+tunnels under a tall hill; it lays street track on from street track; and with masts and wire aboard it wires the
+line.
 
 `HandbookGameTests` covers the Railway Handbook: given once on joining (and not again, even after losing it), its
 recipe making it, and the pages the screens' buttons open being there.
@@ -997,7 +1128,9 @@ recipe making it, and the pages the screens' buttons open being there.
 `TrainMapGameTests` covers the map of trains for minimaps: a train on it once, at its leading locomotive, with its
 kind and length, a timetabled train's next stop, a broken locomotive coming off it (and the other engine taking
 over), players being sent the other trains nearest first and not their own, dropping trains that aren't where the
-map says, and saving it with the world.
+map says, saving it with the world, and the details the world map shows (how fast a train's going, and who's driving it).
+
+`AdvancementGameTests` covers the mod's advancements being earned on the railway.
 
 `./gradlew runClient -Pshowcase -PwindowSize=1280x720` builds a test railway, runs trains round it and saves
 screenshots to `run/screenshots/` (that's where the pictures above come from). Add `-PxaeroJars=/path/to/folder` for

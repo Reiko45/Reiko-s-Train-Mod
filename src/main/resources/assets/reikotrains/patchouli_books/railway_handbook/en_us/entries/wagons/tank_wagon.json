@@ -17,6 +17,10 @@
       "text": "It carries 256 buckets of one fluid: water, lava, oil, BuildCraft's fuels. Click it with a full bucket (or any mod's fluid container) to pour it in, or with an empty one to draw some off; empty-handed, to see what's in it.$(br2)Pipes fill and empty it, and so does a $(l:freight/wagon_loader)wagon loader$(/l) with tanks beside it. If it's broken up, what's in it is lost."
     },
     {
+      "type": "patchouli:text",
+      "text": "A tank wagon of $(l)water$() in a steam train keeps its engines topped up as it goes: the tank engines and tenders in the same train are filled from it, so a long run needs no water tower."
+    },
+    {
       "type": "patchouli:crafting",
       "recipe": "reikotrains:tank_wagon"
     }

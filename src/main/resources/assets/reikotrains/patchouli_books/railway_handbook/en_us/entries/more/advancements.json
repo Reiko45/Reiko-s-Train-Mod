@@ -1,0 +1,12 @@
+{
+  "name": "Advancements",
+  "icon": "minecraft:experience_bottle",
+  "category": "reikotrains:more",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The mod has its own advancements, under $(l)Reiko's Trains$(): putting a train on the track, opening the throttle, a tram, an electric under the wires, 90 km/h, coupling up, a car aboard a car transporter, a timetable, a route from a signal box, a turntable, an engine shed, and laying track with the track-laying wagon (a bridge, too)."
+    }
+  ]
+}
