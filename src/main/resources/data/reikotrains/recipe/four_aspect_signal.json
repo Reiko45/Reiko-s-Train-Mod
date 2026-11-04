@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "redstone",
+  "ingredients": [
+    {
+      "item": "reikotrains:three_light_signal"
+    },
+    {
+      "item": "minecraft:redstone_lamp"
+    },
+    {
+      "item": "minecraft:yellow_dye"
+    }
+  ],
+  "result": {
+    "count": 1,
+    "id": "reikotrains:four_aspect_signal"
+  }
+}

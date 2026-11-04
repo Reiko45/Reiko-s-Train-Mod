@@ -53,6 +53,14 @@ public class SignalBoxScreen extends AbstractContainerScreen<SignalBoxMenu> {
     private static long stateAt;
 
     private float scale = 1;
+    /** Setting routes: clicks on signals pick a route's start and end, instead of holding them. */
+    private boolean routeMode;
+    /** In route mode, the signal picked as the start of a route, waiting for its end. */
+    @Nullable
+    private net.minecraft.core.BlockPos routeFrom;
+    private net.minecraft.client.gui.components.Button routeButton;
+    private static final int ROUTE = 0xFF40D8F0;
+    private static final int FADED = 0xFF4A5560;
     private float panX;
     private float panZ;
     private boolean dragging;
@@ -87,10 +95,22 @@ public class SignalBoxScreen extends AbstractContainerScreen<SignalBoxMenu> {
         scale = Mth.clamp(Math.min(mapRight - mapLeft, mapBottom - mapTop) / (2.0F * SignalBoxBlockEntity.RANGE) * 1.6F, MIN_SCALE, MAX_SCALE);
         panX = 0;
         panZ = 0;
+        routeButton = addRenderableWidget(net.minecraft.client.gui.components.Button.builder(Component.empty(), b -> {
+            routeMode = !routeMode;
+            routeFrom = null;
+            updateRouteButton();
+        }).bounds(leftPos + imageWidth - 82, topPos + 2, 62, 14).build());
+        updateRouteButton();
         HandbookButton handbook = HandbookButton.create(leftPos + imageWidth - 17, topPos + 2, 14, com.reiko.trains.guide.Handbook.SIGNAL_BOX);
         if (handbook != null) {
             addRenderableWidget(handbook);
         }
+    }
+
+    private void updateRouteButton() {
+        routeButton.setMessage(Component.translatable(routeMode ? "screen.reikotrains.signal_box.routes_on" : "screen.reikotrains.signal_box.routes_off")
+                .withStyle(routeMode ? ChatFormatting.AQUA : ChatFormatting.WHITE));
+        routeButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("screen.reikotrains.signal_box.routes.tooltip")));
     }
 
     private float sx(float x) {
@@ -137,17 +157,32 @@ public class SignalBoxScreen extends AbstractContainerScreen<SignalBoxMenu> {
         SignalBoxStatePayload now = state != null && state.box().equals(menu.pos()) ? state : null;
         if (now != null) {
             for (SignalBoxStatePayload.TableMark table : now.tables()) {
-                circle(vc, pose, table.x(), table.z(), 7.5F, 1.2F, 0xFF707A84);
+                circle(vc, pose, table.x(), table.z(), table.radius(), 1.2F, 0xFF707A84);
                 double a = Math.toRadians(table.angle());
-                float dx = (float) Math.cos(a) * 7.4F;
-                float dz = (float) Math.sin(a) * 7.4F;
+                float dx = (float) Math.cos(a) * (table.radius() - 0.1F);
+                float dz = (float) Math.sin(a) * (table.radius() - 0.1F);
                 line(vc, pose, sx(table.x() - dx), sy(table.z() - dz), sx(table.x() + dx), sy(table.z() + dz), width, TRACK);
             }
         }
         if (current) {
+            // Track it's seen before, in chunks not loaded now: faded.
+            for (float[] points : map.faded()) {
+                for (int i = 0; i + 3 < points.length; i += 2) {
+                    line(vc, pose, sx(points[i]), sy(points[i + 1]), sx(points[i + 2]), sy(points[i + 3]), width, FADED);
+                }
+            }
             for (float[] points : map.lines()) {
                 for (int i = 0; i + 3 < points.length; i += 2) {
                     line(vc, pose, sx(points[i]), sy(points[i + 1]), sx(points[i + 2]), sy(points[i + 3]), width, TRACK);
+                }
+            }
+        }
+        if (now != null) {
+            // Routes set from the box, picked out over the track.
+            for (SignalBoxStatePayload.RouteMark route : now.routes()) {
+                float[] points = route.points();
+                for (int i = 0; i + 3 < points.length; i += 2) {
+                    line(vc, pose, sx(points[i]), sy(points[i + 1]), sx(points[i + 2]), sy(points[i + 3]), width + 0.8F, ROUTE);
                 }
             }
         }
@@ -176,8 +211,18 @@ public class SignalBoxScreen extends AbstractContainerScreen<SignalBoxMenu> {
                 if (signal.held()) {
                     box(vc, pose, lx, ly, r + 1.5F, 0xFFFFFFFF);
                 }
+                if (signal.pos().equals(routeFrom)) {
+                    box(vc, pose, lx, ly, r + 2.0F, ROUTE);
+                }
                 box(vc, pose, lx, ly, r + 0.5F, 0xFF101010);
-                box(vc, pose, lx, ly, r - 0.5F, LAMPS[Mth.clamp(signal.aspect(), 0, 2)]);
+                if (signal.aspect() == SignalBoxStatePayload.DOUBLE_YELLOW) {
+                    // Double yellow: two yellow lamps, side by side
+                    float half = (r - 0.5F) * 0.55F;
+                    box(vc, pose, lx - half, ly, half, LAMPS[2]);
+                    box(vc, pose, lx + half, ly, half, LAMPS[2]);
+                } else {
+                    box(vc, pose, lx, ly, r - 0.5F, LAMPS[Mth.clamp(signal.aspect(), 0, 2)]);
+                }
             }
             float t = Mth.clamp((Util.getMillis() - stateAt) / 200.0F, 0, 1);
             Map<Integer, SignalBoxStatePayload.CarMark> last = new HashMap<>();
@@ -217,7 +262,9 @@ public class SignalBoxScreen extends AbstractContainerScreen<SignalBoxMenu> {
         }
         graphics.flush();
         graphics.disableScissor();
-        graphics.drawString(font, Component.translatable("screen.reikotrains.signal_box.help"), mapLeft, mapBottom + 4, 0xFFB0A898, false);
+        graphics.drawString(font, Component.translatable(!routeMode ? "screen.reikotrains.signal_box.help"
+                : routeFrom == null ? "screen.reikotrains.signal_box.route_help" : "screen.reikotrains.signal_box.route_help2"),
+                mapLeft, mapBottom + 4, routeMode ? 0xFF80E8F8 : 0xFFB0A898, false);
     }
 
     @Override
@@ -317,6 +364,19 @@ public class SignalBoxScreen extends AbstractContainerScreen<SignalBoxMenu> {
     }
 
     @Nullable
+    private SignalBoxStatePayload.TableMark turntableAt(double mouseX, double mouseY) {
+        if (state == null || !state.box().equals(menu.pos()) || !onMap(mouseX, mouseY)) {
+            return null;
+        }
+        for (SignalBoxStatePayload.TableMark table : state.tables()) {
+            if (Math.hypot(sx(table.x()) - mouseX, sy(table.z()) - mouseY) <= table.radius() * scale) {
+                return table;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
     private SignalBoxStatePayload.CarMark carAt(double mouseX, double mouseY) {
         if (state == null || !state.box().equals(menu.pos()) || !onMap(mouseX, mouseY)) {
             return null;
@@ -339,10 +399,14 @@ public class SignalBoxScreen extends AbstractContainerScreen<SignalBoxMenu> {
         SignalBoxStatePayload.SignalMark signal = signalAt(mouseX, mouseY);
         if (signal != null) {
             String aspect = signal.held() ? "held" : signal.aspect() == SignalBoxStatePayload.GREEN ? "green"
-                    : signal.aspect() == SignalBoxStatePayload.YELLOW ? "yellow" : "red";
+                    : signal.aspect() == SignalBoxStatePayload.YELLOW ? "yellow"
+                    : signal.aspect() == SignalBoxStatePayload.DOUBLE_YELLOW ? "double_yellow" : "red";
             lines.add(Component.translatable("screen.reikotrains.signal_box.signal." + aspect));
-            lines.add(Component.translatable(signal.held() ? "screen.reikotrains.signal_box.release" : "screen.reikotrains.signal_box.hold")
-                    .withStyle(ChatFormatting.GRAY));
+            boolean routeStart = state != null && state.routes().stream().anyMatch(r -> r.entry().equals(signal.pos()));
+            String hint = !routeMode ? (signal.held() ? "screen.reikotrains.signal_box.release" : "screen.reikotrains.signal_box.hold")
+                    : routeStart && routeFrom == null ? "screen.reikotrains.signal_box.route_cancel"
+                    : routeFrom == null ? "screen.reikotrains.signal_box.route_from" : "screen.reikotrains.signal_box.route_to";
+            lines.add(Component.translatable(hint).withStyle(routeMode ? ChatFormatting.AQUA : ChatFormatting.GRAY));
             return lines;
         }
         SignalBoxStatePayload.SwitchMark stand = switchAt(mouseX, mouseY);
@@ -351,6 +415,12 @@ public class SignalBoxScreen extends AbstractContainerScreen<SignalBoxMenu> {
                     stand.ways().length / 2 / SignalBoxStatePayload.WAY_POINTS));
             lines.add(stand.locked() ? Component.translatable("screen.reikotrains.signal_box.locked").withStyle(ChatFormatting.RED)
                     : Component.translatable("screen.reikotrains.signal_box.throw").withStyle(ChatFormatting.GRAY));
+            return lines;
+        }
+        SignalBoxStatePayload.TableMark table = turntableAt(mouseX, mouseY);
+        if (table != null && carAt(mouseX, mouseY) == null) {
+            lines.add(Component.translatable("screen.reikotrains.signal_box.turntable"));
+            lines.add(Component.translatable("screen.reikotrains.signal_box.turntable.hint").withStyle(ChatFormatting.GRAY));
             return lines;
         }
         SignalBoxStatePayload.CarMark car = carAt(mouseX, mouseY);
@@ -376,10 +446,25 @@ public class SignalBoxScreen extends AbstractContainerScreen<SignalBoxMenu> {
         if (button == 0 && onMap(mouseX, mouseY)) {
             SignalBoxStatePayload.SignalMark signal = signalAt(mouseX, mouseY);
             SignalBoxStatePayload.SwitchMark stand = signal == null ? switchAt(mouseX, mouseY) : null;
-            if (signal != null) {
+            SignalBoxStatePayload.TableMark table = signal == null && stand == null && carAt(mouseX, mouseY) == null
+                    ? turntableAt(mouseX, mouseY) : null;
+            if (signal != null && routeMode) {
+                boolean routeStart = state != null && state.routes().stream().anyMatch(r -> r.entry().equals(signal.pos()));
+                if (routeFrom == null && routeStart) {
+                    // Cancel the route set from here.
+                    PacketDistributor.sendToServer(new SignalBoxActionPayload(menu.pos(), SignalBoxActionPayload.ROUTE, signal.pos(), signal.pos()));
+                } else if (routeFrom == null || routeFrom.equals(signal.pos())) {
+                    routeFrom = routeFrom == null ? signal.pos() : null;
+                } else {
+                    PacketDistributor.sendToServer(new SignalBoxActionPayload(menu.pos(), SignalBoxActionPayload.ROUTE, routeFrom, signal.pos()));
+                    routeFrom = null;
+                }
+            } else if (signal != null) {
                 PacketDistributor.sendToServer(new SignalBoxActionPayload(menu.pos(), SignalBoxActionPayload.SIGNAL, signal.pos()));
             } else if (stand != null) {
                 PacketDistributor.sendToServer(new SignalBoxActionPayload(menu.pos(), SignalBoxActionPayload.SWITCH, stand.pos()));
+            } else if (table != null) {
+                PacketDistributor.sendToServer(new SignalBoxActionPayload(menu.pos(), SignalBoxActionPayload.TURNTABLE, table.pos()));
             } else {
                 dragging = true;
             }
@@ -421,6 +506,13 @@ public class SignalBoxScreen extends AbstractContainerScreen<SignalBoxMenu> {
         panX = worldX - (float) (mouseX - (mapLeft + mapRight) / 2.0) / scale;
         panZ = worldZ - (float) (mouseY - (mapTop + mapBottom) / 2.0) / scale;
         return true;
+    }
+
+    /** Route mode on or off, and a route's start picked (the showcase uses it). */
+    public void routeMode(boolean on, @Nullable net.minecraft.core.BlockPos from) {
+        routeMode = on;
+        routeFrom = from;
+        updateRouteButton();
     }
 
     /** Sets the zoom and middle of the map (the showcase uses it). */

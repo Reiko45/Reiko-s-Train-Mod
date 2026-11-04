@@ -117,6 +117,10 @@ public class SwitchBlock extends HorizontalDirectionalBlock implements EntityBlo
             player.displayClientMessage(Component.translatable("message.reikotrains.switch.locked").withStyle(ChatFormatting.RED), true);
             return InteractionResult.CONSUME;
         }
+        if (stand.isHeld()) {
+            player.displayClientMessage(Component.translatable("message.reikotrains.switch.route").withStyle(ChatFormatting.RED), true);
+            return InteractionResult.CONSUME;
+        }
         int way = stand.next(stand.setting());
         stand.set(way);
         if (threeWay) {

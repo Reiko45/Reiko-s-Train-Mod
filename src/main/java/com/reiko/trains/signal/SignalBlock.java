@@ -108,7 +108,7 @@ public class SignalBlock extends HorizontalDirectionalBlock implements EntityBlo
         if (!(level.getBlockEntity(pos) instanceof SignalBlockEntity signal)) {
             return 0;
         }
-        return signal.isOccupied() ? 15 : signal.showsCaution() ? 7 : 0;
+        return signal.isOccupied() ? 15 : signal.showsCaution() ? 7 : signal.showsAdvance() ? 3 : 0;
     }
 
     @Nullable

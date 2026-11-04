@@ -33,7 +33,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
  * A signal box's workings. It looks after everything on the railway within {@link #RANGE} blocks of it (and
  * {@link #HEIGHT} up or down), in loaded chunks: it surveys the track there (every few seconds while anyone's looking),
  * and sends players at its screen the map and, five times a second, the signals, switches, trains and turntables on it.
- * From the screen they hold signals at red (and let them go) and throw switches.
+ * From the screen they hold signals at red (and let them go), throw switches, set routes from one signal to another
+ * (the switches between set and held for it until a train has gone through), and turn turntables. Track it has seen
+ * stays on its map (faded) when its chunks unload. A comparator beside it reads how many trains are in its area.
  */
 public class SignalBoxBlockEntity extends BlockEntity {
     public static final int RANGE = 96;
@@ -43,8 +45,34 @@ public class SignalBoxBlockEntity extends BlockEntity {
     private static final int SURVEY_PERIOD = 100;
 
     public enum Done {
-        HELD, RELEASED, THROWN, LOCKED, NOT_FOUND
+        HELD, RELEASED, THROWN, LOCKED, NOT_FOUND, ROUTE_SET, ROUTE_CANCELLED, NO_ROUTE, TURNING, TURNTABLE_BUSY
     }
+
+    /** A route set from the box: from a signal to the next one along, the switch stands it holds, and the track between. */
+    static final class Route {
+        final BlockPos entry;
+        final BlockPos exit;
+        final List<BlockPos> stands;
+        final float[] points;
+        /** Whether a train has come into it yet (once it's gone through, the route's let go). */
+        boolean entered;
+
+        Route(BlockPos entry, BlockPos exit, List<BlockPos> stands, float[] points) {
+            this.entry = entry.immutable();
+            this.exit = exit.immutable();
+            this.stands = stands;
+            this.points = points;
+        }
+    }
+
+    /** How far along the track a route can reach (blocks). */
+    private static final double ROUTE_REACH = 3.0 * RANGE;
+    private final List<Route> routes = new ArrayList<>();
+    /** The track lines it has seen, by the chunk each is in: lines in chunks not loaded now are shown faded. */
+    private final java.util.Map<Long, List<float[]>> seen = new java.util.HashMap<>();
+    private List<float[]> faded = List.of();
+    /** How many trains there are in its area (for comparators), counted every second. */
+    private int trainCount;
 
     private List<float[]> lines = List.of();
     private List<SignalBoxMapPayload.Label> stations = List.of();
@@ -112,9 +140,13 @@ public class SignalBoxBlockEntity extends BlockEntity {
         signals.clear();
         switches.clear();
         turntables.clear();
+        java.util.Map<Long, List<float[]>> fresh = new java.util.HashMap<>();
         for (BlockEntity be : blockEntities()) {
             if (be instanceof TrackBlockEntity track) {
-                trackLines(track, lines);
+                List<float[]> found = new ArrayList<>();
+                trackLines(track, found);
+                lines.addAll(found);
+                fresh.computeIfAbsent(net.minecraft.world.level.ChunkPos.asLong(be.getBlockPos()), c -> new ArrayList<>()).addAll(found);
             } else if (be instanceof SignalBlockEntity signal && signal.isAttached()) {
                 signals.add(signal.getBlockPos());
             } else if (be instanceof SwitchBlockEntity) {
@@ -128,6 +160,18 @@ public class SignalBoxBlockEntity extends BlockEntity {
         }
         this.lines = lines;
         this.stations = stations;
+        // What it saw before in chunks that aren't loaded now stays, faded; loaded chunks show what's there now.
+        if (level instanceof ServerLevel server) {
+            seen.keySet().removeIf(chunk -> server.getChunkSource().getChunkNow(net.minecraft.world.level.ChunkPos.getX(chunk),
+                    net.minecraft.world.level.ChunkPos.getZ(chunk)) != null);
+            List<float[]> faded = new ArrayList<>();
+            for (List<float[]> old : seen.values()) {
+                faded.addAll(old);
+            }
+            this.faded = faded;
+            seen.putAll(fresh);
+            setChanged();
+        }
         surveyAge = 0;
     }
 
@@ -174,7 +218,7 @@ public class SignalBoxBlockEntity extends BlockEntity {
     }
 
     public SignalBoxMapPayload mapPayload() {
-        return new SignalBoxMapPayload(worldPosition, lines, stations);
+        return new SignalBoxMapPayload(worldPosition, lines, stations, faded);
     }
 
     /** What's going on round the box now. */
@@ -192,7 +236,8 @@ public class SignalBoxBlockEntity extends BlockEntity {
                 Vec3 lamp = node.add(across.scale(side * 1.6));
                 BlockState state = signal.getBlockState();
                 int aspect = !state.getValue(SignalBlock.CLEAR) ? SignalBoxStatePayload.RED
-                        : signal.showsCaution() ? SignalBoxStatePayload.YELLOW : SignalBoxStatePayload.GREEN;
+                        : signal.showsCaution() ? SignalBoxStatePayload.YELLOW
+                        : signal.showsAdvance() ? SignalBoxStatePayload.DOUBLE_YELLOW : SignalBoxStatePayload.GREEN;
                 signalMarks.add(new SignalBoxStatePayload.SignalMark(pos, x(lamp), z(lamp), x(node), z(node), (float) out.x, (float) out.z,
                         aspect, signal.heldBy() != null));
             }
@@ -219,7 +264,7 @@ public class SignalBoxBlockEntity extends BlockEntity {
                     }
                 }
                 Vec3 node = TrackGraph.point(level, stand.node());
-                switchMarks.add(new SignalBoxStatePayload.SwitchMark(pos, x(node), z(node), points, ways.indexOf(set), stand.isLocked()));
+                switchMarks.add(new SignalBoxStatePayload.SwitchMark(pos, x(node), z(node), points, ways.indexOf(set), stand.isHeld()));
             }
         }
         List<SignalBoxStatePayload.CarMark> cars = new ArrayList<>();
@@ -234,10 +279,14 @@ public class SignalBoxBlockEntity extends BlockEntity {
         for (BlockPos pos : turntables) {
             if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof TurntableBlockEntity table) {
                 Vec3 c = table.centre();
-                tables.add(new SignalBoxStatePayload.TableMark(x(c), z(c), table.angleAt(level.getGameTime())));
+                tables.add(new SignalBoxStatePayload.TableMark(pos, x(c), z(c), table.angleAt(level.getGameTime()), (float) table.radius()));
             }
         }
-        return new SignalBoxStatePayload(worldPosition, signalMarks, switchMarks, cars, tables);
+        List<SignalBoxStatePayload.RouteMark> routeMarks = new ArrayList<>();
+        for (Route route : routes) {
+            routeMarks.add(new SignalBoxStatePayload.RouteMark(route.entry, route.exit, route.points));
+        }
+        return new SignalBoxStatePayload(worldPosition, signalMarks, switchMarks, cars, tables, routeMarks);
     }
 
     // ----------------------------------------------------------------------------------------------------------------
@@ -259,7 +308,7 @@ public class SignalBoxBlockEntity extends BlockEntity {
         if (!covers(pos) || !level.isLoaded(pos) || !(level.getBlockEntity(pos) instanceof SwitchBlockEntity stand)) {
             return Done.NOT_FOUND;
         }
-        if (stand.isLocked()) {
+        if (stand.isHeld()) {
             return Done.LOCKED;
         }
         int way = stand.next(stand.setting());
@@ -269,13 +318,205 @@ public class SignalBoxBlockEntity extends BlockEntity {
         return Done.THROWN;
     }
 
-    /** Taken away: it lets go of the signals it was holding (any that aren't loaded let go when they next look). */
+    /**
+     * Sets a route from the signal at {@code entryPos} to the signal at {@code exitPos}: the next signal along the track
+     * from it, the way the trains go, by any of the ways at the junctions between. The switch stands between are set to
+     * send trains that way, and held there until a train has gone through (or the route's cancelled). If a route is
+     * already set from that signal, it's cancelled instead.
+     */
+    public Done setRoute(BlockPos entryPos, BlockPos exitPos) {
+        for (Route route : routes) {
+            if (route.entry.equals(entryPos)) {
+                release(route);
+                routes.remove(route);
+                setChanged();
+                level.playSound(null, worldPosition, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.6F, 0.75F);
+                return Done.ROUTE_CANCELLED;
+            }
+        }
+        if (!covers(entryPos) || !covers(exitPos) || !(level.getBlockEntity(entryPos) instanceof SignalBlockEntity entry) || !entry.isAttached()
+                || !(level.getBlockEntity(exitPos) instanceof SignalBlockEntity exit) || !exit.isAttached() || entryPos.equals(exitPos)) {
+            return Done.NOT_FOUND;
+        }
+        List<EdgeRef> path = findRoute(entry, exit);
+        if (path == null) {
+            return Done.NO_ROUTE;
+        }
+        // The switches on the way: each must be (or be set to) the way the route goes.
+        List<SwitchBlockEntity> stands = new ArrayList<>();
+        List<EdgeRef> wanted = new ArrayList<>();
+        List<List<EdgeRef>> choices = new ArrayList<>();
+        for (EdgeRef edge : path) {
+            List<EdgeRef> options = TrackGraph.edgesFrom(level, edge.from(), edge.fromSide());
+            if (options.size() < 2) {
+                continue;
+            }
+            SwitchBlockEntity stand = TrackSide.switchAt(level, edge.from(), edge.fromSide());
+            if (stand == null) {
+                continue; // no switch here: trains steer, or pick their way
+            }
+            if ((stand.isLocked() && !stand.sendsAlong(edge, options)) || (stand.routeBy() != null && !stand.routeBy().equals(worldPosition))) {
+                return Done.LOCKED;
+            }
+            if (stand.routeBy() != null && !stand.sendsAlong(edge, options)) {
+                return Done.LOCKED; // held for another of this box's routes, the other way
+            }
+            stands.add(stand);
+            wanted.add(edge);
+            choices.add(options);
+        }
+        List<BlockPos> held = new ArrayList<>();
+        for (int i = 0; i < stands.size(); i++) {
+            if (stands.get(i).holdForRoute(wanted.get(i), choices.get(i), worldPosition)) {
+                held.add(stands.get(i).getBlockPos().immutable());
+            }
+        }
+        List<Float> points = new ArrayList<>();
+        for (EdgeRef edge : path) {
+            TrackEdge shape = edge.geometry();
+            int pieces = Math.max(1, (int) Math.ceil(shape.length()));
+            for (int i = points.isEmpty() ? 0 : 1; i <= pieces; i++) {
+                Vec3 p = shape.point(shape.length() * i / pieces);
+                points.add(x(p));
+                points.add(z(p));
+            }
+        }
+        float[] line = new float[Math.min(points.size(), 4096)];
+        for (int i = 0; i < line.length; i++) {
+            line[i] = points.get(i);
+        }
+        routes.add(new Route(entryPos, exitPos, held, line));
+        setChanged();
+        level.playSound(null, worldPosition, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.6F, 0.5F);
+        for (BlockPos stand : held) {
+            level.playSound(null, stand, SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, 0.4F, 1.4F);
+        }
+        return Done.ROUTE_SET;
+    }
+
+    /**
+     * The way along the track from {@code entry} (leaving its track block the way it guards) to {@code exit}, facing the
+     * same way, without passing another signal: the edges in order. Null if there's none within reach.
+     */
+    @javax.annotation.Nullable
+    private List<EdgeRef> findRoute(SignalBlockEntity entry, SignalBlockEntity exit) {
+        record Step(BlockPos node, int side, List<EdgeRef> path, double length) {
+        }
+        java.util.ArrayDeque<Step> open = new java.util.ArrayDeque<>();
+        java.util.Set<Long> seenNodes = new java.util.HashSet<>();
+        open.add(new Step(entry.node(), entry.side(), List.of(), 0));
+        int expansions = 0;
+        while (!open.isEmpty() && expansions++ < 4000) {
+            Step step = open.poll();
+            for (EdgeRef edge : TrackGraph.edgesFrom(level, step.node(), step.side())) {
+                double length = step.length() + edge.geometry().length();
+                if (length > ROUTE_REACH) {
+                    continue;
+                }
+                List<EdgeRef> path = new ArrayList<>(step.path());
+                path.add(edge);
+                int out = -edge.toSide();
+                SignalBlockEntity signal = TrackSide.signal(level, edge.to(), out);
+                if (signal == exit) {
+                    return path;
+                }
+                if (signal != null || !seenNodes.add(edge.to().asLong() * 2 + (out > 0 ? 1 : 0))) {
+                    continue; // another signal: the end of this one's section
+                }
+                open.add(new Step(edge.to(), out, path, length));
+            }
+        }
+        return null;
+    }
+
+    /** Lets go of a route's switches. */
+    private void release(Route route) {
+        for (BlockPos pos : route.stands) {
+            if (level.isLoaded(pos) && level.getBlockEntity(pos) instanceof SwitchBlockEntity stand) {
+                stand.releaseRoute(worldPosition);
+            }
+        }
+    }
+
+    /** Lets go of routes a train has gone through: it came into the entry signal's section, and has left it again. */
+    private void checkRoutes() {
+        boolean changed = false;
+        for (java.util.Iterator<Route> it = routes.iterator(); it.hasNext(); ) {
+            Route route = it.next();
+            if (!level.isLoaded(route.entry)) {
+                continue;
+            }
+            if (!(level.getBlockEntity(route.entry) instanceof SignalBlockEntity entry)) {
+                release(route);
+                it.remove();
+                changed = true;
+                continue;
+            }
+            if (entry.isOccupied()) {
+                if (!route.entered) {
+                    route.entered = true;
+                    changed = true;
+                }
+            } else if (route.entered) {
+                release(route);
+                it.remove();
+                changed = true;
+            }
+        }
+        if (changed) {
+            setChanged();
+            sendState();
+        }
+    }
+
+    /** Turns a turntable to its next track round, clockwise, as clicking it does. */
+    public Done turnTurntable(BlockPos pos) {
+        if (!covers(pos) || !level.isLoaded(pos) || !(level.getBlockEntity(pos) instanceof TurntableBlockEntity table)) {
+            return Done.NOT_FOUND;
+        }
+        return table.turnNext(1) == TurntableBlockEntity.Result.TURNING ? Done.TURNING : Done.TURNTABLE_BUSY;
+    }
+
+    /** The routes set (entry and exit signals), for tests. */
+    public List<BlockPos[]> routes() {
+        List<BlockPos[]> out = new ArrayList<>();
+        for (Route route : routes) {
+            out.add(new BlockPos[] {route.entry, route.exit});
+        }
+        return out;
+    }
+
+    /** How many trains it counted in its area, for comparators (15 at most). */
+    public int trainCount() {
+        return trainCount;
+    }
+
+    private void countTrains() {
+        java.util.Set<TrainCarEntity> heads = new java.util.HashSet<>();
+        for (TrainCarEntity car : Trains.loadedCars(level)) {
+            if (!car.isRemoved() && car.isOnTrack() && covers(car.position())) {
+                TrainCarEntity head = Trains.head(car);
+                heads.add(head == null ? car : head);
+            }
+        }
+        int count = Math.min(15, heads.size());
+        if (count != trainCount) {
+            trainCount = count;
+            level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
+        }
+    }
+
+    /** Taken away: it lets go of the signals and switches it was holding (any that aren't loaded let go when they next look). */
     public void releaseAll() {
         for (BlockEntity be : blockEntities()) {
             if (be instanceof SignalBlockEntity signal && worldPosition.equals(signal.heldBy())) {
                 signal.hold(null);
             }
         }
+        for (Route route : routes) {
+            release(route);
+        }
+        routes.clear();
     }
 
     // ----------------------------------------------------------------------------------------------------------------
@@ -283,6 +524,13 @@ public class SignalBoxBlockEntity extends BlockEntity {
     public static void serverTick(Level level, BlockPos pos, BlockState state, SignalBoxBlockEntity box) {
         if (!(level instanceof ServerLevel server)) {
             return;
+        }
+        long time = level.getGameTime() + pos.hashCode();
+        if (time % 10 == 0 && !box.routes.isEmpty()) {
+            box.checkRoutes();
+        }
+        if (time % 20 == 0) {
+            box.countTrains();
         }
         List<ServerPlayer> watching = new ArrayList<>();
         for (ServerPlayer player : server.players()) {
@@ -323,6 +571,83 @@ public class SignalBoxBlockEntity extends BlockEntity {
                 }
             }
         }
+    }
+
+    @Override
+    protected void saveAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        net.minecraft.nbt.ListTag routeList = new net.minecraft.nbt.ListTag();
+        for (Route route : routes) {
+            net.minecraft.nbt.CompoundTag r = new net.minecraft.nbt.CompoundTag();
+            r.putLong("Entry", route.entry.asLong());
+            r.putLong("Exit", route.exit.asLong());
+            r.putLongArray("Stands", route.stands.stream().mapToLong(BlockPos::asLong).toArray());
+            r.put("Points", floats(route.points));
+            r.putBoolean("Entered", route.entered);
+            routeList.add(r);
+        }
+        tag.put("Routes", routeList);
+        net.minecraft.nbt.ListTag seenList = new net.minecraft.nbt.ListTag();
+        for (java.util.Map.Entry<Long, List<float[]>> chunk : seen.entrySet()) {
+            net.minecraft.nbt.CompoundTag c = new net.minecraft.nbt.CompoundTag();
+            c.putLong("Chunk", chunk.getKey());
+            net.minecraft.nbt.ListTag lines = new net.minecraft.nbt.ListTag();
+            for (float[] line : chunk.getValue()) {
+                lines.add(floats(line));
+            }
+            c.put("Lines", lines);
+            seenList.add(c);
+        }
+        tag.put("Seen", seenList);
+    }
+
+    @Override
+    protected void loadAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        routes.clear();
+        for (net.minecraft.nbt.Tag t : tag.getList("Routes", net.minecraft.nbt.Tag.TAG_COMPOUND)) {
+            net.minecraft.nbt.CompoundTag r = (net.minecraft.nbt.CompoundTag) t;
+            List<BlockPos> stands = new ArrayList<>();
+            for (long l : r.getLongArray("Stands")) {
+                stands.add(BlockPos.of(l));
+            }
+            Route route = new Route(BlockPos.of(r.getLong("Entry")), BlockPos.of(r.getLong("Exit")), stands, floats(r.getIntArray("Points")));
+            route.entered = r.getBoolean("Entered");
+            routes.add(route);
+        }
+        seen.clear();
+        List<float[]> faded = new ArrayList<>();
+        for (net.minecraft.nbt.Tag t : tag.getList("Seen", net.minecraft.nbt.Tag.TAG_COMPOUND)) {
+            net.minecraft.nbt.CompoundTag c = (net.minecraft.nbt.CompoundTag) t;
+            List<float[]> lines = new ArrayList<>();
+            for (net.minecraft.nbt.Tag line : c.getList("Lines", net.minecraft.nbt.Tag.TAG_INT_ARRAY)) {
+                lines.add(floats(((net.minecraft.nbt.IntArrayTag) line).getAsIntArray()));
+            }
+            seen.put(c.getLong("Chunk"), lines);
+            faded.addAll(lines);
+        }
+        this.faded = faded;
+    }
+
+    private static net.minecraft.nbt.IntArrayTag floats(float[] values) {
+        int[] bits = new int[values.length];
+        for (int i = 0; i < values.length; i++) {
+            bits[i] = Float.floatToIntBits(values[i]);
+        }
+        return new net.minecraft.nbt.IntArrayTag(bits);
+    }
+
+    private static float[] floats(int[] bits) {
+        float[] values = new float[bits.length];
+        for (int i = 0; i < bits.length; i++) {
+            values[i] = Float.intBitsToFloat(bits[i]);
+        }
+        return values;
+    }
+
+    /** For tests: the lines remembered from chunks that aren't loaded, shown faded. */
+    public List<float[]> faded() {
+        return faded;
     }
 
     /** For tests: the lines surveyed. */

@@ -15,7 +15,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
  * and the turntables. Places are in blocks east and south of the middle of the box.
  */
 public record SignalBoxStatePayload(BlockPos box, List<SignalMark> signals, List<SwitchMark> switches, List<CarMark> cars,
-                                    List<TableMark> tables) implements CustomPacketPayload {
+                                    List<TableMark> tables, List<RouteMark> routes) implements CustomPacketPayload {
     public static final Type<SignalBoxStatePayload> TYPE = new Type<>(ReikoTrains.id("signal_box_state"));
     public static final StreamCodec<FriendlyByteBuf, SignalBoxStatePayload> STREAM_CODEC = StreamCodec.of(SignalBoxStatePayload::write,
             SignalBoxStatePayload::read);
@@ -23,6 +23,7 @@ public record SignalBoxStatePayload(BlockPos box, List<SignalMark> signals, List
     public static final int RED = 0;
     public static final int GREEN = 1;
     public static final int YELLOW = 2;
+    public static final int DOUBLE_YELLOW = 3;
     /** How many points along each way out of a switch's junction are sent (every block and a half). */
     public static final int WAY_POINTS = 4;
 
@@ -41,8 +42,12 @@ public record SignalBoxStatePayload(BlockPos box, List<SignalMark> signals, List
     public record CarMark(int id, float x, float z, float fx, float fz, float half, boolean loco) {
     }
 
-    /** A turntable: its middle, and which way its bridge points (degrees clockwise from east). */
-    public record TableMark(float x, float z, float angle) {
+    /** A turntable: its pivot block, its middle, which way its bridge points (degrees clockwise from east), and how wide its pit is. */
+    public record TableMark(BlockPos pos, float x, float z, float angle, float radius) {
+    }
+
+    /** A route set from the box: the signal it starts at, the one it ends at, and the track between (x and z in turn). */
+    public record RouteMark(BlockPos entry, BlockPos exit, float[] points) {
     }
 
     private static void write(FriendlyByteBuf buf, SignalBoxStatePayload payload) {
@@ -83,9 +88,20 @@ public record SignalBoxStatePayload(BlockPos box, List<SignalMark> signals, List
         }
         buf.writeVarInt(payload.tables().size());
         for (TableMark table : payload.tables()) {
+            buf.writeBlockPos(table.pos());
             buf.writeFloat(table.x());
             buf.writeFloat(table.z());
             buf.writeFloat(table.angle());
+            buf.writeFloat(table.radius());
+        }
+        buf.writeVarInt(payload.routes().size());
+        for (RouteMark route : payload.routes()) {
+            buf.writeBlockPos(route.entry());
+            buf.writeBlockPos(route.exit());
+            buf.writeVarInt(route.points().length / 2);
+            for (float v : route.points()) {
+                buf.writeFloat(v);
+            }
         }
     }
 
@@ -118,9 +134,20 @@ public record SignalBoxStatePayload(BlockPos box, List<SignalMark> signals, List
         count = Math.min(buf.readVarInt(), 256);
         List<TableMark> tables = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            tables.add(new TableMark(buf.readFloat(), buf.readFloat(), buf.readFloat()));
+            tables.add(new TableMark(buf.readBlockPos(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat()));
         }
-        return new SignalBoxStatePayload(box, signals, switches, cars, tables);
+        count = Math.min(buf.readVarInt(), 256);
+        List<RouteMark> routes = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            BlockPos entry = buf.readBlockPos();
+            BlockPos exit = buf.readBlockPos();
+            float[] points = new float[Math.min(buf.readVarInt(), 2048) * 2];
+            for (int j = 0; j < points.length; j++) {
+                points[j] = buf.readFloat();
+            }
+            routes.add(new RouteMark(entry, exit, points));
+        }
+        return new SignalBoxStatePayload(box, signals, switches, cars, tables, routes);
     }
 
     @Override

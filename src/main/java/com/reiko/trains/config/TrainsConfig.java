@@ -29,6 +29,10 @@ public final class TrainsConfig {
             .comment("How fast trains may go past a yellow (three-light) signal, until the next signal, in km/h. Drivers keep",
                     "to it too while signalsStopDrivers is on.")
             .defineInRange("cautionSpeedKmh", 40, 5, 200);
+    public static final ModConfigSpec.IntValue DOUBLE_YELLOW_SPEED = BUILDER
+            .comment("How fast trains may go past a double yellow (four-aspect) signal, until the next signal, in km/h: the",
+                    "next signal is yellow. Only the Bullet Train goes faster than the default.")
+            .defineInRange("doubleYellowSpeedKmh", 80, 5, 300);
     public static final ModConfigSpec.BooleanValue SPEED_LIMITS_FOR_DRIVERS = BUILDER
             .comment("Whether trains people are driving keep to speed limit signs by themselves, like trains on a timetable",
                     "do. Turn off to leave it to the drivers.")

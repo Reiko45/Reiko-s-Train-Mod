@@ -234,4 +234,94 @@ public final class ThreeLightSignalGameTests {
             express.autopilot().stop();
         });
     }
+
+    // ----------------------------------------------------------------------------------------------------------------
+    // Four-aspect signals
+
+    private static SignalBlockEntity fourAspect(GameTestHelper helper, int x) {
+        return TestTracks.fourAspectSignal(helper.getLevel(), helper.absolutePos(new BlockPos(x, 1, 6)), at(helper, x), 1);
+    }
+
+    private static boolean doubleYellow(SignalBlockEntity signal) {
+        BlockState state = signal.getBlockState();
+        return state.getValue(SignalBlock.CLEAR) && state.hasProperty(com.reiko.trains.signal.FourAspectSignalBlock.ADVANCE)
+                && state.getValue(com.reiko.trains.signal.FourAspectSignalBlock.ADVANCE);
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 100)
+    public static void fourAspectShowsDoubleYellowBeforeAYellow(GameTestHelper helper) {
+        line(helper, 64);
+        SignalBlockEntity first = fourAspect(helper, 6);
+        SignalBlockEntity second = threeLight(helper, 22);
+        SignalBlockEntity third = TestTracks.signal(helper.getLevel(), helper.absolutePos(new BlockPos(38, 1, 6)), at(helper, 38), 1);
+        FreightWagon wagon = TestTracks.car(helper.getLevel(), ModEntities.FREIGHT_WAGON.get(), at(helper, 50), EAST);
+        helper.runAfterDelay(40, () -> {
+            helper.assertTrue(aspect(third).equals("red") && aspect(second).equals("yellow"), "red with a wagon beyond, yellow before it");
+            helper.assertTrue(doubleYellow(first) && !aspect(first).equals("yellow"), "and double yellow before that");
+            helper.assertTrue(comparator(helper, first) == 3, "a comparator reads 3 for double yellow, not " + comparator(helper, first));
+            wagon.discard();
+        });
+        helper.runAfterDelay(80, () -> {
+            helper.assertTrue(aspect(first).equals("green") && !doubleYellow(first) && aspect(second).equals("green"), "all green once it's gone");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "long_line", timeoutTicks = 600)
+    public static void fastTrainSlowsForADoubleYellow(GameTestHelper helper) {
+        line(helper, 256);
+        fourAspect(helper, 120);
+        threeLight(helper, 170);
+        TestTracks.signal(helper.getLevel(), helper.absolutePos(new BlockPos(220, 1, 6)), at(helper, 220), 1);
+        FreightWagon wagon = TestTracks.car(helper.getLevel(), ModEntities.FREIGHT_WAGON.get(), at(helper, 235), EAST);
+        com.reiko.trains.train.BulletTrain bullet = TestTracks.car(helper.getLevel(), ModEntities.BULLET_TRAIN.get(), at(helper, 40), EAST);
+        bullet.setFuel(com.reiko.trains.train.BulletTrain.BATTERY_CAPACITY);
+        Player driver = board(helper, bullet);
+        for (int i = 0; i < 4; i++) {
+            bullet.control(TrainControlPayload.THROTTLE_UP);
+        }
+        bullet.shove(1.35);
+        double advance = TrainsConfig.DOUBLE_YELLOW_SPEED.get() / 72.0;
+        double[] fastest = {0, 0};
+        helper.onEachTick(() -> {
+            double front = eastBuffer(bullet);
+            if (front > at(helper, 122).getX() && front < at(helper, 168).getX()) {
+                fastest[0] = Math.max(fastest[0], Math.abs(bullet.trainSpeed()));
+            }
+            if (front > at(helper, 172).getX() && front < at(helper, 215).getX()) {
+                fastest[1] = Math.max(fastest[1], Math.abs(bullet.trainSpeed()));
+            }
+        });
+        helper.succeedWhen(() -> {
+            helper.assertTrue(eastBuffer(bullet) > at(helper, 200).getX(), "it should get past the yellow");
+            helper.assertTrue(fastest[0] > 0 && fastest[0] <= advance + 0.02, "past the double yellow at no more than its speed: " + fastest[0]);
+            helper.assertTrue(fastest[1] <= caution() + 0.02, "past the yellow at caution speed: " + fastest[1]);
+            helper.assertTrue(bullet.cautionState() == 1, "keeping to caution speed till the next signal");
+            driver.stopRiding();
+            wagon.discard();
+        });
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 300)
+    public static void cautionLastsThroughSaving(GameTestHelper helper) {
+        line(helper, 64);
+        threeLight(helper, 20);
+        TestTracks.signal(helper.getLevel(), helper.absolutePos(new BlockPos(50, 1, 6)), at(helper, 50), 1);
+        FreightWagon wagon = TestTracks.car(helper.getLevel(), ModEntities.FREIGHT_WAGON.get(), at(helper, 60), EAST);
+        ExpressLocomotive express = express(helper, 12);
+        Player driver = board(helper, express);
+        for (int i = 0; i < 4; i++) {
+            express.control(TrainControlPayload.THROTTLE_UP);
+        }
+        helper.succeedWhen(() -> {
+            helper.assertTrue(express.getX() > at(helper, 24).getX() && express.cautionState() == 1, "past the yellow, it keeps to caution");
+            net.minecraft.nbt.CompoundTag saved = new net.minecraft.nbt.CompoundTag();
+            express.saveWithoutId(saved);
+            ExpressLocomotive loaded = ModEntities.EXPRESS_LOCOMOTIVE.get().create(helper.getLevel());
+            loaded.load(saved);
+            helper.assertTrue(loaded.cautionState() == 1, "and still does when the world's been saved and loaded");
+            driver.stopRiding();
+            wagon.discard();
+        });
+    }
 }

@@ -24,7 +24,8 @@ public final class ModBlockEntities {
 
     @SuppressWarnings("DataFlowIssue")
     public static final Supplier<BlockEntityType<SignalBlockEntity>> SIGNAL = BLOCK_ENTITIES.register("signal",
-            () -> BlockEntityType.Builder.of(SignalBlockEntity::new, ModBlocks.SIGNAL.get(), ModBlocks.THREE_LIGHT_SIGNAL.get()).build(null));
+            () -> BlockEntityType.Builder.of(SignalBlockEntity::new, ModBlocks.SIGNAL.get(), ModBlocks.THREE_LIGHT_SIGNAL.get(),
+                    ModBlocks.FOUR_ASPECT_SIGNAL.get()).build(null));
     @SuppressWarnings("DataFlowIssue")
     public static final Supplier<BlockEntityType<StationBlockEntity>> STATION = BLOCK_ENTITIES.register("station",
             () -> BlockEntityType.Builder.of(StationBlockEntity::new, ModBlocks.STATION.get()).build(null));

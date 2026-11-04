@@ -31,6 +31,9 @@ public final class ModBlocks {
     public static final DeferredBlock<com.reiko.trains.signal.ThreeLightSignalBlock> THREE_LIGHT_SIGNAL = BLOCKS.register("three_light_signal",
             () -> new com.reiko.trains.signal.ThreeLightSignalBlock(BlockBehaviour.Properties.of().strength(1.5F).sound(SoundType.METAL)
                     .noOcclusion().lightLevel(state -> 5).pushReaction(PushReaction.BLOCK)));
+    public static final DeferredBlock<com.reiko.trains.signal.FourAspectSignalBlock> FOUR_ASPECT_SIGNAL = BLOCKS.register("four_aspect_signal",
+            () -> new com.reiko.trains.signal.FourAspectSignalBlock(BlockBehaviour.Properties.of().strength(1.5F).sound(SoundType.METAL)
+                    .noOcclusion().lightLevel(state -> 5).pushReaction(PushReaction.BLOCK)));
     public static final DeferredBlock<com.reiko.trains.signal.SignalBoxBlock> SIGNAL_BOX = BLOCKS.register("signal_box",
             () -> new com.reiko.trains.signal.SignalBoxBlock(BlockBehaviour.Properties.of().strength(2.0F).sound(SoundType.WOOD).noOcclusion()
                     .ignitedByLava().mapColor(net.minecraft.world.level.material.MapColor.WOOD)));

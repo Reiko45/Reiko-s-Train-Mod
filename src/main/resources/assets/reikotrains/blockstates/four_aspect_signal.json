@@ -1,0 +1,124 @@
+{
+  "variants": {
+    "advance=true,caution=true,clear=true,facing=north": {
+      "model": "reikotrains:block/four_aspect_signal_caution"
+    },
+    "advance=false,caution=true,clear=true,facing=north": {
+      "model": "reikotrains:block/four_aspect_signal_caution"
+    },
+    "advance=true,caution=false,clear=true,facing=north": {
+      "model": "reikotrains:block/four_aspect_signal_advance"
+    },
+    "advance=false,caution=false,clear=true,facing=north": {
+      "model": "reikotrains:block/four_aspect_signal_clear"
+    },
+    "advance=true,caution=true,clear=false,facing=north": {
+      "model": "reikotrains:block/four_aspect_signal_stop"
+    },
+    "advance=false,caution=true,clear=false,facing=north": {
+      "model": "reikotrains:block/four_aspect_signal_stop"
+    },
+    "advance=true,caution=false,clear=false,facing=north": {
+      "model": "reikotrains:block/four_aspect_signal_stop"
+    },
+    "advance=false,caution=false,clear=false,facing=north": {
+      "model": "reikotrains:block/four_aspect_signal_stop"
+    },
+    "advance=true,caution=true,clear=true,facing=east": {
+      "model": "reikotrains:block/four_aspect_signal_caution",
+      "y": 90
+    },
+    "advance=false,caution=true,clear=true,facing=east": {
+      "model": "reikotrains:block/four_aspect_signal_caution",
+      "y": 90
+    },
+    "advance=true,caution=false,clear=true,facing=east": {
+      "model": "reikotrains:block/four_aspect_signal_advance",
+      "y": 90
+    },
+    "advance=false,caution=false,clear=true,facing=east": {
+      "model": "reikotrains:block/four_aspect_signal_clear",
+      "y": 90
+    },
+    "advance=true,caution=true,clear=false,facing=east": {
+      "model": "reikotrains:block/four_aspect_signal_stop",
+      "y": 90
+    },
+    "advance=false,caution=true,clear=false,facing=east": {
+      "model": "reikotrains:block/four_aspect_signal_stop",
+      "y": 90
+    },
+    "advance=true,caution=false,clear=false,facing=east": {
+      "model": "reikotrains:block/four_aspect_signal_stop",
+      "y": 90
+    },
+    "advance=false,caution=false,clear=false,facing=east": {
+      "model": "reikotrains:block/four_aspect_signal_stop",
+      "y": 90
+    },
+    "advance=true,caution=true,clear=true,facing=south": {
+      "model": "reikotrains:block/four_aspect_signal_caution",
+      "y": 180
+    },
+    "advance=false,caution=true,clear=true,facing=south": {
+      "model": "reikotrains:block/four_aspect_signal_caution",
+      "y": 180
+    },
+    "advance=true,caution=false,clear=true,facing=south": {
+      "model": "reikotrains:block/four_aspect_signal_advance",
+      "y": 180
+    },
+    "advance=false,caution=false,clear=true,facing=south": {
+      "model": "reikotrains:block/four_aspect_signal_clear",
+      "y": 180
+    },
+    "advance=true,caution=true,clear=false,facing=south": {
+      "model": "reikotrains:block/four_aspect_signal_stop",
+      "y": 180
+    },
+    "advance=false,caution=true,clear=false,facing=south": {
+      "model": "reikotrains:block/four_aspect_signal_stop",
+      "y": 180
+    },
+    "advance=true,caution=false,clear=false,facing=south": {
+      "model": "reikotrains:block/four_aspect_signal_stop",
+      "y": 180
+    },
+    "advance=false,caution=false,clear=false,facing=south": {
+      "model": "reikotrains:block/four_aspect_signal_stop",
+      "y": 180
+    },
+    "advance=true,caution=true,clear=true,facing=west": {
+      "model": "reikotrains:block/four_aspect_signal_caution",
+      "y": 270
+    },
+    "advance=false,caution=true,clear=true,facing=west": {
+      "model": "reikotrains:block/four_aspect_signal_caution",
+      "y": 270
+    },
+    "advance=true,caution=false,clear=true,facing=west": {
+      "model": "reikotrains:block/four_aspect_signal_advance",
+      "y": 270
+    },
+    "advance=false,caution=false,clear=true,facing=west": {
+      "model": "reikotrains:block/four_aspect_signal_clear",
+      "y": 270
+    },
+    "advance=true,caution=true,clear=false,facing=west": {
+      "model": "reikotrains:block/four_aspect_signal_stop",
+      "y": 270
+    },
+    "advance=false,caution=true,clear=false,facing=west": {
+      "model": "reikotrains:block/four_aspect_signal_stop",
+      "y": 270
+    },
+    "advance=true,caution=false,clear=false,facing=west": {
+      "model": "reikotrains:block/four_aspect_signal_stop",
+      "y": 270
+    },
+    "advance=false,caution=false,clear=false,facing=west": {
+      "model": "reikotrains:block/four_aspect_signal_stop",
+      "y": 270
+    }
+  }
+}

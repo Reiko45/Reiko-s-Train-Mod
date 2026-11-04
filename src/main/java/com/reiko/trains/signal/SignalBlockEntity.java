@@ -45,6 +45,7 @@ public class SignalBlockEntity extends BlockEntity {
     private boolean occupied;
     /** A three-light signal: whether it's showing yellow; and the next signal along the way (its track block and side). */
     private boolean caution;
+    private boolean advance;
     @Nullable
     private BlockPos nextNode;
     private int nextSide;
@@ -88,6 +89,11 @@ public class SignalBlockEntity extends BlockEntity {
     }
 
     /** Whether it's showing yellow (only a three-light signal does). */
+    /** Double yellow: a four-aspect signal, clear, with the next signal yellow. */
+    public boolean showsAdvance() {
+        return advance;
+    }
+
     public boolean showsCaution() {
         return caution;
     }
@@ -292,14 +298,19 @@ public class SignalBlockEntity extends BlockEntity {
         boolean threeLight = state.getBlock() instanceof ThreeLightSignalBlock;
         SignalBlockEntity next = threeLight ? signal.nextSignal() : null;
         boolean caution = clear && next != null && !next.getBlockState().getValue(SignalBlock.CLEAR);
-        if (occupied != signal.occupied || caution != signal.caution) {
+        boolean advance = clear && !caution && next != null && state.getBlock() instanceof FourAspectSignalBlock && next.showsCaution();
+        if (occupied != signal.occupied || caution != signal.caution || advance != signal.advance) {
             signal.occupied = occupied;
             signal.caution = caution;
+            signal.advance = advance;
             level.updateNeighbourForOutputSignal(pos, state.getBlock());
         }
         BlockState shown = state.setValue(SignalBlock.CLEAR, clear);
         if (threeLight) {
             shown = shown.setValue(ThreeLightSignalBlock.CAUTION, caution);
+        }
+        if (state.getBlock() instanceof FourAspectSignalBlock) {
+            shown = shown.setValue(FourAspectSignalBlock.ADVANCE, advance);
         }
         if (shown != state) {
             level.setBlock(pos, shown, 3);

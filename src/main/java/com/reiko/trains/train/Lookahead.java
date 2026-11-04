@@ -45,6 +45,8 @@ final class Lookahead {
     boolean signalClear = true;
     /** ... whether it's showing yellow (a three-light signal, clear, but the one after it red), and where it is. */
     boolean signalCaution;
+    /** The next signal shows double yellow (a four-aspect signal, the one after it yellow). */
+    boolean signalAdvance;
     @Nullable
     BlockPos signalPos;
     /** Where the train has to stop for a red signal (infinite if it doesn't). */
@@ -159,6 +161,7 @@ final class Lookahead {
                     look.signalPos = signal.getBlockPos();
                     look.signalClear = signal.isClearFor(cars);
                     look.signalCaution = look.signalClear && signal.showsCaution();
+                    look.signalAdvance = look.signalClear && signal.showsAdvance();
                     if (!look.signalClear) {
                         look.signalStop = buffer - SIGNAL_MARGIN;
                     }

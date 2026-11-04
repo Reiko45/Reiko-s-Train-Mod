@@ -112,6 +112,18 @@ public final class TestTracks {
         return signal;
     }
 
+    /** A four-aspect signal at {@code pos} for the track block {@code node}, guarding the way out by {@code side}. */
+    public static SignalBlockEntity fourAspectSignal(ServerLevel level, BlockPos pos, BlockPos node, int side) {
+        TrackAxis axis = TrackGraph.axis(level, node);
+        Vec3 out = axis.out(side);
+        level.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 2);
+        level.setBlock(pos, ModBlocks.FOUR_ASPECT_SIGNAL.get().defaultBlockState().setValue(SignalBlock.FACING,
+                Direction.getNearest(-out.x, 0, -out.z)), 3);
+        SignalBlockEntity signal = (SignalBlockEntity) level.getBlockEntity(pos);
+        signal.attach(node, side);
+        return signal;
+    }
+
     /**
      * A speed sign at {@code pos} by the track block {@code node}, for trains leaving it by {@code side} (facing them),
      * showing {@code limit} (one of {@link SpeedSignBlock#LIMITS}' places), as if a player had put it there.

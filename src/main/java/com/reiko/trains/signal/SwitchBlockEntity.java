@@ -38,6 +38,9 @@ public class SwitchBlockEntity extends BlockEntity {
     private BlockPos registeredNode;
 
     private static final int CLAIM_TICKS = 40;
+    /** The signal box that's set a route over it and holds it there, if one has. */
+    @Nullable
+    private BlockPos routeBy;
 
     public SwitchBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.SWITCH.get(), pos, state);
@@ -174,6 +177,63 @@ public class SwitchBlockEntity extends BlockEntity {
         return getBlockState().getValue(SwitchBlock.POWERED);
     }
 
+    /** Held, by redstone or by a route a signal box has set over it: nothing else can change it. */
+    public boolean isHeld() {
+        if (routeBy != null && level != null && level.isLoaded(routeBy)
+                && !(level.getBlockEntity(routeBy) instanceof SignalBoxBlockEntity)) {
+            routeBy = null; // the box is gone
+            setChanged();
+        }
+        return isLocked() || routeBy != null;
+    }
+
+    /** The signal box holding it for a route, if one is. */
+    @Nullable
+    public BlockPos routeBy() {
+        return routeBy;
+    }
+
+    /** Whether it sends trains along {@code wanted} (one of {@code options}, the ways out of its junction) now. */
+    public boolean sendsAlong(EdgeRef wanted, List<EdgeRef> options) {
+        return way(options, heading()).equals(wanted);
+    }
+
+    /**
+     * A signal box sets a route over it: set to send trains along {@code wanted}, and held there until the box lets it
+     * go. Returns false (changing nothing) if redstone holds it some other way, or another box has it.
+     */
+    public boolean holdForRoute(EdgeRef wanted, List<EdgeRef> options, BlockPos box) {
+        if (level == null || (routeBy != null && !routeBy.equals(box))) {
+            return false;
+        }
+        Vec3 heading = heading();
+        if (!way(options, heading).equals(wanted)) {
+            if (isLocked()) {
+                return false;
+            }
+            EdgeRef straight = TrackGraph.choose(options, heading, 0);
+            if (wanted.equals(straight)) {
+                setThrown(false);
+            } else {
+                if (!wanted.equals(TrackGraph.choose(options, heading, thrownSide))) {
+                    thrownSide = -thrownSide;
+                }
+                setThrown(true);
+            }
+        }
+        routeBy = box.immutable();
+        setChanged();
+        return true;
+    }
+
+    /** The box lets it go (if it's the one holding it). */
+    public void releaseRoute(BlockPos box) {
+        if (box.equals(routeBy)) {
+            routeBy = null;
+            setChanged();
+        }
+    }
+
     public void setThrown(boolean thrown) {
         if (level != null && isThrown() != thrown) {
             level.setBlock(worldPosition, getBlockState().setValue(SwitchBlock.THROWN, thrown), 3);
@@ -206,7 +266,7 @@ public class SwitchBlockEntity extends BlockEntity {
      * over meanwhile.
      */
     public void setTo(EdgeRef wanted, List<EdgeRef> options, Vec3 heading, UUID train) {
-        if (level == null || isLocked()) {
+        if (level == null || isHeld()) {
             return;
         }
         long now = level.getGameTime();
@@ -273,6 +333,9 @@ public class SwitchBlockEntity extends BlockEntity {
         }
         tag.putByte("ThrownSide", (byte) thrownSide);
         tag.putByte("RedstoneWay", (byte) redstoneWay);
+        if (routeBy != null) {
+            tag.putLong("RouteBy", routeBy.asLong());
+        }
     }
 
     @Override
@@ -285,5 +348,6 @@ public class SwitchBlockEntity extends BlockEntity {
         thrownSide = tag.getByte("ThrownSide") < 0 ? -1 : 1;
         // Switches from 0.4.0 didn't have this: redstone always threw them.
         redstoneWay = tag.contains("RedstoneWay") ? Integer.signum(tag.getByte("RedstoneWay")) : thrownSide;
+        routeBy = tag.contains("RouteBy") ? BlockPos.of(tag.getLong("RouteBy")) : null;
     }
 }

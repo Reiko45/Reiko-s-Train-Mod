@@ -68,10 +68,26 @@ public final class ModNetwork {
         Player player = context.player();
         if (player.containerMenu instanceof com.reiko.trains.menu.SignalBoxMenu menu && menu.pos().equals(payload.box()) && menu.stillValid(player)
                 && player.level().getBlockEntity(payload.box()) instanceof com.reiko.trains.signal.SignalBoxBlockEntity box) {
-            com.reiko.trains.signal.SignalBoxBlockEntity.Done done = payload.action() == SignalBoxActionPayload.SIGNAL
-                    ? box.toggleSignal(payload.target()) : box.throwSwitch(payload.target());
-            if (done == com.reiko.trains.signal.SignalBoxBlockEntity.Done.LOCKED) {
-                player.displayClientMessage(Component.translatable("message.reikotrains.switch.locked").withStyle(net.minecraft.ChatFormatting.RED), true);
+            com.reiko.trains.signal.SignalBoxBlockEntity.Done done = switch (payload.action()) {
+                case SignalBoxActionPayload.SIGNAL -> box.toggleSignal(payload.target());
+                case SignalBoxActionPayload.SWITCH -> box.throwSwitch(payload.target());
+                case SignalBoxActionPayload.ROUTE -> box.setRoute(payload.target(), payload.target2());
+                case SignalBoxActionPayload.TURNTABLE -> box.turnTurntable(payload.target());
+                default -> com.reiko.trains.signal.SignalBoxBlockEntity.Done.NOT_FOUND;
+            };
+            String key = switch (done) {
+                case LOCKED -> payload.action() == SignalBoxActionPayload.ROUTE ? "signal_box.route_locked" : "switch.locked";
+                case NO_ROUTE -> "signal_box.no_route";
+                case ROUTE_SET -> "signal_box.route_set";
+                case ROUTE_CANCELLED -> "signal_box.route_cancelled";
+                case TURNTABLE_BUSY -> "signal_box.turntable_busy";
+                default -> null;
+            };
+            if (key != null) {
+                boolean bad = done == com.reiko.trains.signal.SignalBoxBlockEntity.Done.LOCKED || done == com.reiko.trains.signal.SignalBoxBlockEntity.Done.NO_ROUTE
+                        || done == com.reiko.trains.signal.SignalBoxBlockEntity.Done.TURNTABLE_BUSY;
+                Component message = Component.translatable("message.reikotrains." + key);
+                player.displayClientMessage(bad ? message.copy().withStyle(net.minecraft.ChatFormatting.RED) : message, true);
             }
             box.sendState();
         }

@@ -431,6 +431,48 @@ def three_light_signal_models():
         json.dump({"parent": "minecraft:item/generated", "textures": {"layer0": "reikotrains:item/three_light_signal"}}, out, indent=2)
 
 
+def four_aspect_signal_models():
+    """
+    The four-aspect signal: the same post, with a taller head carrying, from the top, a yellow, the red, a second
+    yellow and the green, each with a hood; one model for each aspect (double yellow lights both yellows).
+    """
+    lamps = (("yellow2", 28.0, "yellow"), ("red", 23.5, "red"), ("yellow", 19.0, "yellow"), ("green", 14.5, "green"))
+    for name, lit in (("four_aspect_signal_stop", {"red"}), ("four_aspect_signal_caution", {"yellow"}),
+                      ("four_aspect_signal_advance", {"yellow", "yellow2"}), ("four_aspect_signal_clear", {"green"})):
+        tex = {"particle": "reikotrains:block/signal_metal", "metal": "reikotrains:block/signal_metal",
+               "head": "reikotrains:block/signal_head"}
+        for lamp, y0, colour in lamps:
+            tex[lamp] = f"reikotrains:block/signal_{colour}_{'on' if lamp in lit else 'off'}"
+        elements = [
+            element([5, 0, 5], [11, 1, 11], all_faces("#metal")),
+            element([7, 1, 7], [9, 14, 9], all_faces("#metal")),
+            element([5.5, 13.5, 7], [10.5, 31.5, 9.5], all_faces("#head")),
+        ]
+        for lamp, y0, colour in lamps:
+            elements.append(element([6.5, y0 - 0.5, 6.5], [9.5, y0 + 2.5, 7], {
+                "north": ("#" + lamp, [0, 0, 16, 16]), "east": ("#head", [0, 0, 1, 3]), "west": ("#head", [0, 0, 1, 3]),
+                "up": ("#head", [0, 0, 3, 1]), "down": ("#head", [0, 0, 3, 1])}, lit="north" if lamp in lit else None))
+            elements.append(element([6, y0 + 2.5, 5], [10, y0 + 3, 7], all_faces("#head", (0, 0, 4, 2))))
+        model = {"parent": "block/block", "ambientocclusion": False, "textures": tex, "elements": elements}
+        with open(f"{ASSETS}/models/block/{name}.json", "w") as out:
+            json.dump(model, out, indent=2)
+    variants = {}
+    for facing, y in (("north", 0), ("east", 90), ("south", 180), ("west", 270)):
+        for clear in ("true", "false"):
+            for caution in ("true", "false"):
+                for advance in ("true", "false"):
+                    aspect = ("stop" if clear == "false" else "caution" if caution == "true" else "advance" if advance == "true"
+                              else "clear")
+                    v = {"model": f"reikotrains:block/four_aspect_signal_{aspect}"}
+                    if y:
+                        v["y"] = y
+                    variants[f"advance={advance},caution={caution},clear={clear},facing={facing}"] = v
+    with open(f"{ASSETS}/blockstates/four_aspect_signal.json", "w") as out:
+        json.dump({"variants": variants}, out, indent=2)
+    with open(f"{ASSETS}/models/item/four_aspect_signal.json", "w") as out:
+        json.dump({"parent": "minecraft:item/generated", "textures": {"layer0": "reikotrains:item/four_aspect_signal"}}, out, indent=2)
+
+
 def station_models():
     tex = {"particle": "reikotrains:block/station_post", "post": "reikotrains:block/station_post", "board": "reikotrains:block/station_board"}
     board_faces = {"north": ("#board", [0, 0, 16, 9]), "south": ("#board", [0, 0, 16, 9]),
@@ -1492,6 +1534,7 @@ def signals_and_stations():
     signal_textures()
     signal_models()
     three_light_signal_models()
+    four_aspect_signal_models()
     station_models()
     switch_textures()
     switch_models()

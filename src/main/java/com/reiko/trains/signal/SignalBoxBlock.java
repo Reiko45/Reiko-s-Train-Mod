@@ -73,7 +73,18 @@ public class SignalBoxBlock extends HorizontalDirectionalBlock implements Entity
         return InteractionResult.CONSUME;
     }
 
-    /** Taken away, it lets go of the signals it was holding at red. */
+    @Override
+    protected boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    /** A comparator beside the box reads how many trains are in its area (up to 15). */
+    @Override
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+        return level.getBlockEntity(pos) instanceof SignalBoxBlockEntity box ? box.trainCount() : 0;
+    }
+
+    /** Taken away, it lets go of the signals and switches it was holding. */
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!state.is(newState.getBlock()) && !level.isClientSide && level.getBlockEntity(pos) instanceof SignalBoxBlockEntity box) {

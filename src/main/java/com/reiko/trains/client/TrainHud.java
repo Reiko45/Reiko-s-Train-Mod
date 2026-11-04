@@ -47,9 +47,17 @@ public final class TrainHud implements LayeredDraw.Layer {
             // The next signal: a lamp, red, yellow or green, and how far
             int sy = top + 4;
             if (aspect != 0) {
-                int lamp = aspect == 1 ? 0xFF3CE05A : aspect == 3 ? 0xFFFFC21E : 0xFFFF3B30;
+                int lamp = aspect == 1 ? 0xFF3CE05A : aspect == 3 || aspect == 4 ? 0xFFFFC21E : 0xFFFF3B30;
                 graphics.fill(x + 5, sy + 1, x + 11, sy + 7, 0xFF000000);
-                graphics.fill(x + 6, sy + 2, x + 10, sy + 6, lamp);
+                if (aspect == 4) {
+                    // Double yellow: two lamps
+                    graphics.fill(x + 6, sy + 2, x + 8, sy + 6, lamp);
+                    graphics.fill(x + 9, sy + 2, x + 11, sy + 6, lamp);
+                    graphics.fill(x + 8, sy + 1, x + 9, sy + 7, 0xFF000000);
+                    graphics.fill(x + 11, sy + 1, x + 12, sy + 7, 0xFF000000);
+                } else {
+                    graphics.fill(x + 6, sy + 2, x + 10, sy + 6, lamp);
+                }
                 graphics.drawString(font, Component.translatable("hud.reikotrains.signal", locomotive.signalDistance()), x + 14, sy, 0xFFD0D0D0, false);
             }
             if (points) {

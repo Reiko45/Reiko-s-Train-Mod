@@ -195,4 +195,102 @@ public final class SignalBoxGameTests {
         helper.assertTrue(missing.isEmpty(), "every block should have a loot table; missing:" + missing);
         helper.succeed();
     }
+
+    // ----------------------------------------------------------------------------------------------------------------
+    // Routes, turntables, the comparator, and the map it remembers
+
+    @GameTest(template = YARD, timeoutTicks = 600)
+    public static void itSetsARouteAndLetsItGoAfterATrain(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        TestTracks.floor(level, helper.absolutePos(new BlockPos(0, 1, 0)), 48, 48);
+        BlockPos west = helper.absolutePos(new BlockPos(2, 1, 10));
+        TestTracks.line(level, west, TrackAxis.X, 40);
+        BlockPos junction = west.offset(14, 0, 0);
+        TrackBuilder.Plan branch = TestTracks.connect(level, junction, junction.offset(12, 0, 5));
+        BlockPos branchLine = branch.end().offset(1, 0, 1);
+        TestTracks.line(level, branchLine, TrackAxis.SE, 14);
+        SignalBlockEntity entry = TestTracks.signal(level, west.offset(8, 0, -2), west.offset(8, 0, 0), 1);
+        SignalBlockEntity mainExit = TestTracks.signal(level, west.offset(32, 0, -2), west.offset(32, 0, 0), 1);
+        BlockPos branchNode = branchLine.offset(4, 0, 4);
+        SignalBlockEntity branchExit = TestTracks.signal(level, branchNode.offset(1, 0, -1), branchNode, 1);
+        SignalBlockEntity backwards = TestTracks.signal(level, west.offset(36, 0, 2), west.offset(36, 0, 0), -1);
+        SwitchBlockEntity stand = TestTracks.switchStand(level, junction.offset(0, 0, -2));
+        SignalBoxBlockEntity box = box(helper, new BlockPos(30, 1, 30));
+        helper.assertTrue(!stand.isThrown(), "the switch starts straight on");
+        helper.assertTrue(box.setRoute(entry.getBlockPos(), backwards.getBlockPos()) == SignalBoxBlockEntity.Done.NO_ROUTE,
+                "no route to a signal facing the other way");
+        helper.assertTrue(box.setRoute(entry.getBlockPos(), branchExit.getBlockPos()) == SignalBoxBlockEntity.Done.ROUTE_SET, "a route to the branch");
+        helper.assertTrue(stand.isThrown() && stand.isHeld() && box.getBlockPos().equals(stand.routeBy()), "throws the switch and holds it");
+        helper.assertTrue(box.throwSwitch(stand.getBlockPos()) == SignalBoxBlockEntity.Done.LOCKED, "so it can't be thrown back meanwhile");
+        helper.assertTrue(box.statePayload().routes().stream().anyMatch(r -> r.entry().equals(entry.getBlockPos()) && r.points().length > 10),
+                "the route shows on the map");
+        helper.assertTrue(box.setRoute(entry.getBlockPos(), mainExit.getBlockPos()) == SignalBoxBlockEntity.Done.ROUTE_CANCELLED && !stand.isHeld(),
+                "clicking its start again cancels it, letting the switch go");
+        helper.assertTrue(box.setRoute(entry.getBlockPos(), mainExit.getBlockPos()) == SignalBoxBlockEntity.Done.ROUTE_SET && !stand.isThrown(),
+                "a route straight on sets it straight");
+        box.setRoute(entry.getBlockPos(), mainExit.getBlockPos());
+        helper.assertTrue(box.setRoute(entry.getBlockPos(), branchExit.getBlockPos()) == SignalBoxBlockEntity.Done.ROUTE_SET, "and the branch again");
+        SteamLocomotive loco = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), west.offset(3, 0, 0), EAST);
+        loco.setFuel(16000);
+        Player driver = helper.makeMockPlayer(GameType.SURVIVAL);
+        driver.moveTo(loco.position());
+        driver.startRiding(loco);
+        for (int i = 0; i < 2; i++) {
+            loco.control(TrainControlPayload.THROTTLE_UP);
+        }
+        helper.succeedWhen(() -> {
+            helper.assertTrue(loco.getZ() > junction.getZ() + 5, "the train should take the branch the route was set for");
+            helper.assertTrue(box.routes().isEmpty() && !stand.isHeld(), "and once it's gone through, the route's let go");
+            driver.stopRiding();
+        });
+    }
+
+    @GameTest(template = YARD, timeoutTicks = 200)
+    public static void itTurnsTurntables(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        TestTracks.floor(level, helper.absolutePos(new BlockPos(0, 1, 0)), 48, 48);
+        TestTracks.line(level, helper.absolutePos(new BlockPos(0, 1, 24)), TrackAxis.X, 17);
+        TestTracks.line(level, helper.absolutePos(new BlockPos(24, 1, 0)), TrackAxis.Z, 17);
+        com.reiko.trains.turntable.TurntableBlockEntity table = TestTracks.turntable(level, helper.absolutePos(new BlockPos(24, 0, 24)), 0);
+        SignalBoxBlockEntity box = box(helper, new BlockPos(4, 1, 4));
+        float before = table.angleAt(level.getGameTime());
+        helper.assertTrue(box.turnTurntable(table.getBlockPos()) == SignalBoxBlockEntity.Done.TURNING, "the box turns the turntable");
+        box.survey();
+        helper.assertTrue(box.statePayload().tables().stream().anyMatch(t -> t.pos().equals(table.getBlockPos()) && t.radius() > 7),
+                "which is on its map, to click");
+        helper.succeedWhen(() -> {
+            helper.assertTrue(!table.isTurning() && Math.abs(table.angleAt(level.getGameTime()) - before) > 1, "round to the next track");
+        });
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 60)
+    public static void comparatorCountsTrains(GameTestHelper helper) {
+        line(helper, 64);
+        TestTracks.car(helper.getLevel(), ModEntities.PASSENGER_COACH.get(), at(helper, 10), EAST);
+        TestTracks.car(helper.getLevel(), ModEntities.FREIGHT_WAGON.get(), at(helper, 40), EAST);
+        SignalBoxBlockEntity box = box(helper, new BlockPos(30, 1, 1));
+        helper.runAfterDelay(30, () -> {
+            // (Other tests run alongside, close enough for it to count their trains too.)
+            helper.assertTrue(box.trainCount() >= 2, "it should count the two cars as two trains, at least: " + box.trainCount());
+            BlockPos pos = box.getBlockPos();
+            helper.assertTrue(helper.getLevel().getBlockState(pos).getAnalogOutputSignal(helper.getLevel(), pos) == box.trainCount(),
+                    "a comparator reads the count");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 20)
+    public static void itRemembersTrackItHasSeen(GameTestHelper helper) {
+        line(helper, 64);
+        SignalBoxBlockEntity box = box(helper, new BlockPos(30, 1, 1));
+        box.survey();
+        int seen = box.lines().size();
+        helper.assertTrue(seen > 0, "it sees the line");
+        net.minecraft.nbt.CompoundTag saved = box.saveWithoutMetadata(helper.getLevel().registryAccess());
+        SignalBoxBlockEntity loaded = new SignalBoxBlockEntity(box.getBlockPos(), box.getBlockState());
+        loaded.loadWithComponents(saved, helper.getLevel().registryAccess());
+        helper.assertTrue(loaded.faded().size() >= seen, "saved with the world, it remembers the track it saw (faded till it looks again): "
+                + loaded.faded().size());
+        helper.succeed();
+    }
 }

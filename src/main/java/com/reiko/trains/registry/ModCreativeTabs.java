@@ -19,6 +19,7 @@ public final class ModCreativeTabs {
                 output.accept(ModItems.STREET_TRACK.get());
                 output.accept(ModItems.SIGNAL.get());
                 output.accept(ModItems.THREE_LIGHT_SIGNAL.get());
+                output.accept(ModItems.FOUR_ASPECT_SIGNAL.get());
                 output.accept(ModItems.SIGNAL_BOX.get());
                 output.accept(ModItems.SWITCH.get());
                 output.accept(ModItems.TRACK_SENSOR.get());

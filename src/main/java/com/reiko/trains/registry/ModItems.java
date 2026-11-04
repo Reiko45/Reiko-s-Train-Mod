@@ -59,6 +59,8 @@ public final class ModItems {
             () -> new BlockItem(ModBlocks.SIGNAL_BOX.get(), new Item.Properties()));
     public static final DeferredItem<BlockItem> THREE_LIGHT_SIGNAL = ITEMS.register("three_light_signal",
             () -> new BlockItem(ModBlocks.THREE_LIGHT_SIGNAL.get(), new Item.Properties()));
+    public static final DeferredItem<BlockItem> FOUR_ASPECT_SIGNAL = ITEMS.register("four_aspect_signal",
+            () -> new BlockItem(ModBlocks.FOUR_ASPECT_SIGNAL.get(), new Item.Properties()));
     public static final DeferredItem<BlockItem> SWITCH = ITEMS.register("switch_stand",
             () -> new BlockItem(ModBlocks.SWITCH.get(), new Item.Properties()));
     public static final DeferredItem<BlockItem> STATION = ITEMS.register("station",

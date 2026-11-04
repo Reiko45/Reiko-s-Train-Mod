@@ -106,6 +106,11 @@ public class TurntableBlockEntity extends BlockEntity {
     }
 
     /** The middle of the bridge's rail tops. */
+    /** How far the pit reaches from the middle of the pivot, in blocks. */
+    public double radius() {
+        return RADIUS;
+    }
+
     public Vec3 centre() {
         return TrackEdge.node(hub(), false);
     }
