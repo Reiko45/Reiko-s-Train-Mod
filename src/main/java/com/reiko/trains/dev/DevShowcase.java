@@ -186,6 +186,9 @@ public final class DevShowcase {
     private static final int STREET = -200;
     /** A line with a water tower at its halt, along x at this z. */
     private static final int WATER_LINE = -262;
+    /** A turntable yard: the turntable's pivot is at x = 40 on this z, with an engine shed east of it. */
+    private static final int TURNTABLE_YARD = -300;
+    private static final BlockPos TURNTABLE = new BlockPos(40, Y - 1, TURNTABLE_YARD);
     /** The switch stand for the junction at x = 52. */
     private static final BlockPos SWITCH = new BlockPos(52, Y, -2);
 
@@ -424,6 +427,8 @@ public final class DevShowcase {
         Tender thirstyTender = TestTracks.car(level, ModEntities.TENDER.get(), new BlockPos(28, Y, WATER_LINE), EAST);
         Trains.couple(thirsty, thirstyTender);
         thirstyTender.setFuel(Tender.FUEL_CAPACITY * 0.7);
+
+        turntableYard(level);
 
         Locomotive limited = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(24, Y, SPEED_LINE), EAST);
         PassengerCoach limitedCoach = TestTracks.car(level, ModEntities.PASSENGER_COACH.get(), new BlockPos(17, Y, SPEED_LINE), EAST);
@@ -675,6 +680,116 @@ public final class DevShowcase {
             mc.player.setXRot(10.0F);
         });
         at(4075, mc -> shot(mc, "54_water_gauge"));
+    }
+
+
+    /**
+     * A turntable with track off it every way but south-west and west-north-west: the line in from the west, sidings
+     * north and south, two diagonal ones, and off east, the road into a brick engine shed with its doors over it. An
+     * express and its tender stand on the turntable; a tank engine waits outside the shed; a diesel on the north siding.
+     */
+    private static void turntableYard(ServerLevel level) {
+        int z = TURNTABLE_YARD;
+        for (int cx = (TURNTABLE.getX() - 9) >> 4; cx <= (TURNTABLE.getX() + 9) >> 4; cx++) {
+            for (int cz = (z - 9) >> 4; cz <= (z + 9) >> 4; cz++) {
+                level.getChunk(cx, cz);
+            }
+        }
+        TestTracks.line(level, new BlockPos(0, Y, z), TrackAxis.X, 33);
+        TestTracks.line(level, new BlockPos(48, Y, z), TrackAxis.X, 34);
+        TestTracks.line(level, new BlockPos(40, Y, z - 22), TrackAxis.Z, 15);
+        TestTracks.line(level, new BlockPos(40, Y, z + 8), TrackAxis.Z, 14);
+        TestTracks.line(level, new BlockPos(46, Y, z - 6), TrackAxis.NE, 8);
+        TestTracks.line(level, new BlockPos(46, Y, z + 6), TrackAxis.SE, 8);
+        com.reiko.trains.turntable.TurntableBlockEntity table = TestTracks.turntable(level, TURNTABLE, 0);
+        ExpressLocomotive express = TestTracks.car(level, ModEntities.EXPRESS_LOCOMOTIVE.get(), new BlockPos(42, Y, z), EAST);
+        Tender tender = TestTracks.car(level, ModEntities.TENDER.get(), new BlockPos(34, Y, z), EAST);
+        Trains.couple(express, tender);
+        DieselLocomotive diesel = TestTracks.car(level, ModEntities.DIESEL_LOCOMOTIVE.get(), new BlockPos(40, Y, z - 14), new Vec3(0, 0, 1));
+        diesel.setFuel(DieselLocomotive.FUEL_CAPACITY);
+        // The engine shed: brick walls and a roof behind its doors, which face west.
+        int doors = 64;
+        TestTracks.engineShed(level, new BlockPos(doors, Y, z), net.minecraft.core.Direction.WEST);
+        for (int x = doors + 1; x <= doors + 17; x++) {
+            for (int y = Y; y < Y + 5; y++) {
+                level.setBlock(new BlockPos(x, y, z - 2), Blocks.BRICKS.defaultBlockState(), 2);
+                level.setBlock(new BlockPos(x, y, z + 2), Blocks.BRICKS.defaultBlockState(), 2);
+                if (x == doors + 17) {
+                    for (int dz = -1; dz <= 1; dz++) {
+                        level.setBlock(new BlockPos(x, y, z + dz), Blocks.BRICKS.defaultBlockState(), 2);
+                    }
+                }
+                if ((x - doors) % 4 == 2 && y == Y + 2) {
+                    level.setBlock(new BlockPos(x, y, z - 2), Blocks.GLASS_PANE.defaultBlockState(), 2);
+                    level.setBlock(new BlockPos(x, y, z + 2), Blocks.GLASS_PANE.defaultBlockState(), 2);
+                }
+            }
+        }
+        // A low pitched roof of slabs, half a block up each step, with the gable ends bricked up.
+        net.minecraft.world.level.block.state.BlockState bottom = Blocks.DARK_OAK_SLAB.defaultBlockState();
+        net.minecraft.world.level.block.state.BlockState top = bottom.setValue(net.minecraft.world.level.block.SlabBlock.TYPE,
+                net.minecraft.world.level.block.state.properties.SlabType.TOP);
+        for (int x = doors - 1; x <= doors + 18; x++) {
+            for (int dz = -3; dz <= 3; dz++) {
+                int step = 3 - Math.abs(dz);
+                level.setBlock(new BlockPos(x, Y + 5 + step / 2, z + dz), step % 2 == 0 ? bottom : top, 2);
+            }
+            if (x == doors || x == doors + 17) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    level.setBlock(new BlockPos(x, Y + 5, z + dz), Blocks.BRICKS.defaultBlockState(), 2);
+                }
+            }
+        }
+        TestTracks.station(level, new BlockPos(76, Y, z - 3), new BlockPos(76, Y, z), "Engine Shed", 10);
+        com.reiko.trains.shed.EngineShedBlockEntity shed = (com.reiko.trains.shed.EngineShedBlockEntity) level.getBlockEntity(
+                new BlockPos(doors, Y + 4, z));
+        shed.items().insertItem(0, new ItemStack(Items.COAL, 64), false);
+        shed.fluids().fill(new net.neoforged.neoforge.fluids.FluidStack(net.minecraft.world.level.material.Fluids.WATER, 64_000),
+                net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction.EXECUTE);
+        Locomotive shunter = TestTracks.car(level, ModEntities.STEAM_LOCOMOTIVE.get(), new BlockPos(51, Y, z), EAST);
+        shunter.setFuel(16000);
+    }
+
+    /**
+     * The turntable turning the express round from the line in to the north siding, seen from above; then close up
+     * once it's there; then the tank engine going into the engine shed (its doors opening for it), and the doors shut
+     * behind it.
+     */
+    private static void turntableScene() {
+        int z = TURNTABLE_YARD;
+        at(4100, mc -> look(mc, 29.5, Y + 6.5, z + 10.5, -135.0F, 28.0F));
+        at(4145, mc -> server(mc, player -> {
+            if (player.serverLevel().getBlockEntity(TURNTABLE) instanceof com.reiko.trains.turntable.TurntableBlockEntity table) {
+                ReikoTrains.LOGGER.info("Showcase: turntable turning: {}", table.turn(-2));
+            }
+        }));
+        at(4178, mc -> shot(mc, "55_turntable_turning"));
+        at(4180, mc -> look(mc, 48.5, Y + 1.4, z + 8.5, 140.0F, 10.0F));
+        at(4230, mc -> shot(mc, "56_turntable"));
+        at(4232, mc -> look(mc, 55.0, Y + 1.0, z + 6.0, -121.0F, 6.0F));
+        at(4240, mc -> server(mc, player -> {
+            Locomotive shunter = find(player.serverLevel(), com.reiko.trains.train.SteamLocomotive.class, 51.5, z + 0.5);
+            StationBlockEntity shedStop = (StationBlockEntity) player.serverLevel().getBlockEntity(new BlockPos(76, Y, z - 3));
+            shunter.autopilot().start(List.of(TestTracks.stop(shedStop)));
+        }));
+        boolean[] entering = {false};
+        for (int time = 4260; time <= 4380; time++) {
+            boolean last = time == 4380;
+            at(time, mc -> {
+                if (entering[0]) {
+                    return;
+                }
+                List<com.reiko.trains.train.SteamLocomotive> locos = mc.level.getEntitiesOfClass(com.reiko.trains.train.SteamLocomotive.class,
+                        new AABB(44, Y - 2, z - 3, 90, Y + 4, z + 3));
+                double front = locos.stream().mapToDouble(car -> car.getX() + car.halfLength()).max().orElse(0);
+                if (last || front >= 62.0) {
+                    entering[0] = true;
+                    shot(mc, "57_engine_shed");
+                }
+            });
+        }
+        at(4440, mc -> look(mc, 55.5, Y + 0.6, z + 3.5, -110.0F, 2.0F));
+        at(4470, mc -> shot(mc, "57b_engine_shed_shut"));
     }
 
     private static void script() {
@@ -991,6 +1106,7 @@ public final class DevShowcase {
         wireScene();
         tramScene();
         waterScene();
-        at(4095, Minecraft::stop);
+        turntableScene();
+        at(4475, Minecraft::stop);
     }
 }

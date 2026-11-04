@@ -2,6 +2,24 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.24.0
+
+Turntables and engine sheds.
+
+- New: the **Turntable**. Used on flat ground it digs its own pit, 15 blocks across, with a bridge that lines up with
+  straight track laid off the pit's edge in any of eight directions; lined up, it's track, and trains run on and off
+  it. Click it to turn it to the next track (sneak-click for the other way round), or turn it with redstone; a
+  comparator reads which way it points. Trains standing all on the bridge go round with it.
+- Timetabled trains that stop on a turntable, and would otherwise back out to their next station, are turned round
+  instead.
+- New: **Engine Shed Doors**, a frame five blocks across and five high with a big pair of doors, over a straight
+  track. They open for trains coming (and for clicks and redstone) and shut behind them; shut, they keep people out.
+  Their store of fuel, water, diesel and MJ (from hoppers, pipes, buckets and BuildCraft engines) tops up the engines
+  and tenders standing in the shed, up to 32 blocks in; timetabled trains wait there until they're topped up.
+- Fixed a water test that could fail depending on where in the world it ran.
+- The mod's network version changes, so clients and servers both need 0.24.0.
+- Eleven new game tests (167 in all).
+
 ## 0.23.0
 
 Water towers.

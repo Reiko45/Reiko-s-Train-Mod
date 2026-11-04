@@ -40,14 +40,18 @@ public final class TrackGraph {
         }
     }
 
-    /** The axis of the track block here, or null if there isn't one (or it isn't loaded). */
+    /** The axis of the track block here (or of a turntable's bridge over it), or null if there isn't one (or it isn't loaded). */
     @Nullable
     public static TrackAxis axis(Level level, BlockPos pos) {
         if (!level.isLoaded(pos)) {
             return null;
         }
         BlockState state = level.getBlockState(pos);
-        return state.getBlock() instanceof TrackBlock ? state.getValue(TrackBlock.AXIS) : null;
+        if (state.getBlock() instanceof TrackBlock) {
+            return state.getValue(TrackBlock.AXIS);
+        }
+        // Over a turntable's pit, its bridge (lined up, along its line) is track.
+        return com.reiko.trains.turntable.TurntableBlockEntity.bridgeAxis(level, pos);
     }
 
     /** Whether the track block here is street track (and so its rails are at the top of the block). */

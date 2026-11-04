@@ -74,17 +74,34 @@ public final class ReikoTrains {
         }
         event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ModBlockEntities.WATER_TOWER.get(), (tower, side) -> tower.tank());
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.WAGON_LOADER.get(), (loader, side) -> loader.port());
+        // An engine shed's store takes fuel, water and diesel at any block of its frame.
+        event.registerBlock(Capabilities.ItemHandler.BLOCK, (level, pos, state, be, side) -> {
+            com.reiko.trains.shed.EngineShedBlockEntity shed = com.reiko.trains.shed.EngineShedBlock.shed(level, state, pos);
+            return shed == null ? null : shed.items();
+        }, ModBlocks.ENGINE_SHED.get());
+        event.registerBlock(Capabilities.FluidHandler.BLOCK, (level, pos, state, be, side) -> {
+            com.reiko.trains.shed.EngineShedBlockEntity shed = com.reiko.trains.shed.EngineShedBlock.shed(level, state, pos);
+            return shed == null ? null : shed.fluids();
+        }, ModBlocks.ENGINE_SHED.get());
         // BuildCraft engines and kinesis pipes (and, as BuildCraft's config allows, other mods' energy) feed a charging
         // point from any side.
         for (BlockCapability<?, Direction> capability : java.util.List.<BlockCapability<?, Direction>>of(MjAPI.CAP_CONNECTOR,
                 MjAPI.CAP_RECEIVER, MjAPI.CAP_REDSTONE_RECEIVER, MjAPI.CAP_READABLE, Capabilities.EnergyStorage.BLOCK)) {
             registerCharger(event, capability);
             registerSubstation(event, capability);
+            registerShed(event, capability);
         }
     }
 
     private static <T> void registerSubstation(RegisterCapabilitiesEvent event, BlockCapability<T, Direction> capability) {
         event.registerBlockEntity(capability, ModBlockEntities.SUBSTATION.get(), (substation, side) -> substation.capabilities().getCapability(capability));
+    }
+
+    private static <T> void registerShed(RegisterCapabilitiesEvent event, BlockCapability<T, Direction> capability) {
+        event.registerBlock(capability, (level, pos, state, be, side) -> {
+            com.reiko.trains.shed.EngineShedBlockEntity shed = com.reiko.trains.shed.EngineShedBlock.shed(level, state, pos);
+            return shed == null ? null : shed.capabilities().getCapability(capability);
+        }, ModBlocks.ENGINE_SHED.get());
     }
 
     private static <T> void registerCharger(RegisterCapabilitiesEvent event, BlockCapability<T, Direction> capability) {

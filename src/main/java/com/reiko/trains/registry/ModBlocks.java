@@ -69,6 +69,16 @@ public final class ModBlocks {
             BlockBehaviour.Properties.of().strength(-1.0F, 3600000.0F).noLootTable().noOcclusion().randomTicks()
                     .pushReaction(PushReaction.BLOCK).isValidSpawn((state, level, pos, type) -> false)));
 
+    public static final DeferredBlock<com.reiko.trains.turntable.TurntableBlock> TURNTABLE = BLOCKS.register("turntable",
+            () -> new com.reiko.trains.turntable.TurntableBlock(BlockBehaviour.Properties.of().strength(2.0F, 6.0F).sound(SoundType.STONE)
+                    .noOcclusion().noLootTable().pushReaction(PushReaction.BLOCK).mapColor(net.minecraft.world.level.material.MapColor.STONE)
+                    .isValidSpawn((state, level, pos, type) -> false)));
+
+    public static final DeferredBlock<com.reiko.trains.shed.EngineShedBlock> ENGINE_SHED = BLOCKS.register("engine_shed",
+            () -> new com.reiko.trains.shed.EngineShedBlock(BlockBehaviour.Properties.of().strength(2.0F, 4.0F).sound(SoundType.WOOD)
+                    .noOcclusion().noLootTable().pushReaction(PushReaction.BLOCK).ignitedByLava()
+                    .mapColor(net.minecraft.world.level.material.MapColor.WOOD).isValidSpawn((state, level, pos, type) -> false)));
+
     private ModBlocks() {
     }
 }

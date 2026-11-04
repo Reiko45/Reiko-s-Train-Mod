@@ -44,6 +44,11 @@ public abstract class TrainCarEntity extends VehicleEntity {
     /** How the bogies are turned against the body (degrees), for drawing them on curves. */
     private static final EntityDataAccessor<Float> DATA_FRONT_BOGIE = SynchedEntityData.defineId(TrainCarEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> DATA_REAR_BOGIE = SynchedEntityData.defineId(TrainCarEntity.class, EntityDataSerializers.FLOAT);
+    /** The turntable it's going round on (its pivot), if it is; how far along the bridge it is, and whether it faces its front end. */
+    private static final EntityDataAccessor<java.util.Optional<BlockPos>> DATA_TURNTABLE = SynchedEntityData.defineId(TrainCarEntity.class,
+            EntityDataSerializers.OPTIONAL_BLOCK_POS);
+    private static final EntityDataAccessor<Float> DATA_TURN_ALONG = SynchedEntityData.defineId(TrainCarEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Boolean> DATA_TURN_FRONT = SynchedEntityData.defineId(TrainCarEntity.class, EntityDataSerializers.BOOLEAN);
 
     private final CarPart[] parts;
     @Nullable
@@ -124,6 +129,9 @@ public abstract class TrainCarEntity extends VehicleEntity {
         super.defineSynchedData(builder);
         builder.define(DATA_FRONT_BOGIE, 0.0F);
         builder.define(DATA_REAR_BOGIE, 0.0F);
+        builder.define(DATA_TURNTABLE, java.util.Optional.empty());
+        builder.define(DATA_TURN_ALONG, 0.0F);
+        builder.define(DATA_TURN_FRONT, true);
     }
 
     // ----------------------------------------------------------------------------------------------------------------
@@ -280,6 +288,46 @@ public abstract class TrainCarEntity extends VehicleEntity {
     }
 
     // ----------------------------------------------------------------------------------------------------------------
+    // Going round on a turntable
+
+    /** The pivot of the turntable it's going round on, or null if it isn't. */
+    @Nullable
+    public BlockPos carriedBy() {
+        return entityData.get(DATA_TURNTABLE).orElse(null);
+    }
+
+    /** Starts going round on a turntable: it stops being moved along the track, and goes where the bridge takes it. */
+    public void carry(BlockPos pivot, double along, boolean front) {
+        entityData.set(DATA_TURN_ALONG, (float) along);
+        entityData.set(DATA_TURN_FRONT, front);
+        entityData.set(DATA_TURNTABLE, java.util.Optional.of(pivot.immutable()));
+        speed = 0;
+    }
+
+    /** Stops going round (on track again, or the turntable's gone). */
+    public void uncarry() {
+        if (carriedBy() != null) {
+            entityData.set(DATA_TURNTABLE, java.util.Optional.empty());
+        }
+    }
+
+    /** Back on the track after going round: on the bridge, where it's been taken, standing. */
+    public void settleOn(TrackPos front, TrackPos rear) {
+        uncarry();
+        setBogies(front, rear);
+        speed = 0;
+        routes.clear();
+    }
+
+    /** Puts it where a turntable's taken it, level, facing that way. */
+    public void poseCarried(Vec3 at, float yaw) {
+        setPos(at.x, at.y, at.z);
+        setYRot(yaw);
+        setXRot(0);
+        updateParts();
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------
     // Ticking
 
     @Override
@@ -303,6 +351,11 @@ public abstract class TrainCarEntity extends VehicleEntity {
             }
             return;
         }
+        BlockPos turntable = carriedBy();
+        if (turntable != null && com.reiko.trains.turntable.TurntableBlockEntity.hold(this, turntable, entityData.get(DATA_TURN_ALONG),
+                entityData.get(DATA_TURN_FRONT))) {
+            return;
+        }
         if (leader == null) {
             Trains.tickTrain(this);
         }
@@ -310,6 +363,15 @@ public abstract class TrainCarEntity extends VehicleEntity {
     }
 
     private void clientTick() {
+        BlockPos turntable = carriedBy();
+        if (turntable != null && level().getBlockEntity(turntable) instanceof com.reiko.trains.turntable.TurntableBlockEntity table) {
+            // Going round: where the bridge (as this client draws it) has taken it, so it stays put on it.
+            lerpSteps = 0;
+            double time = level().getGameTime();
+            poseCarried(table.carriedPosition(entityData.get(DATA_TURN_ALONG), time), table.carriedYaw(entityData.get(DATA_TURN_FRONT), time));
+            rolledO = rolled;
+            return;
+        }
         if (lerpSteps > 0) {
             double x = getX() + (lerpX - getX()) / lerpSteps;
             double y = getY() + (lerpY - getY()) / lerpSteps;
@@ -559,6 +621,12 @@ public abstract class TrainCarEntity extends VehicleEntity {
         }
         tag.putBoolean("Flipped", flipped);
         tag.putDouble("Speed", speed);
+        BlockPos turntable = carriedBy();
+        if (turntable != null) {
+            tag.putLong("Turntable", turntable.asLong());
+            tag.putFloat("TurnAlong", entityData.get(DATA_TURN_ALONG));
+            tag.putBoolean("TurnFront", entityData.get(DATA_TURN_FRONT));
+        }
     }
 
     @Override
@@ -571,5 +639,8 @@ public abstract class TrainCarEntity extends VehicleEntity {
         follower = tag.hasUUID("CoupledBack") ? tag.getUUID("CoupledBack") : null;
         flipped = tag.getBoolean("Flipped");
         speed = tag.getDouble("Speed");
+        if (tag.contains("Turntable")) {
+            carry(BlockPos.of(tag.getLong("Turntable")), tag.getFloat("TurnAlong"), tag.getBoolean("TurnFront"));
+        }
     }
 }

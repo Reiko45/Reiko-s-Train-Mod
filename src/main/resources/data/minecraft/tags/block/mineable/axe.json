@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "reikotrains:water_tower"
+    "reikotrains:water_tower",
+    "reikotrains:engine_shed"
   ]
 }

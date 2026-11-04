@@ -538,7 +538,7 @@ public final class TrainGameTests {
         for (String name : List.of("track", "steam_locomotive", "express_locomotive", "tender", "passenger_coach", "freight_wagon", "coupler",
                 "signal", "station", "timetable", "switch_stand", "wagon_loader", "diesel_locomotive", "electric_locomotive", "tank_wagon",
                 "guards_van", "livestock_wagon", "level_crossing", "charging_point", "track_sensor", "speed_sign", "bullet_train", "bullet_coach",
-                "car_transporter", "catenary_mast", "overhead_wire", "substation", "street_track", "vintage_tram", "low_floor_tram", "water_tower")) {
+                "car_transporter", "catenary_mast", "overhead_wire", "substation", "street_track", "vintage_tram", "low_floor_tram", "water_tower", "turntable", "engine_shed")) {
             helper.assertTrue(helper.getLevel().getRecipeManager().byKey(ReikoTrains.id(name)).isPresent(), "no recipe for " + name);
         }
         helper.assertTrue(new ItemStack(Items.COAL).is(SteamLocomotive.FUEL), "coal should be locomotive fuel");

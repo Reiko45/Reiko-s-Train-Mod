@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "reikotrains:block/engine_shed_lintel",
+    "north": "reikotrains:block/engine_shed_lintel",
+    "south": "reikotrains:block/engine_shed_lintel",
+    "east": "reikotrains:block/engine_shed_lintel",
+    "west": "reikotrains:block/engine_shed_lintel",
+    "up": "reikotrains:block/engine_shed_post",
+    "down": "reikotrains:block/engine_shed_post"
+  }
+}

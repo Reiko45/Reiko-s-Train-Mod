@@ -261,7 +261,7 @@ public final class WaterGameTests {
         });
         helper.succeedWhen(() -> {
             helper.assertTrue(waited[0], "it should have waited at the halt, taking water");
-            helper.assertTrue(express.getX() > 40, "then gone on");
+            helper.assertTrue(express.getX() > at(helper, 40).getX(), "then gone on");
             helper.assertTrue(tender.water() > Tender.WATER_CAPACITY - 2000, "with its tender full: " + tender.water());
             express.autopilot().stop();
         });

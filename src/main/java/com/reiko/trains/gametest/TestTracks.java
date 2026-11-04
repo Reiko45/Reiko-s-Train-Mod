@@ -115,6 +115,24 @@ public final class TestTracks {
         return sign;
     }
 
+    /** A turntable with its pivot at {@code pivot} (its pit dug round it), its bridge pointing {@code way}. */
+    public static com.reiko.trains.turntable.TurntableBlockEntity turntable(ServerLevel level, BlockPos pivot, int way) {
+        if (!com.reiko.trains.turntable.TurntableItem.place(level, pivot, way)
+                || !(level.getBlockEntity(pivot) instanceof com.reiko.trains.turntable.TurntableBlockEntity table)) {
+            throw new IllegalStateException("No room for a turntable at " + pivot.toShortString());
+        }
+        return table;
+    }
+
+    /** Engine shed doors over the track block {@code track}, facing {@code facing} (out of the shed). */
+    public static com.reiko.trains.shed.EngineShedBlockEntity engineShed(ServerLevel level, BlockPos track, net.minecraft.core.Direction facing) {
+        if (!com.reiko.trains.shed.EngineShedItem.place(level, track, facing)
+                || !(level.getBlockEntity(track.above(4)) instanceof com.reiko.trains.shed.EngineShedBlockEntity shed)) {
+            throw new IllegalStateException("No room for engine shed doors at " + track.toShortString());
+        }
+        return shed;
+    }
+
     /** A station at {@code pos} for the track block {@code node}. */
     public static StationBlockEntity station(ServerLevel level, BlockPos pos, BlockPos node, String name, int dwellSeconds) {
         level.setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 2);

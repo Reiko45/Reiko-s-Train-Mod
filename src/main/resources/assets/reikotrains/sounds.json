@@ -93,5 +93,14 @@
       }
     ],
     "subtitle": "subtitles.reikotrains.tram_chime"
+  },
+  "turntable": {
+    "sounds": [
+      {
+        "name": "reikotrains:turntable",
+        "attenuation_distance": 32
+      }
+    ],
+    "subtitle": "subtitles.reikotrains.turntable"
   }
 }

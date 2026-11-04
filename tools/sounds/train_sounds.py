@@ -2,7 +2,7 @@
 """
 Synthesises the mod's sounds (a three-chime steam whistle, exhaust chuffs, a coupling clank, a diesel's two-tone horn,
 the loop of its engine running, a level crossing's bell, an electric's horn and the loop of its motors, the Bullet
-Train's horn, and the trams' bells) and
+Train's horn, the trams' bells, and a turntable turning) and
 encodes them as mono Ogg Vorbis (mono, so Minecraft plays them from where they happen). Needs numpy and ffmpeg. Run
 from the repository root, naming the sounds to make (all of them, if none are named; Vorbis encoding isn't
 byte-for-byte repeatable, so remaking one that hasn't changed just churns the file):
@@ -242,6 +242,33 @@ def tram_chime():
     return out
 
 
+def turntable():
+    """
+    A turntable turning, played over and over while it does (each overlapping the last): the grinding hum of its
+    winding gear, the low rumble of its wheels on the ring rail round the pit, and a soft knock as a wheel crosses a
+    rail joint.
+    """
+    duration = 1.4
+    n = int(duration * RATE)
+    t = np.arange(n) / RATE
+    rng = np.random.default_rng(31)
+    wobble = 1 + 0.01 * np.sin(2 * np.pi * 2.3 * t)
+    gear = sum(level * np.sin(2 * np.pi * 92.0 * k * t * wobble + rng.uniform(0, 6.28))
+               for k, level in ((1, 1.0), (2, 0.7), (3, 0.5), (4, 0.25), (7, 0.12)))
+    gear *= 0.75 + 0.25 * np.sin(2 * np.pi * 11.0 * t) ** 2  # the teeth meshing
+    noise = rng.standard_normal(n)
+    rumble = band(noise, 35, 220)
+    grind = band(noise, 900, 2600)
+    knock = np.zeros(n)
+    for at in (0.35, 1.05):
+        i = int(at * RATE)
+        m = int(0.18 * RATE)
+        knock[i:i + m] += band(rng.standard_normal(m), 60, 500) * np.exp(-np.arange(m) / (0.03 * RATE))
+    out = (gear / np.max(np.abs(gear)) * 0.45 + rumble / np.max(np.abs(rumble)) * 0.5 + grind / np.max(np.abs(grind)) * 0.06
+           + knock / max(1e-9, np.max(np.abs(knock))) * 0.4)
+    return out * envelope(n, 0.25, 0.35)
+
+
 def write(name, samples, peak=0.85):
     samples = samples / np.max(np.abs(samples)) * peak
     pcm = (samples * 32767).astype(np.int16)
@@ -274,6 +301,7 @@ SOUNDS = {
     "bullet_horn": (bullet_horn, 0.85),
     "tram_bell": (tram_bell, 0.85),
     "tram_chime": (tram_chime, 0.8),
+    "turntable": (turntable, 0.7),
 }
 
 

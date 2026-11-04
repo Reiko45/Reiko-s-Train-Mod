@@ -104,6 +104,9 @@ public final class Autopilot {
             return Component.empty();
         }
         if (phase == Phase.DWELLING) {
+            if (loco.carriedBy() != null) {
+                return Component.translatable("hud.reikotrains.auto.turning", stop.name());
+            }
             if (loading != null) {
                 return Component.translatable("hud.reikotrains.auto." + (loading == LoaderMode.LOAD ? "loading" : "unloading"), stop.name());
             }
@@ -112,6 +115,9 @@ public final class Autopilot {
             }
             if (watering) {
                 return Component.translatable("hud.reikotrains.auto.watering", stop.name());
+            }
+            if (servicing) {
+                return Component.translatable("hud.reikotrains.auto.servicing", stop.name());
             }
             return Component.translatable("hud.reikotrains.auto.at", stop.name(), (timer + 19) / 20);
         }
@@ -125,6 +131,8 @@ public final class Autopilot {
     }
 
     private boolean waitingAtSignal;
+    /** Whether it's seen, this stop, whether it's on a turntable to be turned round on. */
+    private boolean turnChecked;
     /** What it's waiting for, when it is: a red signal, a red traffic light, or something on the track. */
     private String waitingFor = "hud.reikotrains.auto.signal";
     private int ringing;
@@ -135,6 +143,8 @@ public final class Autopilot {
     private boolean charging;
     /** ... and whether a water tower's filling it. */
     private boolean watering;
+    /** Whether an engine shed is still topping it up. */
+    private boolean servicing;
 
     /** Picks the way at a junction: the one that leads to the current stop, or heads most towards it. */
     EdgeRef choose(Level level, BlockPos node, int side, List<EdgeRef> options, Vec3 heading, boolean setSwitch) {
@@ -194,14 +204,21 @@ public final class Autopilot {
             return Drive.NONE;
         }
         if (phase == Phase.DWELLING) {
+            // Standing on a turntable, with the next stop back the way it came, it's turned round (rather than run
+            // backwards), so a steam engine always goes chimney first. The train stands still while it goes round.
+            if (!turnChecked) {
+                turnChecked = true;
+                turnRound(level, cars, signs, index);
+            }
             // It waits its time at the station, and then for any wagon loaders and charging points to finish with it.
             loading = WagonLoaderBlockEntity.busyWith(level, cars);
             charging = ChargingPointBlockEntity.busyWith(level, cars);
             watering = com.reiko.trains.water.WaterTowerBlockEntity.busyWith(level, cars);
+            servicing = com.reiko.trains.shed.EngineShedBlockEntity.busyWith(level, cars);
             if (timer > 0) {
                 timer--;
             }
-            if (timer <= 0 && loading == null && !charging && !watering) {
+            if (timer <= 0 && loading == null && !charging && !watering && !servicing) {
                 if (stop.dropsWagons()) {
                     dropWagons(level, cars, signs, stop);
                 }
@@ -404,8 +421,25 @@ public final class Autopilot {
         return direction;
     }
 
+    /** On a turntable, if its locomotive would have to run backwards to the next stop, it's turned round instead. */
+    private void turnRound(Level level, List<TrainCarEntity> cars, int[] signs, int locoIndex) {
+        if (stops.size() < 1) {
+            return;
+        }
+        com.reiko.trains.turntable.TurntableBlockEntity table = com.reiko.trains.turntable.TurntableBlockEntity.under(level, cars);
+        if (table == null) {
+            return;
+        }
+        Timetable.Stop next = stops.get((index + 1) % stops.size());
+        int way = chooseDirection(level, cars, signs, next);
+        if (way * signs[locoIndex] < 0) {
+            table.turnRound();
+        }
+    }
+
     private void arrive(Level level, List<TrainCarEntity> cars, Timetable.Stop stop) {
         phase = Phase.DWELLING;
+        turnChecked = false;
         int dwell = level.isLoaded(stop.station()) && level.getBlockEntity(stop.station()) instanceof StationBlockEntity station
                 ? station.dwellSeconds() : 10;
         timer = dwell * 20;

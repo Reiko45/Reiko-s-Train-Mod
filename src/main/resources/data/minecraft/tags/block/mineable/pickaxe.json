@@ -12,6 +12,7 @@
     "reikotrains:speed_sign",
     "reikotrains:catenary_mast",
     "reikotrains:substation",
-    "reikotrains:street_track"
+    "reikotrains:street_track",
+    "reikotrains:turntable"
   ]
 }

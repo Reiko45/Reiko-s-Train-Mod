@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "L": {
+      "tag": "minecraft:logs"
+    },
+    "D": {
+      "tag": "minecraft:wooden_doors"
+    },
+    "H": {
+      "item": "minecraft:hopper"
+    }
+  },
+  "pattern": [
+    "LLL",
+    "DHD",
+    "L L"
+  ],
+  "result": {
+    "count": 1,
+    "id": "reikotrains:engine_shed"
+  }
+}

@@ -1182,6 +1182,136 @@ def water_tower_models():
         json.dump({"variants": variants}, out, indent=2)
 
 
+def turntable_textures():
+    """
+    The turntable: its pit's floor of grey stone setts, black-painted girders with a row of rivets top and bottom,
+    timber planks for its deck and walkways, the dark green boards of the little hut at its front end, the hut's
+    window, and dark iron for its wheels and pivot.
+    """
+    setts = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            row = y // 4
+            col = (x + (2 if row % 2 else 0)) // 4
+            c = shade((132, 128, 120), 1 + 0.08 * noise("setts", row, col) + 0.04 * noise("setts", x, y))
+            if y % 4 == 3 or (x + (2 if row % 2 else 0)) % 4 == 3:
+                c = shade((92, 88, 82), 1 + 0.05 * noise("mortar", x, y))
+            setts.putpixel((x, y), c)
+    setts.save(f"{ASSETS}/textures/block/turntable_pit.png")
+    girder = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            c = shade((40, 41, 45), 1 + 0.06 * noise("girder", x, y))
+            if y in (1, 14) and x % 4 == 1:
+                c = shade((70, 71, 76), 1)  # rivet heads
+            if y in (0, 15):
+                c = shade(c, 0.8)
+            girder.putpixel((x, y), c)
+    girder.save(f"{ASSETS}/textures/block/turntable_girder.png")
+    planks = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            grain = 0.92 + 0.08 * math.sin(x * 1.3 + noise("plank", y // 4) * 3)
+            c = shade((112, 86, 60), grain * (1 + 0.05 * noise("planks", x, y)))
+            if y % 4 == 3:
+                c = shade(c, 0.7)
+            planks.putpixel((x, y), c)
+    planks.save(f"{ASSETS}/textures/block/turntable_deck.png")
+    hut = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            c = shade((44, 84, 58), 1 + 0.05 * noise("hut", x, y))
+            if x % 4 == 0:
+                c = shade(c, 0.78)
+            hut.putpixel((x, y), c)
+    hut.save(f"{ASSETS}/textures/block/turntable_hut.png")
+    window = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            if x in (0, 15) or y in (0, 15) or x == 7 or x == 8:
+                c = shade((226, 220, 200), 1)
+            else:
+                c = shade((70, 96, 112), 1 + 0.1 * (1 - (x + y) / 30))
+            window.putpixel((x, y), c)
+    window.save(f"{ASSETS}/textures/block/turntable_window.png")
+    solid("turntable_iron", (58, 58, 62), noise_amount=0.06)
+
+
+def turntable_models():
+    """
+    The turntable's pit: every block of it a floor of setts, two pixels deep (the bridge, its wheels and the ring rail
+    they run on are drawn by the pivot's renderer); the pivot, in the middle, also has the iron post the bridge turns on.
+    """
+    tex = {"particle": "reikotrains:block/turntable_pit", "floor": "reikotrains:block/turntable_pit",
+           "iron": "reikotrains:block/turntable_iron"}
+    floor = [element([0, 0, 0], [16, 2, 16], {"up": ("#floor", [0, 0, 16, 16]), "down": ("#floor", [0, 0, 16, 16]),
+                                               "north": ("#floor", [0, 14, 16, 16]), "south": ("#floor", [0, 14, 16, 16]),
+                                               "east": ("#floor", [0, 14, 16, 16]), "west": ("#floor", [0, 14, 16, 16])})]
+    with open(f"{ASSETS}/models/block/turntable_pit.json", "w") as out:
+        json.dump({"parent": "block/block", "textures": tex, "elements": floor}, out, indent=2)
+    pivot = [element([3, 2, 3], [13, 4, 13], all_faces("#iron", (0, 0, 10, 2))),
+             element([5, 4, 5], [11, 15, 11], all_faces("#iron", (0, 0, 6, 11)))]
+    with open(f"{ASSETS}/models/block/turntable_pivot.json", "w") as out:
+        json.dump({"parent": "block/block", "ambientocclusion": False, "textures": tex, "elements": pivot}, out, indent=2)
+    with open(f"{ASSETS}/blockstates/turntable.json", "w") as out:
+        json.dump({"multipart": [{"apply": {"model": "reikotrains:block/turntable_pit"}},
+                                 {"when": {"x": "7", "z": "7"}, "apply": {"model": "reikotrains:block/turntable_pivot"}}]}, out, indent=2)
+    with open(f"{ASSETS}/models/item/turntable.json", "w") as out:
+        json.dump({"parent": "minecraft:item/generated", "textures": {"layer0": "reikotrains:item/turntable"}}, out, indent=2)
+
+
+def engine_shed_textures():
+    """
+    Engine shed doors: oxblood-red vertical boards for the doors, cream for the frames, ledges and braces on them, and
+    dark creosoted timber for the posts and lintel of the frame they hang in.
+    """
+    boards = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            c = shade((122, 40, 34), 1 + 0.06 * noise("shed_door", x, y) + 0.04 * math.sin(y * 0.9 + noise("board", x // 4) * 3))
+            if x % 4 == 3:
+                c = shade(c, 0.72)  # the gaps between the boards
+            boards.putpixel((x, y), c)
+    boards.save(f"{ASSETS}/textures/block/engine_shed_door.png")
+    solid("engine_shed_trim", (222, 210, 176), noise_amount=0.04)
+    post = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            c = shade((70, 50, 36), (0.92 + 0.08 * math.sin(x * 1.9 + noise("post", y // 3))) * (1 + 0.05 * noise("post", x, y)))
+            if x in (0, 15):
+                c = shade(c, 0.75)
+            post.putpixel((x, y), c)
+    post.save(f"{ASSETS}/textures/block/engine_shed_post.png")
+    lintel = post.rotate(90)
+    lintel.save(f"{ASSETS}/textures/block/engine_shed_lintel.png")
+
+
+def engine_shed_models():
+    """
+    The frame's blocks: the posts dark timber with the grain upright, the lintel the same lying across; the doorway's
+    blocks have no model (the doors are drawn by the lintel's renderer).
+    """
+    for name, side in (("engine_shed_post", "engine_shed_post"), ("engine_shed_lintel", "engine_shed_lintel")):
+        with open(f"{ASSETS}/models/block/{name}.json", "w") as out:
+            json.dump({"parent": "minecraft:block/cube", "textures": {
+                "particle": f"reikotrains:block/{side}", "north": f"reikotrains:block/{side}", "south": f"reikotrains:block/{side}",
+                "east": f"reikotrains:block/{side}", "west": f"reikotrains:block/{side}", "up": "reikotrains:block/engine_shed_post",
+                "down": "reikotrains:block/engine_shed_post"}}, out, indent=2)
+    with open(f"{ASSETS}/models/block/engine_shed_doorway.json", "w") as out:
+        json.dump({"textures": {"particle": "reikotrains:block/engine_shed_door"}, "elements": []}, out, indent=2)
+    variants = {}
+    for facing in ("north", "east", "south", "west"):
+        for cell in range(25):
+            across, up = cell % 5 - 2, cell // 5
+            model = "engine_shed_lintel" if up == 4 else "engine_shed_post" if abs(across) == 2 else "engine_shed_doorway"
+            for opened in ("false", "true"):
+                variants[f"cell={cell},facing={facing},open={opened}"] = {"model": f"reikotrains:block/{model}"}
+    with open(f"{ASSETS}/blockstates/engine_shed.json", "w") as out:
+        json.dump({"variants": variants}, out, indent=2)
+    with open(f"{ASSETS}/models/item/engine_shed.json", "w") as out:
+        json.dump({"parent": "minecraft:item/generated", "textures": {"layer0": "reikotrains:item/engine_shed"}}, out, indent=2)
+
+
 def signals_and_stations():
     signal_textures()
     signal_models()
@@ -1204,6 +1334,10 @@ def signals_and_stations():
     street_models()
     water_tower_textures()
     water_tower_models()
+    turntable_textures()
+    turntable_models()
+    engine_shed_textures()
+    engine_shed_models()
 
 
 if __name__ == "__main__":

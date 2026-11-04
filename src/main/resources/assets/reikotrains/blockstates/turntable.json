@@ -1,0 +1,18 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "reikotrains:block/turntable_pit"
+      }
+    },
+    {
+      "when": {
+        "x": "7",
+        "z": "7"
+      },
+      "apply": {
+        "model": "reikotrains:block/turntable_pivot"
+      }
+    }
+  ]
+}

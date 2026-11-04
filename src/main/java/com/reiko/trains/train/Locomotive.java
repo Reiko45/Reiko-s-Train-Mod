@@ -601,6 +601,9 @@ public abstract class Locomotive extends TrainCarEntity implements FuelStore {
         if ((tickCount + getId()) % 20 == 0) {
             TrainMap.note(this);
         }
+        if (carriedBy() != null && (tickCount & 7) == 0) {
+            updateAutoDisplay(); // going round on a turntable, its timetable isn't run: say so
+        }
         boolean lit = hasPower() && isDriven();
         if (entityData.get(DATA_RUNNING) != lit) {
             entityData.set(DATA_RUNNING, lit);

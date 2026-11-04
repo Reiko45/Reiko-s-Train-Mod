@@ -45,6 +45,10 @@ choice of way at every junction) or give them a timetable and let them run betwe
   turning. It runs on batteries, like the electric.
 - **Water Tower**: a wooden tank on legs beside the track, for steam engines. Fill it with buckets or pipes, and it
   fills the tank engines and tenders of a train standing beside it.
+- **Turntable**: digs its own pit, 15 blocks across, and turns locomotives round in it, or sends them off down
+  whichever track you like. Trains on a timetable are turned round on it at the end of the line.
+- **Engine Shed Doors**: a big pair of doors over the track for the end of an engine shed, which open for trains and
+  shut behind them. Engines standing inside are topped up with coal, water, diesel or charge from their store.
 - **Charging Point**: charges the batteries of an electric standing beside it, from BuildCraft engines, kinesis pipes
   or other mods' cables.
 - **Overhead Line Mast**, **Overhead Wire** and **Substation**: electrify a line. Masts stand beside the track with
@@ -134,6 +138,8 @@ corners, and are paid for in street track; the road blocks a curve passes over a
 | Timetable | Two paper and a clock |
 | Wagon Loader | Iron ingot, hopper, iron ingot; iron ingot, chest, iron ingot |
 | Water Tower | Planks, iron ingot, planks; planks, cauldron, planks; logs in the bottom corners |
+| Turntable | Three Train Track; block of iron, piston, block of iron; three stone bricks |
+| Engine Shed Doors | Three logs; wooden door, hopper, wooden door; logs in the bottom corners |
 | Charging Point | Iron ingot, redstone lamp, iron ingot; copper ingot, block of redstone, copper ingot; three iron ingots |
 | Street Track (6) | Three Train Track; stone, coal, stone; three stone |
 | Vintage Tram | Three glass panes; red wool, block of redstone, white wool; iron ingot, minecart, iron ingot |
@@ -220,6 +226,47 @@ from the works with their tanks full (and ones from before this update are fille
 ![The water tower's spout down over the tender](docs/screenshots/water_tower_spout.jpg)
 
 ![The gauges: coal and water](docs/screenshots/water_gauge.png)
+
+### Turntables and engine sheds
+
+A **Turntable** turns locomotives round at the end of a line, or sends them off down whichever track you like. Use it
+on flat ground: it digs its own pit, 15 blocks across, centred on the block you click (the ground must be solid all
+over the circle, with nothing standing on it but plants), and sets its bridge in it pointing the way you're looking,
+or at track already laid up to the pit's edge. Breaking any of it takes the whole turntable up and gives it back (the
+pit stays dug).
+
+- **Track off it**: lay straight track off the pit's edge, in line with its middle: east-west, north-south or
+  diagonally (from 8 blocks out from the middle, or 6 diagonally). Lined up with track, the bridge is track: trains
+  run on and off it, or straight across.
+- **Turning it**: click it (anywhere on its floor) and the bridge turns to the next track round, clockwise;
+  sneak-click it to go the other way. A redstone signal beside the pit's edge does the same as it comes on, and a
+  comparator beside it reads which way the bridge points (1 for east, round clockwise to 8; 0 while it's turning).
+  Half way round takes six seconds.
+- **Trains on it**: any train standing all on the bridge goes round with it, passengers and all. It won't turn with a
+  train half on it or sticking out over the pit's edge, or moving.
+- **Timetables**: put a station by the far end of a turntable at the end of a line, so trains stop all on the bridge.
+  A timetabled train that stops there, and would have to back out to get to its next station, is turned round while
+  it waits instead, so steam engines always go chimney first.
+
+![The turntable turning an express round](docs/screenshots/turntable_turning.jpg)
+
+![The express turned to the siding](docs/screenshots/turntable.jpg)
+
+**Engine Shed Doors** are a big pair of timber doors in a frame, for the end of a shed you build round them. Use them
+on a straight track block (east-west or north-south) from outside: the frame goes up over the track, five blocks
+across and five high, with the doors facing you. They open by themselves as a train comes up to them (sooner the
+faster it's going), from either side, and shut once it's gone by. Click them to hold them open, or let them shut;
+redstone at the frame holds them open too. Shut, they keep people and animals out.
+
+- **Servicing**: the doors keep a store of engine fuel (coal and the like, nine stacks, from hoppers and pipes or by
+  hand), 64 buckets each of water and diesel (from pipes or buckets), and BuildCraft power (as much as a charging point
+  holds). Every locomotive and tender standing still on the track inside, up to 32 blocks in from the doors, is topped
+  up: coal and water for steam engines and tenders, diesel for diesels, charge for electrics. A timetabled train with
+  a station inside waits until it's topped up. Clicking the doors says what's in the store.
+
+![A tank engine going into the engine shed](docs/screenshots/engine_shed.jpg)
+
+![The doors shut behind it](docs/screenshots/engine_shed_shut.jpg)
 
 ### The diesel
 
@@ -584,7 +631,8 @@ To run a train by itself:
 
 A train on a timetable runs to each station in turn and round again: it draws up with its front at the nameboard,
 waits, whistles, and sets off for the next. It picks its way at junctions (the way that leads to the next station),
-stops for red signals, and backs out of dead ends: at a terminus it just reverses. Passengers see the station names
+stops for red signals, and backs out of dead ends: at a terminus it just reverses (unless it's stopped on a turntable,
+which turns it round). Passengers see the station names
 as they go. Climb into the cab and touch the throttle or brake to take over; sneak-click the train with the timetable
 to stop it running. Sneak-click the air with a timetable to clear it.
 
@@ -785,6 +833,19 @@ a standing train's tender and no more (its spout, gauge and comparator), taking 
 lava and giving it to empty buckets, breaking as one, leaving moving trains alone and pausing for redstone, a
 timetabled train waiting at a station while it takes water, and servers turning water off.
 
+`TurntableGameTests` covers the turntable: digging its round pit, its bridge being track when it's lined up (joining
+the track off the pit's edge) so a train runs right across, turning a quarter and a half round with an engine on it
+(still on the rails, the same distance out, facing the new way) and the engine running off afterwards, refusing to
+turn with a train half on it or moving, clicks, sneak-clicks and redstone turning it to the next track (and the
+comparator), a timetabled express being turned round at the end of the line and running back chimney first, and
+breaking any of it taking it all up.
+
+`EngineShedGameTests` covers engine shed doors: going up over the track, shut; opening for a train before it gets
+there and shutting behind it once it's in; topping up a tank engine (coal and water), a diesel and an electric
+standing inside from its store (which takes coal, not dirt), but not an engine outside; a timetabled train waiting in
+the shed to be topped up; clicks and redstone holding the doors open; and breaking any of it taking it all down,
+giving back the doors and the coal in its store (and leaving the track).
+
 `TrainMapGameTests` covers the map of trains for minimaps: a train on it once, at its leading locomotive, with its
 kind and length, a timetabled train's next stop, a broken locomotive coming off it (and the other engine taking
 over), players being sent the other trains nearest first and not their own, dropping trains that aren't where the
@@ -794,7 +855,7 @@ map says, and saving it with the world.
 screenshots to `run/screenshots/` (that's where the pictures above come from). Add `-PxaeroJars=/path/to/folder` for
 the minimap shot, `-PcarJars=/path/to/folder` for the car transporter scene, and `-PshowcaseFrom=<tick>` to skip to the
 scene starting at that tick (`2202` for the Bullet Train, `2810` for the car transporters, `3105` for overhead wires,
-`3505` for trams, `3915` for water).
+`3505` for trams, `3915` for water, `4100` for the turntable and engine shed).
 
 ### Models, textures and sounds
 
@@ -803,10 +864,11 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
 - `tools/models/train_models.py`: the train models (locomotive, coach, wagon, bogie). One part list per model makes
   both the Java geometry (`client/model/geometry/`, don't edit those by hand) and the matching texture.
 - `tools/blocks/track_assets.py`: the track's textures and block models (and street track's, the signals', switch
-  stands', level crossings', speed signs', masts', substation's and wagon loader's), and the screens.
+  stands', level crossings', speed signs', masts', substation's, wagon loader's, water tower's, turntable's and engine
+  shed doors'), and the screens.
 - `tools/items/item_icons.py`: the item icons and the mod list logo.
-- `tools/sounds/train_sounds.py`: the whistle, the chuffs, the coupling clank, the diesel's horn and engine, and the
-  level crossing's bell, synthesised. Name the ones to remake (`python3 tools/sounds/train_sounds.py crossing_bell`):
+- `tools/sounds/train_sounds.py`: the whistle, the chuffs, the coupling clank, the diesel's horn and engine, the level
+  crossing's bell, the trams' bells and the turntable's gear, synthesised. Name the ones to remake (`python3 tools/sounds/train_sounds.py crossing_bell`):
   Vorbis encoding isn't byte-for-byte repeatable, so remaking the rest just changes their files.
 
 ### How it works
@@ -831,6 +893,15 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
 - **Water** (`train/WaterStore`, `water/`): tank engines and tenders are `WaterStore`s (millibuckets); a steam
   engine's burning takes the same share of its water store as of its coal store. A water tower is a two-block
   structure (like a door) whose bottom block holds the tank and works like a charging point.
+- **Turntables** (`turntable/`): the pit is a circle of blocks that each know their place in it; the pivot in the
+  middle keeps the workings. `TrackGraph.axis` asks it about the track-level blocks over the pit: lined up, the ones
+  along the bridge count as track blocks on its line, so the rest of the track code needs nothing else. Turning, it
+  takes the trains all on the bridge off the track (`TrainCarEntity.carry`: they aren't moved along it, but put where
+  the bridge has taken them, worked out from the turn's start time and angles, on the server and each client alike)
+  and puts them back on at the same place along the bridge once it's lined up again.
+- **Engine sheds** (`shed/`): the doors' frame is 24 blocks that each know their place in it; the middle of the lintel
+  keeps the workings, which look each tick for trains coming, open the doorway's unseen blocks (`OPEN`), and top up
+  what's standing inside every couple of ticks, like a charging point.
 - **Freight** (`freight/`): a wagon loader finds the train standing at its track block each couple of ticks and moves
   goods between the storage next to it and the train's wagons through NeoForge item handlers. It keeps a list of
   loaded loaders, so a timetabled train can ask whether any is still busy with it. A charging point (`power/`) works
@@ -866,7 +937,9 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
   waypoints.
 - **Client** (`client/`): `TrainCarRenderer` draws a car and its swinging bogies, `TrackRenderer` draws curves,
   `TrackPreview` the outline while you lay track, `StationRenderer` the names on the boards, `LevelCrossingRenderer`
-  the crossings' arms and flashing lamps, `CatenaryMastRenderer` the masts' arms and the wires, `TrackSensorRenderer` a sensor's filter item, and `TrainHud` the cab gauges.
+  the crossings' arms and flashing lamps, `CatenaryMastRenderer` the masts' arms and the wires, `TrackSensorRenderer` a sensor's filter item,
+  `TurntableRenderer` a turntable's bridge and ring rail, `EngineShedRenderer` the shed doors, and `TrainHud` the cab
+  gauges.
 
 ## License
 

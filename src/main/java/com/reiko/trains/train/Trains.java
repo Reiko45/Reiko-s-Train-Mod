@@ -216,6 +216,11 @@ public final class Trains {
         }
         head.waiting = 0;
         for (TrainCarEntity car : cars) {
+            if (car.carriedBy() != null) {
+                return; // going round on a turntable: it'll be put back on the track when it's lined up
+            }
+        }
+        for (TrainCarEntity car : cars) {
             if (!car.front.isValid(car.level()) || !car.rear.isValid(car.level())) {
                 car.derail();
                 return;

@@ -65,6 +65,14 @@ public final class ModBlockEntities {
     public static final Supplier<BlockEntityType<LevelCrossingBlockEntity>> LEVEL_CROSSING = BLOCK_ENTITIES.register("level_crossing",
             () -> BlockEntityType.Builder.of(LevelCrossingBlockEntity::new, ModBlocks.LEVEL_CROSSING.get()).build(null));
 
+    @SuppressWarnings("DataFlowIssue")
+    public static final Supplier<BlockEntityType<com.reiko.trains.turntable.TurntableBlockEntity>> TURNTABLE = BLOCK_ENTITIES.register("turntable",
+            () -> BlockEntityType.Builder.of(com.reiko.trains.turntable.TurntableBlockEntity::new, ModBlocks.TURNTABLE.get()).build(null));
+
+    @SuppressWarnings("DataFlowIssue")
+    public static final Supplier<BlockEntityType<com.reiko.trains.shed.EngineShedBlockEntity>> ENGINE_SHED = BLOCK_ENTITIES.register("engine_shed",
+            () -> BlockEntityType.Builder.of(com.reiko.trains.shed.EngineShedBlockEntity::new, ModBlocks.ENGINE_SHED.get()).build(null));
+
     private ModBlockEntities() {
     }
 }
