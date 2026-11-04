@@ -14,7 +14,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 @EventBusSubscriber(modid = ReikoTrains.MODID)
 public final class ModNetwork {
-    private static final String PROTOCOL_VERSION = "9";
+    private static final String PROTOCOL_VERSION = "10";
 
     private ModNetwork() {
     }
@@ -29,6 +29,11 @@ public final class ModNetwork {
                 (payload, context) -> com.reiko.trains.client.StationScreen.open(payload));
         registrar.playToClient(TrainMapPayload.TYPE, TrainMapPayload.STREAM_CODEC,
                 (payload, context) -> com.reiko.trains.client.TrainMinimap.receive(payload));
+        registrar.playToClient(SignalBoxMapPayload.TYPE, SignalBoxMapPayload.STREAM_CODEC,
+                (payload, context) -> com.reiko.trains.client.SignalBoxScreen.receive(payload));
+        registrar.playToClient(SignalBoxStatePayload.TYPE, SignalBoxStatePayload.STREAM_CODEC,
+                (payload, context) -> com.reiko.trains.client.SignalBoxScreen.receive(payload));
+        registrar.playToServer(SignalBoxActionPayload.TYPE, SignalBoxActionPayload.STREAM_CODEC, ModNetwork::handleSignalBox);
     }
 
     /** Only the driver (the first one aboard) can work the controls. */
@@ -44,6 +49,20 @@ public final class ModNetwork {
         Component said = CarCargo.drive(context.player(), payload.direction() < 0 ? -1 : 1);
         if (said != null) {
             context.player().displayClientMessage(said, true);
+        }
+    }
+
+    /** A player at a signal box's screen works a signal or a switch from it. */
+    private static void handleSignalBox(SignalBoxActionPayload payload, IPayloadContext context) {
+        Player player = context.player();
+        if (player.containerMenu instanceof com.reiko.trains.menu.SignalBoxMenu menu && menu.pos().equals(payload.box()) && menu.stillValid(player)
+                && player.level().getBlockEntity(payload.box()) instanceof com.reiko.trains.signal.SignalBoxBlockEntity box) {
+            com.reiko.trains.signal.SignalBoxBlockEntity.Done done = payload.action() == SignalBoxActionPayload.SIGNAL
+                    ? box.toggleSignal(payload.target()) : box.throwSwitch(payload.target());
+            if (done == com.reiko.trains.signal.SignalBoxBlockEntity.Done.LOCKED) {
+                player.displayClientMessage(Component.translatable("message.reikotrains.switch.locked").withStyle(net.minecraft.ChatFormatting.RED), true);
+            }
+            box.sendState();
         }
     }
 

@@ -199,6 +199,7 @@ public final class ReikoTrainsClient {
     private static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.FREIGHT_WAGON.get(), FreightWagonScreen::new);
         event.register(ModMenus.WAGON_LOADER.get(), WagonLoaderScreen::new);
+        event.register(ModMenus.SIGNAL_BOX.get(), SignalBoxScreen::new);
     }
 
     /**

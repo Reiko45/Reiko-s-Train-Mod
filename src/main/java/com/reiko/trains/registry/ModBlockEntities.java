@@ -73,6 +73,10 @@ public final class ModBlockEntities {
     public static final Supplier<BlockEntityType<com.reiko.trains.shed.EngineShedBlockEntity>> ENGINE_SHED = BLOCK_ENTITIES.register("engine_shed",
             () -> BlockEntityType.Builder.of(com.reiko.trains.shed.EngineShedBlockEntity::new, ModBlocks.ENGINE_SHED.get()).build(null));
 
+    @SuppressWarnings("DataFlowIssue")
+    public static final Supplier<BlockEntityType<com.reiko.trains.signal.SignalBoxBlockEntity>> SIGNAL_BOX = BLOCK_ENTITIES.register("signal_box",
+            () -> BlockEntityType.Builder.of(com.reiko.trains.signal.SignalBoxBlockEntity::new, ModBlocks.SIGNAL_BOX.get()).build(null));
+
     private ModBlockEntities() {
     }
 }

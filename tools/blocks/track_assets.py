@@ -1352,6 +1352,81 @@ def engine_shed_models():
         json.dump({"parent": "minecraft:item/generated", "textures": {"layer0": "reikotrains:item/engine_shed"}}, out, indent=2)
 
 
+def signal_box_textures():
+    """
+    The signal box desk: varnished brown wood for the cabinet, a lighter worn top, the levers' colours (red for
+    signals, black for switches, blue for locks, yellow for distant signals), steel for the frame and handles, and the
+    diagram board: dark green with the line drawn on it in white, a junction, and lamps.
+    """
+    wood = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            c = shade((96, 60, 36), (0.92 + 0.08 * math.sin(y * 1.1 + noise("box", x // 4) * 3)) * (1 + 0.05 * noise("box", x, y)))
+            if x % 8 == 7 or y in (0, 15):
+                c = shade(c, 0.75)
+            wood.putpixel((x, y), c)
+    wood.save(f"{ASSETS}/textures/block/signal_box_wood.png")
+    top = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            top.putpixel((x, y), shade((150, 112, 72), (0.94 + 0.06 * math.sin(x * 0.9 + noise("top", y // 3) * 2)) * (1 + 0.04 * noise("top", x, y))))
+    top.save(f"{ASSETS}/textures/block/signal_box_top.png")
+    for name, colour in (("red", (178, 38, 30)), ("black", (34, 34, 36)), ("blue", (40, 70, 160)), ("yellow", (220, 176, 40))):
+        solid(f"signal_box_{name}", colour, noise_amount=0.05)
+    solid("signal_box_steel", (176, 178, 182), noise_amount=0.05)
+    board = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            c = shade((22, 48, 32), 1 + 0.05 * noise("board", x, y))
+            if x in (0, 15) or y in (0, 15):
+                c = shade((96, 60, 36), 0.9)
+            board.putpixel((x, y), c)
+    for x in range(2, 14):
+        board.putpixel((x, 9), (220, 224, 228, 255))
+    for i, (x, y) in enumerate(((7, 8), (8, 7), (9, 6), (10, 5), (11, 5), (12, 5), (13, 5))):
+        board.putpixel((x, y), (220, 224, 228, 255))
+    for x, y, colour in ((4, 10, (230, 60, 50)), (11, 10, (60, 220, 90)), (12, 4, (240, 190, 40))):
+        board.putpixel((x, y), colour + (255,))
+    board.save(f"{ASSETS}/textures/block/signal_box_diagram.png")
+
+
+def signal_box_models():
+    """
+    The signal box (facing north: its levers towards whoever's at it): a wooden cabinet with a desk top, a lever frame
+    across the middle with six levers in it, and the diagram of the line on a board at the back.
+    """
+    tex = {"particle": "reikotrains:block/signal_box_wood", "wood": "reikotrains:block/signal_box_wood",
+           "top": "reikotrains:block/signal_box_top", "steel": "reikotrains:block/signal_box_steel",
+           "board": "reikotrains:block/signal_box_diagram"}
+    for name in ("red", "black", "blue", "yellow"):
+        tex[name] = f"reikotrains:block/signal_box_{name}"
+    els = [
+        element([1, 0, 2], [15, 9, 13.5], all_faces("#wood", (1, 7, 15, 16))),
+        element([0.5, 9, 1.5], [15.5, 10, 14.5], {f: ("#top", [0.5, 1.5, 15.5, 14.5]) for f in ("up", "down")}
+                | {f: ("#wood", [0, 0, 15, 1]) for f in ("north", "south", "east", "west")}),
+        element([1, 10, 12.5], [15, 15.5, 13.5], {"north": ("#board", [0, 0, 16, 16]), "south": ("#wood", [1, 0, 15, 5.5]),
+                                                 "east": ("#wood", [0, 0, 1, 5.5]), "west": ("#wood", [0, 0, 1, 5.5]),
+                                                 "up": ("#wood", [1, 0, 15, 1]), "down": ("#wood", [1, 0, 15, 1])}),
+        element([2, 10, 6.5], [14, 11, 9], all_faces("#steel", (0, 0, 12, 1))),
+    ]
+    for i, colour in enumerate(("red", "red", "black", "blue", "yellow", "black")):
+        x = 2.6 + i * 1.95
+        els.append(element([x, 10.5, 7.4], [x + 0.8, 14.5, 8.2], all_faces("#" + colour, (0, 0, 1, 4))))
+        els.append(element([x - 0.15, 14.5, 7.25], [x + 0.95, 15.2, 8.35], all_faces("#steel", (0, 0, 1, 1))))
+    with open(f"{ASSETS}/models/block/signal_box.json", "w") as out:
+        json.dump({"parent": "block/block", "textures": tex, "elements": els}, out, indent=2)
+    variants = {}
+    for facing, y in (("north", 0), ("east", 90), ("south", 180), ("west", 270)):
+        v = {"model": "reikotrains:block/signal_box"}
+        if y:
+            v["y"] = y
+        variants[f"facing={facing}"] = v
+    with open(f"{ASSETS}/blockstates/signal_box.json", "w") as out:
+        json.dump({"variants": variants}, out, indent=2)
+    with open(f"{ASSETS}/models/item/signal_box.json", "w") as out:
+        json.dump({"parent": "reikotrains:block/signal_box"}, out, indent=2)
+
+
 def signals_and_stations():
     signal_textures()
     signal_models()
@@ -1379,6 +1454,8 @@ def signals_and_stations():
     turntable_models()
     engine_shed_textures()
     engine_shed_models()
+    signal_box_textures()
+    signal_box_models()
 
 
 if __name__ == "__main__":

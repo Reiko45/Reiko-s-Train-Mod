@@ -2,6 +2,19 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 0.26.0
+
+The signal box.
+
+- New: the **Signal Box** (three levers over planks and an empty map). Click it for a live map of the railway within
+  96 blocks: the track in its real shape, turntables, stations, every train car as it moves, the signals' aspects and
+  the way each switch is set. Hover over things to see what they are; drag to move the map, scroll to zoom.
+- From the map, click a switch to throw it (not if redstone holds it), or a signal to hold it at red and again to let
+  it go. Breaking the box lets go of the signals it held.
+- Fixed: the Three-Light Signal dropped nothing when broken. A new game test checks every block has a loot table.
+- The mod's network version changes, so clients and servers both need 0.26.0.
+- Five new game tests (176 in all).
+
 ## 0.25.0
 
 Three-light signals.

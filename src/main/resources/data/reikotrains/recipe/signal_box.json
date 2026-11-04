@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "L": {
+      "item": "minecraft:lever"
+    },
+    "P": {
+      "tag": "minecraft:planks"
+    },
+    "M": {
+      "item": "minecraft:map"
+    }
+  },
+  "pattern": [
+    "LLL",
+    "PMP",
+    "PPP"
+  ],
+  "result": {
+    "count": 1,
+    "id": "reikotrains:signal_box"
+  }
+}

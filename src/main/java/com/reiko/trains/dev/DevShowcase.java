@@ -3,6 +3,7 @@ package com.reiko.trains.dev;
 import com.reiko.trains.ReikoTrains;
 import com.reiko.trains.gametest.TestTracks;
 import com.reiko.trains.network.TrainControlPayload;
+import com.reiko.trains.registry.ModBlocks;
 import com.reiko.trains.registry.ModDataComponents;
 import com.reiko.trains.registry.ModEntities;
 import com.reiko.trains.registry.ModItems;
@@ -191,6 +192,8 @@ public final class DevShowcase {
     private static final BlockPos TURNTABLE = new BlockPos(40, Y - 1, TURNTABLE_YARD);
     /** A line with three-light signals on it, along x at this z. */
     private static final int SIGNAL_LINE = -340;
+    /** A signal box in the middle of the loop, looking after it, the main line and the lines north of it. */
+    private static final BlockPos SIGNAL_BOX = new BlockPos(27, Y, 26);
     /** The switch stand for the junction at x = 52. */
     private static final BlockPos SWITCH = new BlockPos(52, Y, -2);
 
@@ -209,6 +212,7 @@ public final class DevShowcase {
             TestTracks.signal(level, new BlockPos(54 - x, Y, 40), new BlockPos(54 - x, Y, 38), -1);
         }
         StationBlockEntity north = TestTracks.station(level, new BlockPos(32, Y, 11), new BlockPos(32, Y, 14), "Northgate", 4);
+        level.setBlock(SIGNAL_BOX, ModBlocks.SIGNAL_BOX.get().defaultBlockState(), 3);
         StationBlockEntity south = TestTracks.station(level, new BlockPos(22, Y, 41), new BlockPos(22, Y, 38), "Southport", 4);
 
         Locomotive loco = put(level, ModEntities.STEAM_LOCOMOTIVE.get(), 22, 0);
@@ -874,6 +878,56 @@ public final class DevShowcase {
         }
     }
 
+
+    /**
+     * The signal box: its diagram of everything round it (the loop with its trains running, the main line and its
+     * junction, the lines to the north); then, zoomed in, a loop signal held at red from the box and the main line's
+     * switch thrown.
+     */
+    private static void signalBoxScene() {
+        at(4960, mc -> server(mc, player -> {
+            ServerLevel level = player.serverLevel();
+            // The main line's switch, held by redstone since the switch scene: let it go, for the box to throw.
+            level.setBlock(SWITCH.below(), Blocks.GRASS_BLOCK.defaultBlockState(), 3);
+            for (com.reiko.trains.train.SteamLocomotive engine : level.getEntitiesOfClass(com.reiko.trains.train.SteamLocomotive.class,
+                    new AABB(-10, Y - 2, 8, 70, Y + 4, 46))) {
+                engine.setFuel(com.reiko.trains.train.SteamLocomotive.FUEL_CAPACITY);
+                engine.setWater(com.reiko.trains.train.SteamLocomotive.WATER_CAPACITY);
+            }
+        }));
+        at(4962, mc -> look(mc, SIGNAL_BOX.getX() - 0.6, Y - 0.35, SIGNAL_BOX.getZ() - 1.6, -32.0F, 38.0F));
+        at(4986, mc -> shot(mc, "60a_signal_box_block"));
+        at(4990, mc -> server(mc, player -> {
+            ServerLevel level = player.serverLevel();
+            player.getAbilities().flying = false;
+            player.onUpdateAbilities();
+            level.getBlockState(SIGNAL_BOX).useWithoutItem(level, player, new net.minecraft.world.phys.BlockHitResult(
+                    net.minecraft.world.phys.Vec3.atCenterOf(SIGNAL_BOX), net.minecraft.core.Direction.NORTH, SIGNAL_BOX, false));
+        }));
+        at(5040, mc -> shot(mc, "60_signal_box"));
+        at(5042, mc -> server(mc, player -> {
+            if (player.serverLevel().getBlockEntity(SIGNAL_BOX) instanceof com.reiko.trains.signal.SignalBoxBlockEntity box) {
+                box.toggleSignal(new BlockPos(26, Y, 12));
+                box.throwSwitch(SWITCH);
+            }
+        }));
+        at(5044, mc -> {
+            if (mc.screen instanceof com.reiko.trains.client.SignalBoxScreen screen) {
+                screen.view(4.0F, 6.0F, -16.0F);
+            }
+        });
+        at(5080, mc -> shot(mc, "61_signal_box_zoomed"));
+        at(5082, mc -> {
+            server(mc, player -> {
+                if (player.serverLevel().getBlockEntity(SIGNAL_BOX) instanceof com.reiko.trains.signal.SignalBoxBlockEntity box) {
+                    box.toggleSignal(new BlockPos(26, Y, 12));
+                    box.throwSwitch(SWITCH);
+                }
+            });
+            mc.setScreen(null);
+        });
+    }
+
     private static void script() {
         at(20, mc -> {
             mc.options.hideGui = false;
@@ -1190,6 +1244,7 @@ public final class DevShowcase {
         waterScene();
         turntableScene();
         signalScene();
-        at(4955, Minecraft::stop);
+        signalBoxScene();
+        at(5090, Minecraft::stop);
     }
 }

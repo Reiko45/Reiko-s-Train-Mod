@@ -277,5 +277,19 @@
   "message.reikotrains.shed.shut": "Doors let shut (they open for trains)",
   "message.reikotrains.shed.store": "Store: %s fuel, %s/%s buckets of water, %s/%s of diesel, %s MJ",
   "hud.reikotrains.auto.servicing": "At %s: topping up",
-  "block.reikotrains.three_light_signal": "Three-Light Signal"
+  "block.reikotrains.three_light_signal": "Three-Light Signal",
+  "block.reikotrains.signal_box": "Signal Box",
+  "container.reikotrains.signal_box": "Signal Box",
+  "screen.reikotrains.signal_box.help": "Click a switch to throw it, a signal to hold it at red. Drag to move, scroll to zoom.",
+  "screen.reikotrains.signal_box.surveying": "Surveying the line...",
+  "screen.reikotrains.signal_box.signal.green": "Signal: green",
+  "screen.reikotrains.signal_box.signal.yellow": "Signal: yellow (the next one's red)",
+  "screen.reikotrains.signal_box.signal.red": "Signal: red (a train on the line ahead, or held by redstone)",
+  "screen.reikotrains.signal_box.signal.held": "Signal: held at red by a signal box",
+  "screen.reikotrains.signal_box.hold": "Click to hold it at red",
+  "screen.reikotrains.signal_box.release": "Click to let it go",
+  "screen.reikotrains.signal_box.switch": "Switch: set the %s way of %s (in yellow)",
+  "screen.reikotrains.signal_box.throw": "Click to throw it",
+  "screen.reikotrains.signal_box.locked": "Held by redstone",
+  "screen.reikotrains.signal_box.car": "Train car"
 }

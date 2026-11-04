@@ -49,6 +49,10 @@ public class SignalBlockEntity extends BlockEntity {
     private BlockPos nextNode;
     private int nextSide;
     private int routeAge = ROUTE_REFRESH;
+    /** The signal box holding it at red, if one is. */
+    @Nullable
+    private BlockPos heldBy;
+    private int heldCheck;
     private boolean registered;
     @Nullable
     private BlockPos registeredNode;
@@ -90,6 +94,18 @@ public class SignalBlockEntity extends BlockEntity {
 
     public boolean isThreeLight() {
         return getBlockState().getBlock() instanceof ThreeLightSignalBlock;
+    }
+
+    /** The signal box holding it at red, or null. */
+    @Nullable
+    public BlockPos heldBy() {
+        return heldBy;
+    }
+
+    /** Held at red by a signal box (or let go, with null). */
+    public void hold(@Nullable BlockPos box) {
+        heldBy = box == null ? null : box.immutable();
+        setChanged();
     }
 
     public boolean isPowered() {
@@ -195,7 +211,7 @@ public class SignalBlockEntity extends BlockEntity {
      * (any of {@code ignoring}) is in the section ahead.
      */
     public boolean isClearFor(Collection<? extends TrainCarEntity> ignoring) {
-        if (!isAttached() || isPowered()) {
+        if (!isAttached() || isPowered() || heldBy != null) {
             return false;
         }
         return firstCarInSection(ignoring) == null;
@@ -263,9 +279,16 @@ public class SignalBlockEntity extends BlockEntity {
         if ((level.getGameTime() + pos.hashCode()) % 4 != 0) {
             return;
         }
+        // A signal box that's gone (broken while this wasn't loaded) lets go of it.
+        if (signal.heldBy != null && ++signal.heldCheck >= 25) {
+            signal.heldCheck = 0;
+            if (level.isLoaded(signal.heldBy) && !(level.getBlockEntity(signal.heldBy) instanceof SignalBoxBlockEntity)) {
+                signal.hold(null);
+            }
+        }
         TrainCarEntity car = signal.isAttached() ? signal.firstCarInSection(List.of()) : null;
         boolean occupied = car != null;
-        boolean clear = signal.isAttached() && !occupied && !signal.isPowered();
+        boolean clear = signal.isAttached() && !occupied && !signal.isPowered() && signal.heldBy == null;
         boolean threeLight = state.getBlock() instanceof ThreeLightSignalBlock;
         SignalBlockEntity next = threeLight ? signal.nextSignal() : null;
         boolean caution = clear && next != null && !next.getBlockState().getValue(SignalBlock.CLEAR);
@@ -290,6 +313,9 @@ public class SignalBlockEntity extends BlockEntity {
             tag.putLong("Track", node.asLong());
             tag.putByte("Side", (byte) side);
         }
+        if (heldBy != null) {
+            tag.putLong("HeldBy", heldBy.asLong());
+        }
     }
 
     @Override
@@ -299,5 +325,6 @@ public class SignalBlockEntity extends BlockEntity {
             node = BlockPos.of(tag.getLong("Track"));
             side = tag.getByte("Side");
         }
+        heldBy = tag.contains("HeldBy") ? BlockPos.of(tag.getLong("HeldBy")) : null;
     }
 }

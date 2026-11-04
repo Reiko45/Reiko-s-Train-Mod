@@ -71,6 +71,8 @@ choice of way at every junction) or give them a timetable and let them run betwe
 - **Railway Signal**: red while there's a train on the line ahead, green when it's clear. Trains stop for red.
 - **Three-Light Signal**: red, yellow and green. Yellow while the next signal is red, so trains come up to it at
   caution speed, ready to stop.
+- **Signal Box**: a desk with a lever frame. Its screen is a live map of the railway round it, trains and all: throw
+  switches and hold signals at red from it.
 - **Switch Stand**: sets which way trains go at a junction. Flip it by hand, or set and hold it with redstone.
 - **Track Sensor**: gives a redstone signal while a train is over the track beside it: any train, or only trains
   going one way, with a certain kind of car, carrying something, or running a certain timetable.
@@ -133,6 +135,7 @@ corners, and are paid for in street track; the road blocks a curve passes over a
 | Coupler | Iron ingot, chain, iron ingot (a column) |
 | Railway Signal (2) | Redstone lamp, iron ingot, iron ingot (a column) |
 | Three-Light Signal | A Railway Signal, a redstone lamp and yellow dye (any shape) |
+| Signal Box | Three levers; planks, an empty map, planks; three planks |
 | Switch Stand | Lever, iron ingot, iron ingot (a column) |
 | Station | Any sign, iron ingot, iron ingot (a column) |
 | Track Sensor (2) | Observer, redstone, iron ingot (a column) |
@@ -543,6 +546,29 @@ are set) is red, it shows **yellow**: a warning that the train will have to stop
 
 ![The gauges: a yellow signal ahead, slowing to caution speed](docs/screenshots/caution_gauge.png)
 
+### Signal boxes
+
+A **Signal Box** is a desk with a lever frame along it and a diagram of the line on a board at the back. Put it
+wherever you like (build the signal box round it), and click it: its screen is a **live map** of the railway within
+96 blocks of it, north up, drawn from the real track.
+
+- **On the map**: the track in light grey, curves and all; turntables, their bridges turning; stations by name; every
+  train car as it goes (locomotives orange); each signal as a lamp beside its track, red, yellow or green, with a tick
+  showing which way it guards; and each switch, the way it's set picked out in yellow. The box itself is the white
+  square. Hover over anything to see what it is (a train shows its timetable's next stop).
+- **Throw switches**: click a switch on the map to throw it to its next way, as clicking its stand does (one held by
+  redstone won't throw).
+- **Hold signals**: click a signal to hold it at **red**, so trains stop at it, and click again to let it go. A held
+  signal has a white ring round its lamp. Breaking the box lets go of every signal it was holding.
+- Drag the map to move it about and scroll to zoom. The map keeps up five times a second while you have it open; new
+  track shows up within a few seconds.
+
+![A signal box's map: the loop with its trains, the main line and its junction](docs/screenshots/signal_box.jpg)
+
+![Zoomed in: a signal held at red from the box, and the junction's switch thrown to the branch](docs/screenshots/signal_box_zoomed.jpg)
+
+![The signal box](docs/screenshots/signal_box_block.jpg)
+
 ## Speed limits
 
 Put a **Speed Limit Sign** beside the track (up to three blocks away), looking along the line the way the trains will
@@ -878,6 +904,12 @@ by redstone) and green again once it clears, with comparators reading 15, 7 and 
 one each going faster than caution speed before a yellow, no faster past it, stopping at the red, and speeding up (or
 going on to its station) once it clears.
 
+`SignalBoxGameTests` covers the signal box: surveying the line round it (the main line as one straight, the curve
+and branch, the station, both signals with their lamps on the right side, the switch and its ways, a coach), holding a
+signal at red so a driven train stops at it and letting it go so it goes on, breaking the box letting go of it,
+throwing a switch both ways and not when redstone holds it, not reaching signals or trains past its range; and that
+every block in the mod has a loot table.
+
 `TrainMapGameTests` covers the map of trains for minimaps: a train on it once, at its leading locomotive, with its
 kind and length, a timetabled train's next stop, a broken locomotive coming off it (and the other engine taking
 over), players being sent the other trains nearest first and not their own, dropping trains that aren't where the
@@ -887,7 +919,7 @@ map says, and saving it with the world.
 screenshots to `run/screenshots/` (that's where the pictures above come from). Add `-PxaeroJars=/path/to/folder` for
 the minimap shot, `-PcarJars=/path/to/folder` for the car transporter scene, and `-PshowcaseFrom=<tick>` to skip to the
 scene starting at that tick (`2202` for the Bullet Train, `2810` for the car transporters, `3105` for overhead wires,
-`3505` for trams, `3915` for water, `4100` for the turntable and engine shed, `4480` for three-light signals; start a
+`3505` for trams, `3915` for water, `4100` for the turntable and engine shed, `4480` for three-light signals, `4960` for the signal box; start a
 scene from the one before it, so the world round it is loaded).
 
 ### Models, textures and sounds
@@ -938,6 +970,13 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
 - **Engine sheds** (`shed/`): the doors' frame is 24 blocks that each know their place in it; the middle of the lintel
   keeps the workings, which look each tick for trains coming, open the doorway's unseen blocks (`OPEN`), and top up
   what's standing inside every couple of ticks, like a charging point.
+- **Signal boxes** (`signal/SignalBoxBlockEntity`): while someone has its screen open (a menu with no slots), the box
+  goes through the block entities in loaded chunks within reach every five seconds, and sends them the track as
+  lines (straight runs as one line, curves as points every half block) and the stations (`SignalBoxMapPayload`); five
+  times a second it sends the signals, switches, cars and turntables (`SignalBoxStatePayload`). `SignalBoxScreen`
+  draws it all with quads, smoothing the trains between updates; clicks come back as `SignalBoxActionPayload`s, which
+  the server checks (the player's at that box, the thing's in its reach) before acting. A signal held by a box keeps
+  the box's position, and lets go if the box has gone.
 - **Freight** (`freight/`): a wagon loader finds the train standing at its track block each couple of ticks and moves
   goods between the storage next to it and the train's wagons through NeoForge item handlers. It keeps a list of
   loaded loaders, so a timetabled train can ask whether any is still busy with it. A charging point (`power/`) works
@@ -974,8 +1013,8 @@ These are generated by the scripts in `tools/` (they need Python 3 with Pillow a
 - **Client** (`client/`): `TrainCarRenderer` draws a car and its swinging bogies, `TrackRenderer` draws curves,
   `TrackPreview` the outline while you lay track, `StationRenderer` the names on the boards, `LevelCrossingRenderer`
   the crossings' arms and flashing lamps, `CatenaryMastRenderer` the masts' arms and the wires, `TrackSensorRenderer` a sensor's filter item,
-  `TurntableRenderer` a turntable's bridge and ring rail, `EngineShedRenderer` the shed doors, and `TrainHud` the cab
-  gauges.
+  `TurntableRenderer` a turntable's bridge and ring rail, `EngineShedRenderer` the shed doors, `SignalBoxScreen` a
+  signal box's map, and `TrainHud` the cab gauges.
 
 ## License
 
