@@ -1,7 +1,8 @@
 # Mod page details (Modrinth and CurseForge)
 
 What to fill in when making the project pages. The page text itself is `description.md` in this folder (Markdown;
-both sites take it as it is). The icon is `icon-512.png` (the mod's logo, enlarged).
+both sites take it as it is). The icon is `icon-512.png` (the mod's logo, enlarged). The GitHub release's notes are
+`github-release.md`.
 
 ## Project
 
