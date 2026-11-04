@@ -9,6 +9,11 @@ choice of way at every junction) or give them a timetable and let them run betwe
 
 ![Round the bend](docs/screenshots/on_the_move.jpg)
 
+## Download
+
+Get the jar from the [Releases](https://github.com/Reiko45/Reiko-s-Train-Mod/releases) page and put it in your
+`mods` folder with BuildCraft Reborn (below). Servers and the players on them need the same version of the mod.
+
 ## Requirements
 
 - Minecraft 1.21.1 with NeoForge 21.1.265 or newer
@@ -979,7 +984,10 @@ coupling two cars together, driving a car aboard a car transporter, setting a tr
 route from a signal box, turning a train on a turntable, having an engine shed top up the engine you're driving,
 laying 64 pieces of track with the track-laying wagon, and having it build a bridge.
 
-## Upgrading from 0.1.0
+## Upgrading
+
+From 1.0.0 on, updates keep your worlds working: trains, track and everything else load as they were. If an update
+ever has to change that, its changelog will say so, and what to do. Back up your world before updating all the same.
 
 0.1.0's trains ran on minecart rails. In 0.2.0 they're bigger and need Train Track, so any 0.1.0 train cars in a world
 turn back into items (dropped where they stood) the first time they load. Put them back on the new track.

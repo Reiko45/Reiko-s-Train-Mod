@@ -13,7 +13,13 @@ displayURL="https://github.com/Reiko45/Reiko-s-Train-Mod"
 logoFile="logo.png"
 logoBlur=false
 description='''
-Big steam, diesel and electric trains on their own track. Lay straight track block by block, and draw curves, ramps and junctions by clicking from one track block to where the line should go. Fire up a two-block-wide tank engine, a big express with its tender, a diesel running on BuildCraft Reborn's diesel, or an electric charged with BuildCraft power, couple coaches, 108-slot freight wagons, tank wagons, livestock wagons and a guard's van to them (and more engines, to double-head), and drive: throttle, brake, whistle, and left or right at junctions. Signal the line, set the switches by hand or with redstone, put level crossings where roads cross it, sense passing trains with redstone, name the stations, load and unload freight automatically, and give trains a timetable to run between them by themselves, leaving wagons at some stations and picking them up at others.
+Big trains on their own track, and trams in the street. Lay track block by block or draw curves, ramps and junctions from one block to another, or let the track-laying wagon lay a whole line for you: cuttings, tunnels, embankments and bridges, with overhead wires if you like.
+
+Drive a green tank engine, a crimson express with its tender, a diesel on BuildCraft Reborn's fuel, an electric, the 100 km/h Bullet Train, or a vintage or low-floor tram, with coaches, freight, tank, livestock and car transporter wagons and a guard's van behind. Throttle, brake, whistle, and left or right at every junction.
+
+Signal the line with two-, three- and four-aspect signals, work it from a signal box with a live map and routes, set switches by hand or with redstone, and put up speed limits, level crossings and track sensors. Name the stations and give trains timetables to run by themselves, leaving and picking up wagons, loading and unloading freight at wagon loaders, taking water at water towers and turning on turntables. Keep them going from engine sheds, charging points and electrified lines.
+
+With Patchouli, the Railway Handbook explains all of it in the game. Optional extras: Reiko's Car Mod (cars and trailers by rail), Xaero's Minimap and World Map (trains on the map), and JEI.
 '''
 
 [[dependencies.${mod_id}]]
@@ -38,7 +44,16 @@ Big steam, diesel and electric trains on their own track. Lay straight track blo
     ordering="NONE"
     side="CLIENT"
 
-# Optional: with Reiko's Car Mod, car transporter wagons carry its cars.
+# Optional: with Xaero's World Map, trains show on the world map, and clicking one says what it's doing. (Read by
+# reflection, so another version just means no trains on the map.)
+[[dependencies.${mod_id}]]
+    modId="xaeroworldmap"
+    type="optional"
+    versionRange="[1.30,)"
+    ordering="NONE"
+    side="CLIENT"
+
+# Optional: with Reiko's Car Mod, car transporter wagons carry its cars and their trailers.
 [[dependencies.${mod_id}]]
     modId="reikocars"
     type="optional"

@@ -2,6 +2,16 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 1.0.0
+
+The first full release: everything up to 0.29.0, ready to play.
+
+- From here on, updates keep worlds working (see Upgrading in the README).
+- The mod's description in the in-game mods list now covers all of it: trams, the Bullet Train, overhead wires,
+  four-aspect signals and the signal box, turntables and engine sheds, the track-laying wagon and the handbook.
+- Xaero's World Map is listed as an optional dependency (trains show on it).
+- Nothing else changes from 0.29.0: worlds, clients and servers carry straight on (the network version is still 13).
+
 ## 0.29.0
 
 The follow-ups: something for nearly every part of the mod.
