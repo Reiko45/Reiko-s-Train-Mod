@@ -271,8 +271,9 @@ Everything's also in the **Reiko's Trains** creative tab.
 
 ### Making up a train
 
-1. Click a track block with a car to put it there, facing along the track the way you're looking. It needs track under
-   both its bogies.
+1. Click the track with a car to put it there, facing along the track the way you're looking: a track block, or
+   anywhere along a curve. It needs track under both its bogies, so near the end of a line it goes as near where you
+   clicked as it fits.
 2. Take the **Coupler**, click one car, then the car next to it on the same line (up to 5 blocks between their
    buffers). The second car's train is drawn up until the buffers meet. Cars couple at either end, facing either way,
    and the locomotives can be anywhere in the train: they pull or push.
@@ -525,8 +526,8 @@ ring a bell (the whistle key); and both keep to **street rules**.
   the wire, and swings round when it changes ends. About 40 km/h, and nine seats. Its bell is a foot gong.
 - The **Low-Floor Tram** is three sections that bend in the middle: a driving section at each end (noses out, a
   pantograph over each one's inner end) and a short middle one, about fourteen blocks in all, white with a green band
-  and big windows, its floor a step above the street. Click a track block with it to put all three on the track
-  together, the middle one there; breaking any of them takes the whole tram up. Drive it from either end. About
+  and big windows, its floor a step above the street. Click the track with it to put all three on the track
+  together, the middle one there (or as near as the tram fits); breaking any of them takes the whole tram up. Drive it from either end. About
   50 km/h, and fourteen seats (the two drivers' included). Its bell is an electronic chime.
 - **Street rules**: a tram (or any train with one in it) stops a block or so short of anything on the track ahead:
   people, animals, cars, boats, other trains (it doesn't couple to them). On a timetable it waits for them to clear,
@@ -1140,6 +1141,12 @@ map says, saving it with the world, and the details the world map shows (how fas
 
 `AdvancementGameTests` covers the mod's advancements being earned on the railway.
 
+`LoadingGameTests` covers trains saved and loaded again: a loaded coach got into and a loaded locomotive broken, by
+the clicks a player's client sends (which the server only takes within reach of the car's hitbox), a loaded coach's
+bogies following the curve it's on again, a player leaving the game while riding a coach leaving it on the track and
+still coupled, a car whose car in front is gone for good being let go of to run on its own, and cars put down on the
+middle of a curve and on the last block of a line (and not on track shorter than them).
+
 `./gradlew runClient -Pshowcase -PwindowSize=1280x720` builds a test railway, runs trains round it and saves
 screenshots to `run/screenshots/` (that's where the pictures above come from). Add `-PxaeroJars=/path/to/folder` for
 the minimap shot, `-PcarJars=/path/to/folder` for the car transporter scene, and `-PshowcaseFrom=<tick>` to skip to the
@@ -1150,6 +1157,11 @@ scene starting at that tick (`2202` for the Bullet Train, `2810` for the car tra
 `./gradlew runClient -Pshowcase -PshowcaseBook -PwindowSize=1280x720` instead photographs the Railway Handbook, every
 spread of it (`book_NNN_*.png`, after `python3 tools/guidebook/book.py` has listed them), a handbook button, and the JEI
 pages.
+
+`./gradlew runClient -PrejoinTest -PwindowSize=1280x720` builds a train in a new world, saves and quits from inside it,
+opens the world again, and then (through the client, as a player would) gets in, uses the coupler, breaks a car and
+puts cars down on a curve and at the end of the line, logging `REJOIN: PASS` or `FAIL` for each and saving
+`rejoin_*.png` screenshots.
 
 ### Models, textures and sounds
 

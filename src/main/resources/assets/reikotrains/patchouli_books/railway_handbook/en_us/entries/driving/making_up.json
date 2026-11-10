@@ -6,11 +6,11 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "$(li)Click a track block with a locomotive, coach or wagon to put it there, facing the way you're looking. It needs track under both bogies.$(li)Take the $(item)Coupler$(), click one car, then the next car along (up to 5 blocks between buffers): they're drawn together.$(li)Sneak-click a car with the coupler to uncouple it."
+      "text": "$(li)Click the track (a track block, or along a curve) with a locomotive, coach or wagon to put it there, facing the way you're looking.$(li)Take the $(item)Coupler$(), click one car, then the next car along (up to 5 blocks between buffers): they're drawn together.$(li)Sneak-click a car with the coupler to uncouple it."
     },
     {
       "type": "patchouli:text",
-      "text": "Cars couple at either end, facing either way, and the locomotives can be anywhere in the train: they pull or push. A train can have up to 16 cars (a server setting).$(br2)Break a car (hit it a few times) to pick it up again; what it carries spills out."
+      "text": "Near the end of a line, a car goes as near where you clicked as it fits.$(br2)Cars couple at either end, facing either way, and the locomotives can be anywhere in the train: they pull or push. A train can have up to 16 cars (a server setting).$(br2)Break a car (hit it a few times) to pick it up again; what it carries spills out."
     },
     {
       "type": "patchouli:crafting",

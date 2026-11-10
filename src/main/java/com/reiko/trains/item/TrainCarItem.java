@@ -23,7 +23,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 
-/** Puts a train car on the track clicked, centred on that block and facing along the track the way you look. */
+/**
+ * Puts a train car on the track clicked, centred there and facing along the track the way you look: on a track block,
+ * or anywhere along a curve. Near the end of a line it goes as near there as it fits.
+ */
 public class TrainCarItem extends Item {
     private final Supplier<? extends EntityType<? extends TrainCarEntity>> type;
 
@@ -59,7 +62,9 @@ public class TrainCarItem extends Item {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         Player player = context.getPlayer();
-        if (TrackGraph.axis(level, pos) == null) {
+        Vec3 look = player != null ? player.getLookAngle() : new Vec3(1, 0, 0);
+        TrackPos clicked = clickedTrack(level, context, look);
+        if (clicked == null) {
             if (player != null && !level.isClientSide) {
                 player.displayClientMessage(Problem.NOT_TRACK.message().withStyle(ChatFormatting.RED), true);
             }
@@ -67,9 +72,8 @@ public class TrainCarItem extends Item {
         }
         if (level instanceof ServerLevel serverLevel) {
             ItemStack stack = context.getItemInHand();
-            Vec3 look = player != null ? player.getLookAngle() : new Vec3(1, 0, 0);
             TrainCarEntity car = type.get().create(serverLevel);
-            Problem problem = car == null ? Problem.NOT_TRACK : place(serverLevel, car, pos, look);
+            Problem problem = car == null ? Problem.NOT_TRACK : place(serverLevel, car, clicked);
             if (problem != null) {
                 if (player != null) {
                     player.displayClientMessage(problem.message().withStyle(ChatFormatting.RED), true);
@@ -87,18 +91,42 @@ public class TrainCarItem extends Item {
     }
 
     /**
+     * Where on the track a click lands: on the track block clicked, or else on the track running over the block
+     * clicked (a curve, or a diagonal between its track blocks), facing the way along it nearest {@code look}. Null
+     * if the click wasn't on track.
+     */
+    @Nullable
+    public static TrackPos clickedTrack(Level level, UseOnContext context, Vec3 look) {
+        BlockPos pos = context.getClickedPos();
+        if (TrackGraph.axis(level, pos) != null) {
+            return TrackPos.at(level, pos, look);
+        }
+        return TrackGraph.nearest(level, context.getClickLocation(), look, 1.25);
+    }
+
+    /**
      * Sets a car on the track centred on the track block at {@code pos}, facing the way along it nearest
      * {@code look}, without adding it to the world. Returns why it can't go there, or null if it's in place.
      */
     @Nullable
     public static Problem place(Level level, TrainCarEntity car, BlockPos pos, Vec3 look) {
         TrackPos centre = TrackPos.at(level, pos, look);
-        if (centre == null) {
+        return centre == null ? Problem.NO_ROOM : place(level, car, centre);
+    }
+
+    /**
+     * Sets a car on the track centred at {@code centre}, or as near it as it fits (moved along, away from the end of
+     * the line), without adding it to the world. Returns why it can't go there, or null if it's in place.
+     */
+    @Nullable
+    public static Problem place(Level level, TrainCarEntity car, TrackPos centre) {
+        double offset = car.bogieOffset();
+        TrackPos fitted = TrackGraph.fit(level, centre, offset);
+        if (fitted == null) {
             return Problem.NO_ROOM;
         }
-        TrackPos front = centre.copy();
-        TrackPos rear = centre.copy();
-        double offset = car.bogieOffset();
+        TrackPos front = fitted.copy();
+        TrackPos rear = fitted.copy();
         if (front.walk(level, offset, TrackPos.STRAIGHTEST) < offset - 1.0E-6 || rear.walk(level, -offset, TrackPos.STRAIGHTEST) < offset - 1.0E-6) {
             return Problem.NO_ROOM;
         }

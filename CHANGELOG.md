@@ -2,6 +2,29 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 1.0.1
+
+Fixes for [issue #1](https://github.com/Reiko45/Reiko-s-Train-Mod/issues/1): trains broke after leaving the world and
+coming back.
+
+- **Trains can be used again after a world's loaded.** A car's hitbox is a row of sections along it, which weren't put
+  back round it when it loaded, and the server only takes a player's click or hit within reach of the section clicked.
+  So after leaving and coming back, a standing train couldn't be got into, coupled or uncoupled, or broken (even with a
+  pickaxe) until it had moved. The sections now go round the car as soon as it loads, and are kept there.
+- **Bogies follow the curve again after loading.** A car standing on a curve had its bogies drawn straight, off the
+  rails, after the world was loaded again.
+- **Leaving the game while riding a train no longer splits it.** Minecraft takes a ridden vehicle away with its rider
+  (like a boat) until they come back; a train car taken away left a gap, and after ten seconds the train uncoupled it
+  for good. Now whoever's riding gets off beside the train as they leave, and the train stays whole.
+- **Couplings aren't given up on while the world's still loading.** A train waits for a coupled car that hasn't loaded
+  yet for as long as the world round it is still loading, not just ten seconds.
+- **A car left coupled to a car that's gone is let go of**, so it can be used and moved again instead of standing stuck
+  on the track (which earlier versions could leave behind).
+- **Cars go on the track anywhere along it**: on a curve, not only on the track blocks at its ends, and near the end
+  of a line as near where you clicked as they fit, rather than not at all. The same for the low-floor tram.
+- The network version is unchanged: 1.0.0 and 1.0.1 can play together, but update both to get every fix.
+- Five new game tests (216 in all), and a check that opens a saved world again (`-PrejoinTest`).
+
 ## 1.0.0
 
 The first full release: everything up to 0.29.0, ready to play.

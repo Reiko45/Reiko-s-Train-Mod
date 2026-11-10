@@ -1,6 +1,6 @@
 package com.reiko.trains.item;
 
-import com.reiko.trains.track.TrackGraph;
+import com.reiko.trains.track.TrackPos;
 import com.reiko.trains.train.LowFloorTram;
 import java.util.List;
 import net.minecraft.ChatFormatting;
@@ -17,7 +17,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 
-/** The low-floor tram: click a track block to put all three sections on it, the middle one there. */
+/** The low-floor tram: click the track to put all three sections on it, the middle one there (or as near as it fits). */
 public class LowFloorTramItem extends Item {
     public LowFloorTramItem(Properties properties) {
         super(properties);
@@ -28,15 +28,16 @@ public class LowFloorTramItem extends Item {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         Player player = context.getPlayer();
-        if (TrackGraph.axis(level, pos) == null) {
+        Vec3 look = player != null ? player.getLookAngle() : new Vec3(1, 0, 0);
+        TrackPos clicked = TrainCarItem.clickedTrack(level, context, look);
+        if (clicked == null) {
             if (player != null && !level.isClientSide) {
                 player.displayClientMessage(TrainCarItem.Problem.NOT_TRACK.message().withStyle(ChatFormatting.RED), true);
             }
             return InteractionResult.FAIL;
         }
         if (level instanceof ServerLevel serverLevel) {
-            Vec3 look = player != null ? player.getLookAngle() : new Vec3(1, 0, 0);
-            TrainCarItem.Problem problem = LowFloorTram.place(serverLevel, pos, look);
+            TrainCarItem.Problem problem = LowFloorTram.place(serverLevel, clicked);
             if (problem != null) {
                 if (player != null) {
                     player.displayClientMessage(problem.message().withStyle(ChatFormatting.RED), true);

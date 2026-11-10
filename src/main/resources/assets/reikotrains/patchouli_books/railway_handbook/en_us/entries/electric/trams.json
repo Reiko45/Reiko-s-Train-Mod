@@ -18,7 +18,7 @@
     },
     {
       "type": "patchouli:text",
-      "text": "The $(l)Low-Floor Tram$() is three sections that bend round corners, about fourteen blocks in all: click a track block with it to put all three on together, and breaking any of them takes the whole tram up. Drive it from either end: about 50 km/h, fourteen seats."
+      "text": "The $(l)Low-Floor Tram$() is three sections that bend round corners, about fourteen blocks in all: click the track with it to put all three on together, and breaking any of them takes the whole tram up. Drive it from either end: about 50 km/h, fourteen seats."
     },
     {
       "type": "patchouli:image",

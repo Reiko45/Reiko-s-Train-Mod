@@ -70,17 +70,24 @@ public final class LowFloorTram {
      */
     @Nullable
     public static TrainCarItem.Problem place(ServerLevel level, BlockPos pos, Vec3 look) {
+        TrackPos centre = TrackPos.at(level, pos, look);
+        return centre == null ? TrainCarItem.Problem.NO_ROOM : place(level, centre);
+    }
+
+    /** Puts a low-floor tram on the track with its middle section at {@code centre}, or as near it as the tram fits. */
+    @Nullable
+    public static TrainCarItem.Problem place(ServerLevel level, TrackPos clicked) {
         TramCab front = ModEntities.TRAM_CAB.get().create(level);
         TramMiddle middle = ModEntities.TRAM_MIDDLE.get().create(level);
         TramCab back = ModEntities.TRAM_CAB.get().create(level);
         if (front == null || middle == null || back == null) {
             return TrainCarItem.Problem.NOT_TRACK;
         }
-        TrackPos centre = TrackPos.at(level, pos, look);
+        double apart = middle.halfLength() + Trains.BUFFER_GAP + front.halfLength();
+        TrackPos centre = com.reiko.trains.track.TrackGraph.fit(level, clicked, apart + front.bogieOffset());
         if (centre == null) {
             return TrainCarItem.Problem.NO_ROOM;
         }
-        double apart = middle.halfLength() + Trains.BUFFER_GAP + front.halfLength();
         if (!put(level, middle, centre, false) || !put(level, front, along(level, centre, apart), false)
                 || !put(level, back, along(level, centre, -apart), true)) {
             return TrainCarItem.Problem.NO_ROOM;

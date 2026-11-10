@@ -111,6 +111,91 @@ public final class TrackGraph {
                 ? next : null;
     }
 
+    /**
+     * The place on the track nearest {@code point}: within {@code reach} blocks of it across, and a block and a half up
+     * or down, facing the way along the track nearest {@code look}. Finds it on a curve, or along a diagonal, where the
+     * block clicked isn't a track block. Null if there's no track that close.
+     */
+    @Nullable
+    public static TrackPos nearest(Level level, Vec3 point, Vec3 look, double reach) {
+        java.util.Set<EdgeRef> edges = new java.util.LinkedHashSet<>();
+        BlockPos centre = BlockPos.containing(point);
+        // Track blocks close by, and the stretches running out of them.
+        for (BlockPos pos : BlockPos.betweenClosed(centre.offset(-2, -2, -2), centre.offset(2, 2, 2))) {
+            if (axis(level, pos) != null) {
+                BlockPos node = pos.immutable();
+                edges.addAll(edgesFrom(level, node, 1));
+                edges.addAll(edgesFrom(level, node, -1));
+            }
+        }
+        // A curve can run a long way from the track blocks at its ends: every curve starting within a few chunks.
+        net.minecraft.world.level.ChunkPos chunk = new net.minecraft.world.level.ChunkPos(centre);
+        for (int cx = chunk.x - 3; cx <= chunk.x + 3; cx++) {
+            for (int cz = chunk.z - 3; cz <= chunk.z + 3; cz++) {
+                net.minecraft.world.level.chunk.LevelChunk loaded = level.getChunkSource().getChunkNow(cx, cz);
+                if (loaded == null) {
+                    continue;
+                }
+                for (net.minecraft.world.level.block.entity.BlockEntity blockEntity : loaded.getBlockEntities().values()) {
+                    if (blockEntity instanceof TrackBlockEntity track) {
+                        edges.addAll(track.ownedEdges());
+                    }
+                }
+            }
+        }
+        EdgeRef best = null;
+        double bestAlong = 0;
+        double bestDistance = reach * reach;
+        for (EdgeRef edge : edges) {
+            TrackEdge shape = edge.geometry();
+            double length = shape.length();
+            int steps = Math.max(1, (int) Math.ceil(length / 0.2));
+            for (int i = 0; i <= steps; i++) {
+                double along = length * i / steps;
+                Vec3 p = shape.point(along);
+                double dx = p.x - point.x;
+                double dz = p.z - point.z;
+                double across = dx * dx + dz * dz;
+                if (across <= bestDistance && Math.abs(p.y - point.y) <= 1.5) {
+                    best = edge;
+                    bestAlong = along;
+                    bestDistance = across;
+                }
+            }
+        }
+        if (best == null) {
+            return null;
+        }
+        Vec3 tangent = best.geometry().tangent(bestAlong);
+        return new TrackPos(best, bestAlong, tangent.x * look.x + tangent.z * look.z >= 0);
+    }
+
+    /**
+     * Moves {@code centre} along the track as little as it can so that there's track {@code half} blocks either way of
+     * it: a car put down near the end of a line goes as near where it was put as it fits. Null if the track's too short.
+     */
+    @Nullable
+    public static TrackPos fit(Level level, TrackPos centre, double half) {
+        TrackPos at = centre.copy();
+        for (int attempt = 0; attempt < 4; attempt++) {
+            double ahead = at.copy().walk(level, half, TrackPos.STRAIGHTEST);
+            double behind = at.copy().walk(level, -half, TrackPos.STRAIGHTEST);
+            boolean shortAhead = ahead < half - 1.0E-6;
+            boolean shortBehind = behind < half - 1.0E-6;
+            if (!shortAhead && !shortBehind) {
+                return at;
+            }
+            if (shortAhead && shortBehind) {
+                return null;
+            }
+            double shift = shortAhead ? -(half - ahead) : half - behind;
+            if (at.walk(level, shift, TrackPos.STRAIGHTEST) < Math.abs(shift) - 1.0E-6) {
+                return null;
+            }
+        }
+        return null;
+    }
+
     /** Whether this stretch of track is still there. */
     public static boolean exists(Level level, EdgeRef edge) {
         if (axis(level, edge.from()) != edge.fromAxis() || axis(level, edge.to()) != edge.toAxis()

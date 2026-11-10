@@ -43,6 +43,8 @@ neoForge {
             // -PshowcaseBook: instead, every spread of the Railway Handbook, the JEI pages and a handbook button
             // (run python3 tools/guidebook/book.py first: it lists the spreads in run/guide-spreads.txt).
             systemProperty 'reikotrains.showcaseBook', project.hasProperty('showcaseBook') ? 'true' : 'false'
+            // -PrejoinTest: builds a train, saves and quits, opens the world again and checks it still works (see DevRejoin).
+            systemProperty 'reikotrains.rejoinTest', project.hasProperty('rejoinTest') ? 'true' : 'false'
             // -PwindowSize=1280x720: a bigger window, for bigger screenshots.
             def windowSize = project.findProperty('windowSize')
             if (windowSize) {

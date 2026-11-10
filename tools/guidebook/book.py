@@ -252,11 +252,12 @@ entry('track', 'track_layer', 'Track-Laying Wagon', 'track_layer', [
 # -- Driving --
 
 entry('driving', 'making_up', 'Making Up a Train', 'coupler', [
-    text('$(li)Click a track block with a locomotive, coach or wagon to put it there, facing the way you\'re looking. It '
-         'needs track under both bogies.'
+    text('$(li)Click the track (a track block, or along a curve) with a locomotive, coach or wagon to put it there, facing the '
+         'way you\'re looking.'
          f'$(li)Take the {I("coupler")}, click one car, then the next car along (up to 5 blocks between buffers): they\'re drawn '
          'together.$(li)Sneak-click a car with the coupler to uncouple it.'),
-    text('Cars couple at either end, facing either way, and the locomotives can be anywhere in the train: they pull or push. A '
+    text('Near the end of a line, a car goes as near where you clicked as it fits.$(br2)'
+         'Cars couple at either end, facing either way, and the locomotives can be anywhere in the train: they pull or push. A '
          'train can have up to 16 cars (a server setting).$(br2)Break a car (hit it a few times) to pick it up again; what it '
          'carries spills out.'),
     craft('coupler', None, 'Iron ingot, chain, iron ingot, in a column.'),
@@ -487,7 +488,7 @@ entry('electric', 'trams', 'Trams', 'vintage_tram', [
          + '. Both run from the wire, with a small battery for junctions and gaps (or charge at a charging point), and ring a bell.'
          '$(br2)The $(l)Vintage Tram$() runs both ways: get in as the driver at the end you want to lead. Its trolley pole trails behind '
          'it to the wire.'),
-    text('The $(l)Low-Floor Tram$() is three sections that bend round corners, about fourteen blocks in all: click a track block with it '
+    text('The $(l)Low-Floor Tram$() is three sections that bend round corners, about fourteen blocks in all: click the track with it '
          'to put all three on together, and breaking any of them takes the whole tram up. Drive it from either end: about 50 km/h, '
          'fourteen seats.'),
     image('low_floor_tram', 'The low-floor tram round a street corner.'),

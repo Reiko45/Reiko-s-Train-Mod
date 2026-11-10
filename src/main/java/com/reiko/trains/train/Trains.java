@@ -111,6 +111,25 @@ public final class Trains {
         return List.of();
     }
 
+    /**
+     * Whether the world's loaded, entities and all, for two chunks round a car: far enough to hold any car coupled to
+     * it. A coupled car missing from there is gone, not just not loaded yet.
+     */
+    static boolean aroundLoaded(TrainCarEntity car) {
+        if (!(car.level() instanceof ServerLevel level)) {
+            return false;
+        }
+        ChunkPos at = car.chunkPosition();
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dz = -2; dz <= 2; dz++) {
+                if (!level.areEntitiesLoaded(ChunkPos.asLong(at.x + dx, at.z + dz))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     // ----------------------------------------------------------------------------------------------------------------
     // Finding the train
 
@@ -200,8 +219,9 @@ public final class Trains {
             }
             TrainCarEntity next = follower(c);
             if (next == null) {
-                // A coupled car isn't loaded: wait for it (a while) rather than leave it behind.
-                if (++head.waiting > 200) {
+                // A coupled car isn't loaded: wait for it rather than leave it behind. Only once the world all round
+                // this car has loaded (and stayed loaded) without it turning up is it taken to be gone.
+                if (aroundLoaded(c) && ++head.waiting > 200) {
                     ReikoTrains.LOGGER.warn("Train car {} lost the car coupled behind it ({}); uncoupling", c.getUUID(), c.follower);
                     c.follower = null;
                     head.waiting = 0;

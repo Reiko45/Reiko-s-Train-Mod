@@ -73,6 +73,10 @@ public abstract class TrainCarEntity extends VehicleEntity {
     final Map<Long, EdgeRef> routes = new HashMap<>();
     /** Ticks spent waiting for a coupled car that isn't loaded. */
     int waiting;
+    /** Ticks spent waiting for the car coupled in front, while the world round this one is loaded and it isn't there. */
+    int leaderWaiting;
+    /** Whether it's been lined up with its bogies since it was loaded (server). */
+    private boolean posed;
     /** When (game time) this car, at the front of its moving train, ran up against the end of the track, and which end of it did. */
     long endBumpTime = Long.MIN_VALUE / 2;
     int endBumpEnd;
@@ -355,14 +359,71 @@ public abstract class TrainCarEntity extends VehicleEntity {
             return;
         }
         BlockPos turntable = carriedBy();
+        if (!posed) {
+            // Just loaded: its bogies turned to the track again (they aren't saved), and its hitbox sections round it.
+            posed = true;
+            if (turntable == null) {
+                updatePose();
+            }
+        }
         if (turntable != null && com.reiko.trains.turntable.TurntableBlockEntity.hold(this, turntable, entityData.get(DATA_TURN_ALONG),
                 entityData.get(DATA_TURN_FRONT))) {
+            keepPartsInPlace();
             return;
+        }
+        if (leader != null) {
+            checkLeader();
         }
         if (leader == null) {
             Trains.tickTrain(this);
         }
+        keepPartsInPlace();
         pushAside();
+    }
+
+    /**
+     * Keeps the hitbox sections where the car is. The server only lets a player click or hit a section within reach of
+     * them, so sections left behind (where a car was loaded, say, or teleported from) would make the car unclickable.
+     */
+    private void keepPartsInPlace() {
+        if (parts.length == 0) {
+            return;
+        }
+        Vec3 f = forward();
+        CarPart first = parts[0];
+        double x = getX() + f.x * first.offset;
+        double y = getY() + f.y * first.offset;
+        double z = getZ() + f.z * first.offset;
+        if (Math.abs(first.getX() - x) > 1.0E-4 || Math.abs(first.getY() - y) > 1.0E-4 || Math.abs(first.getZ() - z) > 1.0E-4) {
+            updateParts();
+        }
+    }
+
+    /**
+     * A car whose car in front has gone for good, or isn't coupled back to it, would never move again (only the front
+     * car of a train moves it): it's let go, to be the front of its own train. A car in front that's just not loaded
+     * yet is waited for.
+     */
+    private void checkLeader() {
+        TrainCarEntity ahead = Trains.leader(this);
+        if (ahead != null) {
+            leaderWaiting = 0;
+            if (!getUUID().equals(ahead.follower)) {
+                dropLeader("isn't coupled back to it");
+            }
+        } else if (Trains.aroundLoaded(this) && ++leaderWaiting > 200) {
+            dropLeader("isn't there");
+        }
+    }
+
+    private void dropLeader(String why) {
+        ReikoTrains.LOGGER.warn("Train car {}: the car coupled in front of it ({}) {}; uncoupling", getUUID(), leader, why);
+        leader = null;
+        leaderCache = null;
+        leaderWaiting = 0;
+        flipped = false;
+        speed = 0;
+        routes.clear();
     }
 
     private void clientTick() {
@@ -574,6 +635,8 @@ public abstract class TrainCarEntity extends VehicleEntity {
     @Override
     public void onAddedToLevel() {
         super.onAddedToLevel();
+        // Loaded or just put down: the hitbox sections go round it straight away (they aren't saved).
+        updateParts();
         if (!level().isClientSide) {
             Trains.loaded(this);
         }

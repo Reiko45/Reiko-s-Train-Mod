@@ -164,8 +164,9 @@ public final class TrainGameTests {
         helper.assertTrue(TrainCarItem.place(helper.getLevel(), blocked, onLine(helper, 12), EAST) == TrainCarItem.Problem.BLOCKED,
                 "a car can't go on top of another");
         TrainCarEntity endOfLine = ModEntities.PASSENGER_COACH.get().create(helper.getLevel());
-        helper.assertTrue(TrainCarItem.place(helper.getLevel(), endOfLine, onLine(helper, 1), EAST) == TrainCarItem.Problem.NO_ROOM,
-                "a coach needs track under both bogies");
+        helper.assertTrue(TrainCarItem.place(helper.getLevel(), endOfLine, onLine(helper, 1), EAST) == null
+                && endOfLine.rear().isValid(helper.getLevel()) && endOfLine.rear().position().x > onLine(helper, 0).getX(),
+                "a coach put down by the end of the line goes as near it as it fits, both bogies on the track");
         helper.succeed();
     }
 
