@@ -261,6 +261,42 @@ public final class DevRejoin {
         if (tick == 320) {
             shot(mc, "rejoin_4_placed_curve");
         }
+        if (tick == 330) {
+            server(mc, (level, player) -> {
+                player.stopRiding();
+                player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+                player.setGameMode(GameType.SURVIVAL);
+                TrainCarEntity car = car(level, coach);
+                player.teleportTo(level, car.getX(), car.getY(), car.getZ() - 3.0, 0, 10);
+            });
+        }
+        if (tick >= 340 && tick < 350) {
+            // Walking into the coach's side, as the player's own game moves them (it checks for collisions itself).
+            mc.player.move(net.minecraft.world.entity.MoverType.SELF, new Vec3(0, 0, 0.3));
+        }
+        if (tick == 360) {
+            double clientZ = mc.player.getZ();
+            server(mc, (level, player) -> {
+                TrainCarEntity car = car(level, coach);
+                double side = car.getZ() - 1.0;
+                boolean stopped = clientZ + 0.3 <= side + 0.01;
+                boolean agreed = Math.abs(player.getZ() - clientZ) < 0.05;
+                result("walk into a coach and stop at its side (survival)", stopped && agreed,
+                        String.format("client at %.2f, server at %.2f, its side at %.2f", clientZ + 0.3, player.getZ() + 0.3, side));
+                player.teleportTo(level, car.getX(), car.getY() + 4.5, car.getZ(), 0, 10);
+            });
+        }
+        if (tick == 395) {
+            double clientY = mc.player.getY();
+            boolean clientGround = mc.player.onGround();
+            server(mc, (level, player) -> {
+                TrainCarEntity car = car(level, coach);
+                double roof = car.getY() + 3.0;
+                boolean ok = Math.abs(clientY - roof) < 0.05 && clientGround && Math.abs(player.getY() - roof) < 0.05;
+                result("stand on a coach's roof", ok, String.format("client at %.2f, server at %.2f, roof at %.2f", clientY, player.getY(), roof));
+                player.setGameMode(GameType.CREATIVE);
+            });
+        }
         if (tick == 400) {
             server(mc, (level, player) -> {
                 report(level, player, "after 20 seconds");
@@ -268,7 +304,7 @@ public final class DevRejoin {
                 RESULTS.forEach(line -> ReikoTrains.LOGGER.info("REJOIN: {}", line));
             });
         }
-        if (tick == 410) {
+        if (tick == 420) {
             mc.stop();
         }
     }

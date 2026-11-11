@@ -89,9 +89,10 @@ public class CarTransporter extends TrainCarEntity {
         return 2.0 + slots.size();
     }
 
+    /** Up to the deck ({@link #DECK}, written out for tools/guidebook/book.py): solid, it's what people and cars stand on. */
     @Override
     protected float partHeight() {
-        return 1.3F;
+        return 1.0625F;
     }
 
     @Override

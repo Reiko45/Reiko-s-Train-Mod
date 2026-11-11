@@ -107,6 +107,9 @@ Get the jar from the [Releases](https://github.com/Reiko45/Reiko-s-Train-Mod/rel
   laying a bridge with the track-laying wagon.
 
 The coaches and wagons ride on two bogies that swing under them, so long cars go round curves like the real thing.
+They're solid, all along: people, animals, dropped things and cars from Reiko's Car Mod bump into them rather than
+pass through, and you can climb onto a train and walk along its roofs (a moving train slides out from under you,
+though: get in to ride).
 
 ![The loop](docs/screenshots/loop.jpg)
 
@@ -1067,7 +1070,8 @@ driving on and rolling to the far end, staying aboard when its driver gets out, 
 until a bus won't fit, driving off either end with another car in the way or not, driving on along the train to the
 far transporter and back off over the empty one, a train carrying its cars along (and not taking any more while it's
 moving), the cars' places saved with it, a pickup towing a camper aboard (the trailer unhitched on the deck and
-hitched up again), and a car going aboard sideways from a Car Ramp and off onto it again.
+hitched up again), a car going aboard sideways from a Car Ramp and off onto it again, and a bus driven up against a
+transporter's (solid) end still going aboard.
 
 `OverheadLineGameTests` covers overhead wires: masts holding the wire over the middle of the track at the right
 height (and not going up too far from it), stringing wire mast to mast with the item (too far, already wired,
@@ -1141,6 +1145,10 @@ map says, saving it with the world, and the details the world map shows (how fas
 
 `AdvancementGameTests` covers the mod's advancements being earned on the railway.
 
+`CollisionGameTests` covers trains being solid: a pig walking into a coach (in the middle and at both ends) and into a
+locomotive's end stopped at its side, something dropped on a coach landing on its roof and on a car transporter on its
+deck, and someone getting out of a coach landing clear of it.
+
 `LoadingGameTests` covers trains saved and loaded again: a loaded coach got into and a loaded locomotive broken, by
 the clicks a player's client sends (which the server only takes within reach of the car's hitbox), a loaded coach's
 bogies following the curve it's on again, a player leaving the game while riding a coach leaving it on the track and
@@ -1160,7 +1168,8 @@ pages.
 
 `./gradlew runClient -PrejoinTest -PwindowSize=1280x720` builds a train in a new world, saves and quits from inside it,
 opens the world again, and then (through the client, as a player would) gets in, uses the coupler, breaks a car and
-puts cars down on a curve and at the end of the line, logging `REJOIN: PASS` or `FAIL` for each and saving
+puts cars down on a curve and at the end of the line, walks into a coach and stands on its roof (in survival, so the
+server checks each step), logging `REJOIN: PASS` or `FAIL` for each and saving
 `rejoin_*.png` screenshots.
 
 ### Models, textures and sounds

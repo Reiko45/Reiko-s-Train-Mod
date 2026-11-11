@@ -2,6 +2,22 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 1.1.0
+
+Trains are solid.
+
+- **Locomotives, tenders, coaches, wagons and trams can't be walked through any more.** People, animals and dropped
+  things bump into them all along their length, as they would a boat, and you can climb onto a train and stand on
+  its roof. Getting in and out works as before; anyone getting out lands clear of the car. A moving train slides out
+  from under anyone standing on it, so get in to ride.
+- **Cars from Reiko's Car Mod bump into trains and trams** instead of driving through them: on the street, and at a
+  level crossing with a train standing on it.
+- **A car transporter is solid up to its deck**, so it's what you (and the cars on it) stand on. A car or a bus driven
+  up against a transporter's end still goes aboard, though its nose is over the end by then (a bus's sticks out more
+  than two blocks past its hitbox).
+- The network version changes: clients and servers both need 1.1.0, so everyone's game agrees on what's solid.
+- Three new game tests (219 in all), and the client check walks into a coach and stands on its roof in survival.
+
 ## 1.0.1
 
 Fixes for [issue #1](https://github.com/Reiko45/Reiko-s-Train-Mod/issues/1): trains broke after leaving the world and

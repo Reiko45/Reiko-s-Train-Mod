@@ -69,6 +69,9 @@ public final class CarCargo {
     public static Approach approach(Entity car, int direction, double reach) {
         Vec3 heading = forward(car).scale(direction);
         Vec3 tip = car.position().add(heading.scale(length(car) / 2));
+        // A car's hitbox is square, so its nose sticks out past it: driven up against the (solid) wagon, the nose is
+        // over the end by that much. That counts as being at the end.
+        double overhang = Math.max(0, length(car) / 2 - car.getBbWidth() / 2);
         Approach best = null;
         double bestDistance = reach;
         for (CarTransporter wagon : car.level().getEntitiesOfClass(CarTransporter.class, car.getBoundingBox().inflate(16))) {
@@ -83,9 +86,9 @@ public final class CarCargo {
                 Vec3 toTip = tip.subtract(wagon.position());
                 double out = (toTip.x * along.x + toTip.z * along.z) * end;
                 double into = heading.dot(along) * -end;
-                Vec3 endPoint = wagon.position().add(along.scale(end * wagon.halfLength()));
-                double distance = Math.hypot(tip.x - endPoint.x, tip.z - endPoint.z);
-                if (out >= wagon.halfLength() - 1.0 && into >= LINED_UP && distance < bestDistance) {
+                double side = Math.abs(toTip.x * -along.z + toTip.z * along.x);
+                double distance = Math.hypot(Math.max(0, out - wagon.halfLength()), side);
+                if (out >= wagon.halfLength() - 1.0 - overhang && into >= LINED_UP && distance < bestDistance) {
                     best = new Approach(wagon, end);
                     bestDistance = distance;
                 }

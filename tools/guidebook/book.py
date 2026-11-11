@@ -261,6 +261,8 @@ entry('driving', 'making_up', 'Making Up a Train', 'coupler', [
          'train can have up to 16 cars (a server setting).$(br2)Break a car (hit it a few times) to pick it up again; what it '
          'carries spills out.'),
     craft('coupler', None, 'Iron ingot, chain, iron ingot, in a column.'),
+    text('Trains are solid: you can\'t walk through one, and you can stand on its roof (but get in to ride: a moving train slides '
+         'out from under anyone standing on it). Cars from Reiko\'s Car Mod bump into trains and trams too.'),
     text('A train can have several locomotives, anywhere in it and facing either way: double-head a heavy train, or put a banking '
          'engine at the back to push.$(br2)One is in charge: the one on a timetable, or else the one being driven. The others work '
          'with it, notched up the same, each adding its pull up to its own top speed, and each burning its own fuel.',

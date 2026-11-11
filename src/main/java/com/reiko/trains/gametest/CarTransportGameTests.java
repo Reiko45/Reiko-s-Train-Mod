@@ -122,6 +122,30 @@ public final class CarTransportGameTests {
         });
     }
 
+    @GameTest(template = LINE, timeoutTicks = 60)
+    public static void aBusDrivenUpAgainstTheEndStillGoesAboard(GameTestHelper helper) {
+        if (noCarMod(helper)) {
+            return;
+        }
+        line(helper);
+        CarTransporter wagon = transporter(helper, 20);
+        // A bus: its hitbox is square, so its nose sticks out well past it.
+        Entity sedan = carAtEastEnd(helper, wagon, "city_bus", 7.75);
+        Player driver = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.runAfterDelay(5, () -> {
+            // Driven on into the wagon's end: it's solid, so the bus stops there, its nose over the end.
+            sedan.move(net.minecraft.world.entity.MoverType.SELF, new net.minecraft.world.phys.Vec3(-5.0, 0, 0));
+            double front = sedan.getX() - sedan.getBbWidth() / 2;
+            helper.assertTrue(Math.abs(front - (wagon.getX() + wagon.halfLength())) < 0.05,
+                    "the bus should stop against the wagon's end, its hitbox at " + (front - wagon.getX()));
+            String said = drive(driver, sedan, 1);
+            helper.assertTrue(said.equals("loaded"), "from there it should still go aboard, not: " + said);
+            helper.assertTrue(sedan.getVehicle() == wagon, "the bus should be on the transporter");
+            driver.stopRiding();
+            helper.succeed();
+        });
+    }
+
     @GameTest(template = LINE, timeoutTicks = 80)
     public static void carsFillTheDeckEndToEnd(GameTestHelper helper) {
         if (noCarMod(helper)) {

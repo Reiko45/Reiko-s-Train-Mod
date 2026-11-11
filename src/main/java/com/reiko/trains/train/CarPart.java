@@ -51,6 +51,15 @@ public class CarPart extends PartEntity<TrainCarEntity> {
         return true;
     }
 
+    /**
+     * Solid, as a boat is: people, animals, dropped items and the car mod's cars bump into the car instead of passing
+     * through it, and can stand on it. (Its passengers don't: riding, they aren't moved by bumping into things.)
+     */
+    @Override
+    public boolean canBeCollidedWith() {
+        return !getParent().isRemoved();
+    }
+
     @Override
     public boolean hurt(DamageSource source, float amount) {
         return !isInvulnerableTo(source) && getParent().hurt(source, amount);
