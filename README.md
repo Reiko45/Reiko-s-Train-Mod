@@ -789,7 +789,8 @@ throws it; **green**, redstone holds it straight on. It lights up while redstone
 Trains on a timetable set an unheld switch for themselves as they come up to it, to the way to their next station.
 A switch held by redstone they have to obey, so redstone can keep them off a branch, or send them round a different way (or into a siding).
 Drivers' A / D steering only counts at junctions with no switch. Throwing a switch under a train doesn't split it:
-the cars behind follow the engine.
+the cars behind follow the engine (each car goes the way the car in front of it went, even when the world's been
+saved partway over a junction).
 
 ![A switch stand, set normally (left) and thrown](docs/screenshots/switch_stand.jpg)
 
@@ -1153,7 +1154,9 @@ deck, and someone getting out of a coach landing clear of it.
 the clicks a player's client sends (which the server only takes within reach of the car's hitbox), a loaded coach's
 bogies following the curve it's on again, a player leaving the game while riding a coach leaving it on the track and
 still coupled, a car whose car in front is gone for good being let go of to run on its own, and cars put down on the
-middle of a curve and on the last block of a line (and not on track shorter than them).
+middle of a curve and on the last block of a line (and not on track shorter than them), an express and tender saved
+and loaded partway over a junction (the engine gone down the branch) staying on one line, and cars saved coupled but
+far apart being uncoupled.
 
 `./gradlew runClient -Pshowcase -PwindowSize=1280x720` builds a test railway, runs trains round it and saves
 screenshots to `run/screenshots/` (that's where the pictures above come from). Add `-PxaeroJars=/path/to/folder` for

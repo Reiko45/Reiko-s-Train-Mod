@@ -3,12 +3,16 @@ package com.reiko.trains.gametest;
 import com.mojang.authlib.GameProfile;
 import com.reiko.trains.ReikoTrains;
 import com.reiko.trains.item.TrainCarItem;
+import com.reiko.trains.network.TrainControlPayload;
 import com.reiko.trains.registry.ModEntities;
 import com.reiko.trains.track.TrackAxis;
+import com.reiko.trains.track.TrackBuilder;
 import com.reiko.trains.track.TrackGraph;
 import com.reiko.trains.track.TrackPos;
+import com.reiko.trains.train.ExpressLocomotive;
 import com.reiko.trains.train.PassengerCoach;
 import com.reiko.trains.train.SteamLocomotive;
+import com.reiko.trains.train.Tender;
 import com.reiko.trains.train.TrainCarEntity;
 import com.reiko.trains.train.Trains;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -27,6 +31,7 @@ import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
@@ -241,5 +246,91 @@ public final class LoadingGameTests {
         helper.assertTrue(TrainCarItem.place(level, tooLong, stub.offset(1, 0, 0), EAST) == TrainCarItem.Problem.NO_ROOM,
                 "a coach doesn't go on three blocks of track");
         helper.succeed();
+    }
+
+    /** A junction: a line going east, and a curve branching off to the right (south) at x = 14. Returns its west end. */
+    private static BlockPos junction(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        TestTracks.floor(level, helper.absolutePos(new BlockPos(0, 1, 0)), 48, 48);
+        BlockPos west = helper.absolutePos(new BlockPos(2, 1, 10));
+        TestTracks.line(level, west, TrackAxis.X, 40);
+        BlockPos branchStart = west.offset(12, 0, 0);
+        TrackBuilder.Plan branch = TestTracks.connect(level, branchStart, branchStart.offset(12, 0, 5));
+        TestTracks.line(level, branch.end().offset(1, 0, 1), TrackAxis.SE, 8);
+        return west;
+    }
+
+    private static void drive(Player driver, ExpressLocomotive express) {
+        driver.moveTo(express.position());
+        driver.startRiding(express);
+        for (int i = 0; i < 3; i++) {
+            express.control(TrainControlPayload.THROTTLE_UP);
+        }
+    }
+
+    @GameTest(template = YARD, timeoutTicks = 400)
+    public static void aTrainLoadedPartwayOverAJunctionStaysOnOneLine(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos west = junction(helper);
+        ExpressLocomotive[] express = {TestTracks.car(level, ModEntities.EXPRESS_LOCOMOTIVE.get(), west.offset(9, 0, 0), EAST)};
+        Tender[] tender = {TestTracks.car(level, ModEntities.TENDER.get(), west.offset(2, 0, 0), EAST)};
+        helper.assertTrue(Trains.couple(express[0], tender[0]) == Trains.CoupleResult.COUPLED, "the tender should couple");
+        tender[0].setFuel(Tender.FUEL_CAPACITY);
+        Player driver = helper.makeMockPlayer(GameType.SURVIVAL);
+        drive(driver, express[0]);
+        express[0].control(TrainControlPayload.STEER_RIGHT);
+        double junctionX = west.getX() + 12.5;
+        boolean[] reloaded = {false};
+        helper.onEachTick(() -> {
+            if (!reloaded[0] && express[0].getX() > junctionX + 4 && tender[0].getX() < junctionX - 1) {
+                // The engine's gone right, onto the branch, and the tender isn't over the junction yet: the world's
+                // saved and loaded (or the player goes away and comes back) here.
+                reloaded[0] = true;
+                driver.stopRiding();
+                express[0] = reload(helper, express[0]);
+                tender[0] = reload(helper, tender[0]);
+                drive(driver, express[0]);
+            }
+        });
+        helper.runAfterDelay(300, () -> {
+            helper.assertTrue(reloaded[0], "the train should have been loaded again partway over the junction");
+            helper.assertTrue(express[0].getZ() > west.getZ() + 8, "the engine should have gone down the branch");
+            helper.assertTrue(Trains.train(express[0]).size() == 2, "the tender should still be coupled to it");
+            helper.assertTrue(tender[0].getZ() > west.getZ() + 3,
+                    String.format("the tender should have followed the engine down the branch, not gone straight on (z went %.1f)", tender[0].getZ() - west.getZ()));
+            helper.assertTrue(express[0].distanceTo(tender[0]) < express[0].halfLength() + tender[0].halfLength() + 0.5, "and be right behind it");
+            driver.stopRiding();
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = LINE, timeoutTicks = 60)
+    public static void carsSavedCoupledButApartAreLetGo(GameTestHelper helper) {
+        straight(helper, 64);
+        ServerLevel level = helper.getLevel();
+        ExpressLocomotive express = TestTracks.car(level, ModEntities.EXPRESS_LOCOMOTIVE.get(), onLine(helper, 45), EAST);
+        Tender tender = TestTracks.car(level, ModEntities.TENDER.get(), onLine(helper, 10), EAST);
+        // Saved coupled, but far apart (as a train that went two ways at a junction before 1.1.1 was).
+        CompoundTag front = new CompoundTag();
+        express.save(front);
+        front.putUUID("CoupledBack", tender.getUUID());
+        CompoundTag back = new CompoundTag();
+        tender.save(back);
+        back.putUUID("CoupledFront", express.getUUID());
+        express.remove(Entity.RemovalReason.UNLOADED_TO_CHUNK);
+        tender.remove(Entity.RemovalReason.UNLOADED_TO_CHUNK);
+        Entity loadedFront = EntityType.loadEntityRecursive(front, level, e -> e);
+        Entity loadedBack = EntityType.loadEntityRecursive(back, level, e -> e);
+        helper.assertTrue(loadedFront != null && level.addFreshEntity(loadedFront) && loadedBack != null && level.addFreshEntity(loadedBack),
+                "both should load");
+        ExpressLocomotive engine = (ExpressLocomotive) loadedFront;
+        Tender stray = (Tender) loadedBack;
+        helper.assertTrue(Trains.train(engine).size() == 2, "they should load coupled");
+        double tenderX = stray.getX();
+        helper.runAfterDelay(10, () -> {
+            helper.assertTrue(stray.leaderId() == null && Trains.train(engine).size() == 1, "cars coupled but far apart should be uncoupled");
+            helper.assertTrue(Math.abs(stray.getX() - tenderX) < 1.0E-6, "and the one let go should stand where it is");
+            helper.succeed();
+        });
     }
 }

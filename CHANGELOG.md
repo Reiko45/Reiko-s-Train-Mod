@@ -2,6 +2,20 @@
 
 Reiko's Train Mod, for Minecraft 1.21.1 (NeoForge).
 
+## 1.1.1
+
+A fix for a problem reported on [issue #1](https://github.com/Reiko45/Reiko-s-Train-Mod/issues/1): a train could split
+at a junction, its engine going one way and the cars behind it the other.
+
+- **The cars behind always follow the engine at a junction.** Each car now goes whichever way the car in front of it
+  went. Before, the train remembered which way its front had gone at each junction, but it didn't remember that
+  through being saved, and coupling or uncoupling cars made it forget too. So a train standing partway over a
+  junction when the world was saved (or left behind when you went far enough away) could split when it set off
+  again: the engine down the branch, the tender straight on, still coupled across the two lines.
+- **A train that's already split comes apart.** Coupled cars that aren't on the same line any more are uncoupled, and
+  the ones behind stop where they are, so you can bring them back and couple them up again.
+- Two new game tests (221 in all). The network version stays 14.
+
 ## 1.1.0
 
 Trains are solid.

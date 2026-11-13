@@ -7,6 +7,7 @@ import com.reiko.trains.track.EdgeRef;
 import com.reiko.trains.track.TrackEdge;
 import com.reiko.trains.track.TrackGraph;
 import com.reiko.trains.track.TrackPos;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -38,6 +39,8 @@ public final class Trains {
     public static final double BUFFER_GAP = 0.05;
     /** How far apart (buffer to buffer, along the track) two cars can be and still be coupled. */
     public static final double COUPLING_REACH = 5.0;
+    /** How much further apart than buffer to buffer two coupled cars can be before they're taken to be on different lines. */
+    private static final double SPLIT_SLACK = 2.0;
     /** Gravity along a slope: blocks per tick per tick, per unit of slope. */
     private static final double GRAVITY = 0.008;
     private static final double ROLLING_RESISTANCE = 0.0001;
@@ -240,6 +243,19 @@ public final class Trains {
                 return; // going round on a turntable: it'll be put back on the track when it's lined up
             }
         }
+        for (int k = 0; k + 1 < cars.size(); k++) {
+            TrainCarEntity a = cars.get(k);
+            TrainCarEntity b = cars.get(k + 1);
+            if (a.distanceTo(b) > a.halfLength() + b.halfLength() + BUFFER_GAP + SPLIT_SLACK) {
+                // Coupled, but not on the same line any more (a train that went two ways at a junction before 1.1.1):
+                // the cars behind are let go, and stop, rather than run on along a line of their own.
+                ReikoTrains.LOGGER.warn("Train car {} and the car coupled behind it ({}) aren't on the same line; uncoupling", a.getUUID(), b.getUUID());
+                split(cars, k);
+                b.speed = 0;
+                cars = new ArrayList<>(cars.subList(0, k + 1));
+                break;
+            }
+        }
         for (TrainCarEntity car : cars) {
             if (!car.front.isValid(car.level()) || !car.rear.isValid(car.level())) {
                 car.derail();
@@ -412,9 +428,10 @@ public final class Trains {
             head.routes.put(routeKey(node.asLong(), side), chosen);
             return chosen;
         };
-        TrackPos.Chooser followerChooser = (node, side, options, heading) -> {
-            EdgeRef remembered = head.routes.get(routeKey(node.asLong(), side));
-            return remembered != null && options.contains(remembered) ? remembered : TrackGraph.choose(options, heading, 0);
+        // If it can't tell which way the bogie ahead went: the way the front of the train went there, or straight on.
+        TrackPos.Chooser remembered = (node, side, options, heading) -> {
+            EdgeRef way = head.routes.get(routeKey(node.asLong(), side));
+            return way != null && options.contains(way) ? way : TrackGraph.choose(options, heading, 0);
         };
         double moved = probe.walk(level, leadDelta, leaderChooser);
         if (moved < Math.abs(leadDelta) - 1.0E-6) {
@@ -422,30 +439,87 @@ public final class Trains {
             leadCar.endBumpEnd = leadIsFront ? 1 : -1;
         }
         double actual = Math.signum(distance) * moved;
-        for (int i = 0; i < cars.size(); i++) {
+        // Every other bogie, from the front of the train's motion back, takes whichever way the bogie ahead of it
+        // went: the train stays on one line even when the front's choices have been forgotten (it's been saved and
+        // loaded, or coupled up, partway over a junction).
+        double reach = 2 * maxHalfLength(cars) + BUFFER_GAP + Math.abs(actual) + 2;
+        TrackPos guide = probe;
+        for (int n = 0; n < cars.size(); n++) {
+            int i = distance > 0 ? n : cars.size() - 1 - n;
             TrainCarEntity car = cars.get(i);
             double delta = actual * signs[i];
+            boolean frontFirst = car == leadCar ? leadIsFront : delta > 0;
             if (car == leadCar) {
                 if (leadIsFront) {
                     car.front = probe;
-                    car.rear.walk(level, delta, followerChooser);
                 } else {
                     car.rear = probe;
-                    car.front.walk(level, delta, followerChooser);
                 }
             } else {
-                // Walk the bogie nearer the front of the train's motion first, so junction choices are in order.
-                if (delta > 0) {
-                    car.front.walk(level, delta, followerChooser);
-                    car.rear.walk(level, delta, followerChooser);
-                } else {
-                    car.rear.walk(level, delta, followerChooser);
-                    car.front.walk(level, delta, followerChooser);
-                }
+                TrackPos first = frontFirst ? car.front : car.rear;
+                first.walk(level, delta, follow(level, guide, reach, remembered));
+                guide = first;
             }
+            TrackPos second = frontFirst ? car.rear : car.front;
+            second.walk(level, delta, follow(level, guide, reach, remembered));
+            guide = second;
             car.updatePose();
         }
         return moved;
+    }
+
+    private static double maxHalfLength(List<TrainCarEntity> cars) {
+        double most = 0;
+        for (TrainCarEntity car : cars) {
+            most = Math.max(most, car.halfLength());
+        }
+        return most;
+    }
+
+    /** At a junction, the way that leads to {@code guide} (the bogie ahead, already moved), or else {@code otherwise}'s choice. */
+    private static TrackPos.Chooser follow(Level level, TrackPos guide, double reach, TrackPos.Chooser otherwise) {
+        return (node, side, options, heading) -> {
+            EdgeRef best = null;
+            double bestDistance = reach;
+            for (EdgeRef option : options) {
+                double d = distanceTo(level, option, guide, Math.min(reach, bestDistance));
+                if (d < bestDistance) {
+                    best = option;
+                    bestDistance = d;
+                }
+            }
+            return best != null ? best : otherwise.choose(node, side, options, heading);
+        };
+    }
+
+    /**
+     * How far it is along the track from the start of {@code edge}, going along it (and on, whichever way at junctions),
+     * to {@code to}: the shortest way, or infinity if it isn't within {@code reach}.
+     */
+    static double distanceTo(Level level, EdgeRef edge, TrackPos to, double reach) {
+        double best = Double.POSITIVE_INFINITY;
+        ArrayDeque<EdgeRef> edges = new ArrayDeque<>();
+        ArrayDeque<Double> starts = new ArrayDeque<>();
+        edges.add(edge);
+        starts.add(0.0);
+        for (int guard = 0; guard < 64 && !edges.isEmpty(); guard++) {
+            EdgeRef at = edges.poll();
+            double start = starts.poll();
+            double length = at.geometry().length();
+            if (at.equals(to.edge())) {
+                best = Math.min(best, start + to.distance());
+            } else if (at.equals(to.edge().reversed())) {
+                best = Math.min(best, start + length - to.distance());
+            }
+            double end = start + length;
+            if (end < Math.min(reach, best)) {
+                for (EdgeRef next : TrackGraph.edgesFrom(level, at.to(), -at.toSide())) {
+                    edges.add(next);
+                    starts.add(end);
+                }
+            }
+        }
+        return best <= reach ? best : Double.POSITIVE_INFINITY;
     }
 
     /**
